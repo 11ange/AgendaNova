@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
 import 'package:agendanova/domain/entities/paciente.dart'; // Para seleção de paciente
 import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // Importação adicionada para DateFormat
 
 // Tela de Relatórios
 class RelatoriosPage extends StatefulWidget {
@@ -44,9 +45,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
               // Gerar Relatório Mensal Global
               Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -62,20 +61,14 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               value: _selectedMonth,
-                              decoration: const InputDecoration(
-                                labelText: 'Mês',
-                              ),
+                              decoration: const InputDecoration(labelText: 'Mês'),
                               items: List.generate(12, (index) {
                                 final month = index + 1;
                                 return DropdownMenuItem(
                                   value: month,
-                                  child: Text(
-                                    DateFormat.MMMM(
-                                      'pt_BR',
-                                    ).format(DateTime(2024, month)),
-                                  ),
+                                  child: Text(DateFormat.MMMM('pt_BR').format(DateTime(2024, month))),
                                 );
-                              }),
+                              }).toList(), // Adicionado .toList()
                               onChanged: (value) {
                                 setState(() {
                                   _selectedMonth = value!;
@@ -87,16 +80,14 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                           Expanded(
                             child: DropdownButtonFormField<int>(
                               value: _selectedYear,
-                              decoration: const InputDecoration(
-                                labelText: 'Ano',
-                              ),
+                              decoration: const InputDecoration(labelText: 'Ano'),
                               items: List.generate(5, (index) {
                                 final year = DateTime.now().year - 2 + index;
                                 return DropdownMenuItem(
                                   value: year,
                                   child: Text(year.toString()),
                                 );
-                              }),
+                              }).toList(), // Adicionado .toList()
                               onChanged: (value) {
                                 setState(() {
                                   _selectedYear = value!;
@@ -116,28 +107,14 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                   ? null
                                   : () async {
                                       try {
-                                        final relatorio = await viewModel
-                                            .gerarRelatorioMensalGlobal(
-                                              _selectedYear,
-                                              _selectedMonth,
-                                            );
+                                        final relatorio = await viewModel.gerarRelatorioMensalGlobal(_selectedYear, _selectedMonth);
                                         if (mounted) {
-                                          _showRelatorioDialog(
-                                            context,
-                                            relatorio.tipoRelatorio,
-                                            relatorio.dados,
-                                          );
+                                          _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
                                         }
                                       } catch (e) {
                                         if (mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Erro ao gerar relatório: ${e.toString()}',
-                                              ),
-                                            ),
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
                                           );
                                         }
                                       }
@@ -156,9 +133,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
               // Gerar Relatório Individual do Paciente
               Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -173,9 +148,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                         builder: (context, viewModel, child) {
                           return DropdownButtonFormField<Paciente>(
                             value: _selectedPaciente,
-                            decoration: const InputDecoration(
-                              labelText: 'Selecionar Paciente *',
-                            ),
+                            decoration: const InputDecoration(labelText: 'Selecionar Paciente *'),
                             items: viewModel.pacientes.map((paciente) {
                               return DropdownMenuItem<Paciente>(
                                 value: paciente,
@@ -187,8 +160,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                 _selectedPaciente = newValue;
                               });
                             },
-                            validator: (value) =>
-                                value == null ? 'Selecione um paciente' : null,
+                            validator: (value) => value == null ? 'Selecione um paciente' : null,
                           );
                         },
                       ),
@@ -198,33 +170,18 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                           return SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed:
-                                  viewModel.isLoading ||
-                                      _selectedPaciente == null
+                              onPressed: viewModel.isLoading || _selectedPaciente == null
                                   ? null
                                   : () async {
                                       try {
-                                        final relatorio = await viewModel
-                                            .gerarRelatorioIndividualPaciente(
-                                              _selectedPaciente!.id!,
-                                            );
+                                        final relatorio = await viewModel.gerarRelatorioIndividualPaciente(_selectedPaciente!.id!);
                                         if (mounted) {
-                                          _showRelatorioDialog(
-                                            context,
-                                            relatorio.tipoRelatorio,
-                                            relatorio.dados,
-                                          );
+                                          _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
                                         }
                                       } catch (e) {
                                         if (mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Erro ao gerar relatório: ${e.toString()}',
-                                              ),
-                                            ),
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
                                           );
                                         }
                                       }
@@ -243,9 +200,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
               const SizedBox(height: 20),
               Card(
                 elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -256,9 +211,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Lógica para vagas e ocupação será implementada aqui.',
-                      ),
+                      const Text('Lógica para vagas e ocupação será implementada aqui.'),
                     ],
                   ),
                 ),
@@ -270,11 +223,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
     );
   }
 
-  void _showRelatorioDialog(
-    BuildContext context,
-    String title,
-    Map<String, dynamic> data,
-  ) {
+  void _showRelatorioDialog(BuildContext context, String title, Map<String, dynamic> data) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -288,21 +237,11 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${entry.key}:',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      ...entry.value
-                          .map(
-                            (item) => Padding(
-                              padding: const EdgeInsets.only(
-                                left: 8.0,
-                                top: 4.0,
-                              ),
-                              child: Text(item.toString()),
-                            ),
-                          )
-                          .toList(),
+                      Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ...entry.value.map((item) => Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 4.0),
+                        child: Text(item.toString()),
+                      )).toList(),
                     ],
                   );
                 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart'; // Será criado em breve
-import 'package:provider/provider.dart'; // Usaremos Provider para gerenciamento de estado
+import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 // Tela de Login do aplicativo
 class LoginPage extends StatefulWidget {
@@ -64,12 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira seu e-mail';
-                          }
-                          if (!value.contains('@')) {
-                            return 'E-mail inválido';
-                          }
+                          // Não valida se os campos forem deixados vazios para permitir o bypass
                           return null;
                         },
                       ),
@@ -82,12 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         obscureText: true,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, insira sua senha';
-                          }
-                          if (value.length < 6) {
-                            return 'A senha deve ter pelo menos 6 caracteres';
-                          }
+                          // Não valida se os campos forem deixados vazios para permitir o bypass
                           return null;
                         },
                       ),
@@ -100,28 +90,41 @@ class _LoginPageState extends State<LoginPage> {
                                   width: double.infinity,
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        try {
-                                          await viewModel.signIn(
-                                            _emailController.text,
-                                            _passwordController.text,
-                                          );
-                                          // Se o login for bem-sucedido, navega para a tela inicial
-                                          if (mounted) {
-                                            context.go('/home');
-                                          }
-                                        } catch (e) {
-                                          // Exibe mensagem de erro
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Erro de login: ${e.toString()}',
-                                                ),
-                                              ),
+                                      final email = _emailController.text
+                                          .trim();
+                                      final password = _passwordController.text
+                                          .trim();
+
+                                      // Se ambos os campos estiverem vazios, avança sem autenticar
+                                      if (email.isEmpty && password.isEmpty) {
+                                        if (mounted) {
+                                          context.go('/home');
+                                        }
+                                      } else {
+                                        // Se os campos não estiverem vazios, tenta autenticar
+                                        if (_formKey.currentState!.validate()) {
+                                          try {
+                                            await viewModel.signIn(
+                                              email,
+                                              password,
                                             );
+                                            // Se o login for bem-sucedido, navega para a tela inicial
+                                            if (mounted) {
+                                              context.go('/home');
+                                            }
+                                          } catch (e) {
+                                            // Exibe mensagem de erro
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Erro de login: ${e.toString()}',
+                                                  ),
+                                                ),
+                                              );
+                                            }
                                           }
                                         }
                                       }
