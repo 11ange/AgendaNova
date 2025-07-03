@@ -1,4 +1,4 @@
-import 'package:intl/intl.dart'; // Adicione intl ao seu pubspec.yaml: dependencies: intl: ^0.18.0
+import 'package:intl/intl.dart';
 
 // Utilitário para formatação de datas
 class DateFormatter {
@@ -21,6 +21,18 @@ class DateFormatter {
   static String getWeekdayName(DateTime date) {
     Intl.defaultLocale = 'pt_BR'; // Define o locale para português do Brasil
     return DateFormat('EEEE').format(date);
+  }
+
+  // NOVO MÉTODO: Converte uma string no formato "dd/MM/yyyy" para DateTime
+  static DateTime parseDate(String dateString) {
+    try {
+      // Usa DateFormat para parsear a string de data
+      return DateFormat('dd/MM/yyyy').parse(dateString);
+    } catch (e) {
+      // Em caso de erro de parsing, relança a exceção para ser tratada
+      // na camada superior (ex: no PacienteModel ou no ViewModel).
+      throw FormatException('Erro ao parsear data "$dateString". Formato esperado: dd/MM/yyyy. Erro: $e');
+    }
   }
 }
 

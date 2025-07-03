@@ -16,50 +16,28 @@ class PacientesAtivosPage extends StatefulWidget {
 
 class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<Paciente> _filteredPacientes = [];
+  // A variável _filteredPacientes não é mais necessária como estado,
+  // a filtragem ocorrerá diretamente nos dados do stream.
 
   @override
   void initState() {
     super.initState();
-    // Inicializa o ViewModel e escuta as mudanças
+    // Carrega os pacientes quando a página é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<PacientesAtivosViewModel>(context, listen: false);
-      viewModel.loadPacientesAtivos();
-      viewModel.pacientesStream.listen((pacientes) {
-        setState(() {
-          _filteredPacientes = pacientes;
-          _applyFilter(_searchController.text); // Aplica o filtro inicial
-        });
-      });
+      Provider.of<PacientesAtivosViewModel>(context, listen: false).loadPacientesAtivos();
     });
 
+    // Precisamos acionar uma reconstrução quando a consulta de busca muda
     _searchController.addListener(() {
-      _applyFilter(_searchController.text);
+      setState(() {
+        // Aciona uma reconstrução para re-aplicar o filtro nos dados do stream
+      });
     });
-  }
-
-  void _applyFilter(String query) {
-    final viewModel = Provider.of<PacientesAtivosViewModel>(context, listen: false);
-    if (query.isEmpty) {
-      setState(() {
-        _filteredPacientes = viewModel.pacientes;
-      });
-    } else {
-      setState(() {
-        _filteredPacientes = viewModel.pacientes
-            .where((paciente) =>
-                paciente.nome.toLowerCase().contains(query.toLowerCase()) ||
-                (paciente.telefoneResponsavel?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
-                (paciente.emailResponsavel?.toLowerCase().contains(query.toLowerCase()) ?? false))
-            .toList();
-      });
-    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    // Não chame dispose no ViewModel aqui se ele for gerenciado pelo Provider no nível superior
     super.dispose();
   }
 
@@ -86,21 +64,41 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                style: Theme.of(context).textTheme.bodyLarge, // Ajustado para bodyLarge (14.0)
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Reduzido o padding vertical
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround, // Distribui o espaço igualmente
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () => context.go('/pacientes-ativos/novo'), // Navega para a tela de novo paciente
-                    icon: const Icon(Icons.add),
-                    label: const Text('Novo Paciente'),
+                  Expanded( // Para que o botão ocupe o espaço disponível
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.go('/pacientes-ativos/novo'), // Navega para a tela de novo paciente
+                      icon: const Icon(Icons.add),
+                      label: const Text(
+                        'Novo Paciente',
+                        style: TextStyle(fontSize: 12), // Mantido 12 para caber
+                        textAlign: TextAlign.center,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10), // Ajuste de padding
+                      ),
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () => context.go('/pacientes-inativos'), // Navega para pacientes inativos
-                    child: const Text('Ver Pacientes Inativos'),
+                  const SizedBox(width: 10), // Espaçamento entre os botões
+                  Expanded( // Para que o botão ocupe o espaço disponível
+                    child: TextButton(
+                      onPressed: () => context.go('/pacientes-inativos'), // Navega para pacientes inativos
+                      child: const Text(
+                        'Ver Pacientes Inativos',
+                        style: TextStyle(fontSize: 12), // Mantido 12 para caber
+                        textAlign: TextAlign.center,
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10), // Ajuste de padding
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -118,23 +116,42 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                         return Center(child: Text('Erro ao carregar pacientes: ${snapshot.error}'));
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('Nenhum paciente ativo encontrado.'));
+                        return Center(child: Text('Nenhum paciente ativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
                       }
 
-                      // Ordena os pacientes por nome em ordem alfabética
-                      final sortedPacientes = _filteredPacientes..sort((a, b) => a.nome.compareTo(b.nome));
+                      // Aplica filtro e ordena diretamente nos dados do stream
+                      List<Paciente> currentPacientes = snapshot.data!;
+                      final String query = _searchController.text.toLowerCase();
+
+                      if (query.isNotEmpty) {
+                        currentPacientes = currentPacientes
+                            .where((paciente) =>
+                                paciente.nome.toLowerCase().contains(query) ||
+                                (paciente.telefoneResponsavel?.toLowerCase().contains(query) ?? false) ||
+                                (paciente.emailResponsavel?.toLowerCase().contains(query) ?? false))
+                            .toList();
+                      }
+
+                      // Ordena a lista filtrada
+                      currentPacientes.sort((a, b) => a.nome.compareTo(b.nome));
+
+                      if (currentPacientes.isEmpty && query.isNotEmpty) {
+                        return Center(child: Text('Nenhum paciente encontrado com os critérios de busca.', style: Theme.of(context).textTheme.bodyMedium));
+                      } else if (currentPacientes.isEmpty) {
+                         return Center(child: Text('Nenhum paciente ativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
+                      }
+
 
                       return ListView.builder(
-                        itemCount: sortedPacientes.length,
+                        itemCount: currentPacientes.length,
                         itemBuilder: (context, index) {
-                          final paciente = sortedPacientes[index];
+                          final paciente = currentPacientes[index];
                           return PacienteCard(
                             paciente: paciente,
                             onEdit: () {
-                              context.go('/pacientes-ativos/editar/${paciente.id}');
+                              context.push('/pacientes-ativos/editar/${paciente.id}'); // ALTERADO DE .go PARA .push
                             },
-                            onInactivate: () async {
-                              // Implementar a lógica de inativação aqui, com confirmação
+                            onAction: () async {
                               final confirm = await _showConfirmationDialog(context,
                                   'Confirmar Inativação', 'Tem certeza que deseja inativar este paciente?');
                               if (confirm == true) {
@@ -152,6 +169,8 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                                 }
                               }
                             },
+                            actionIcon: Icons.person_off,
+                            actionTooltip: 'Inativar Paciente',
                             onTap: () {
                               context.go('/pacientes-ativos/historico/${paciente.id}');
                             },

@@ -1,15 +1,17 @@
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/auth/pages/login_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/home/pages/home_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/agenda/pages/agenda_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart'; // Caminho corrigido
-import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/auth/pages/login_page.dart';
+import 'package:agendanova/presentation/home/pages/home_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart';
+import 'package:agendanova/presentation/agenda/pages/agenda_page.dart';
+import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
+import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart';
+import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart';
+import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart';
+import 'package:provider/provider.dart'; // Importar Provider
+import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart'; // Importar o ViewModel
 
 
 // Classe para gerenciar as rotas do aplicativo usando GoRouter
@@ -34,14 +36,17 @@ class AppRouter {
         routes: [
           GoRoute(
             path: 'novo', // Rota para o formulário de novo paciente
-            builder: (context, state) => const PacienteFormPage(),
+            builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+              create: (_) => PacienteFormViewModel(),
+              child: const PacienteFormPage(),
+            ),
           ),
           GoRoute(
             path: 'editar/:id', // Rota para o formulário de edição de paciente
-            builder: (context, state) {
-              final pacienteId = state.pathParameters['id']!;
-              return PacienteFormPage(pacienteId: pacienteId);
-            },
+            builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+              create: (_) => PacienteFormViewModel(),
+              child: PacienteFormPage(pacienteId: state.pathParameters['id']!),
+            ),
           ),
           GoRoute(
             path: 'historico/:id', // Rota para o histórico do paciente

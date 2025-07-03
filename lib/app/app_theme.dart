@@ -36,8 +36,9 @@ class AppTheme {
         borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      labelStyle: const TextStyle(fontSize: 14), // Ajuste para labels de input
+      hintStyle: const TextStyle(fontSize: 14), // Ajuste para hints de input
     ),
-    // CORREÇÃO AQUI: Usando CardThemeData em vez de CardTheme
     cardTheme: CardThemeData(
       elevation: 2, // Sombra dos cards
       shape: RoundedRectangleBorder(
@@ -46,11 +47,13 @@ class AppTheme {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
     ),
     textTheme: const TextTheme(
-      titleLarge: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.black87),
-      titleMedium: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.black87),
-      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.black87),
-      bodyMedium: TextStyle(fontSize: 14.0, color: Colors.black54),
-      labelLarge: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.white),
+      titleLarge: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.black87), // Reduzido de 24 para 20
+      titleMedium: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: Colors.black87), // Reduzido de 20 para 16
+      titleSmall: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.black87), // Adicionado/Ajustado
+      bodyLarge: TextStyle(fontSize: 14.0, color: Colors.black87), // Reduzido de 16 para 14
+      bodyMedium: TextStyle(fontSize: 12.0, color: Colors.black54), // Reduzido de 14 para 12
+      bodySmall: TextStyle(fontSize: 10.0, color: Colors.black54), // Adicionado/Ajustado
+      labelLarge: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w500, color: Colors.white), // Ajustado
     ),
     colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue).copyWith(secondary: Colors.amber),
   );

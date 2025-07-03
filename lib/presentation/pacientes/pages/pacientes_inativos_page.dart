@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 // Esta página exibe a lista de pacientes inativos
@@ -16,58 +16,23 @@ class PacientesInativosPage extends StatefulWidget {
 
 class _PacientesInativosPageState extends State<PacientesInativosPage> {
   final TextEditingController _searchController = TextEditingController();
-  List<Paciente> _filteredPacientes = [];
+  // A variável _filteredPacientes não é mais necessária como estado,
+  // a filtragem ocorrerá diretamente nos dados do stream.
 
   @override
   void initState() {
     super.initState();
-    // Inicializa o ViewModel e escuta as mudanças
+    // Carrega os pacientes quando a página é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<PacientesInativosViewModel>(
-        context,
-        listen: false,
-      );
-      viewModel.loadPacientesInativos();
-      viewModel.pacientesStream.listen((pacientes) {
-        setState(() {
-          _filteredPacientes = pacientes;
-          _applyFilter(_searchController.text); // Aplica o filtro inicial
-        });
-      });
+      Provider.of<PacientesInativosViewModel>(context, listen: false).loadPacientesInativos();
     });
 
+    // Precisamos acionar uma reconstrução quando a consulta de busca muda
     _searchController.addListener(() {
-      _applyFilter(_searchController.text);
+      setState(() {
+        // Aciona uma reconstrução para re-aplicar o filtro nos dados do stream
+      });
     });
-  }
-
-  void _applyFilter(String query) {
-    final viewModel = Provider.of<PacientesInativosViewModel>(
-      context,
-      listen: false,
-    );
-    if (query.isEmpty) {
-      setState(() {
-        _filteredPacientes = viewModel.pacientes;
-      });
-    } else {
-      setState(() {
-        _filteredPacientes = viewModel.pacientes
-            .where(
-              (paciente) =>
-                  paciente.nome.toLowerCase().contains(query.toLowerCase()) ||
-                  (paciente.telefoneResponsavel?.toLowerCase().contains(
-                        query.toLowerCase(),
-                      ) ??
-                      false) ||
-                  (paciente.emailResponsavel?.toLowerCase().contains(
-                        query.toLowerCase(),
-                      ) ??
-                      false),
-            )
-            .toList();
-      });
-    }
   }
 
   @override
@@ -83,9 +48,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Pacientes Inativos',
-          onBackButtonPressed: () => context.go(
-            '/pacientes-ativos',
-          ), // Volta para a tela de pacientes ativos
+          onBackButtonPressed: () => context.go('/pacientes-ativos'), // Volta para a tela de pacientes ativos
         ),
         body: Column(
           children: [
@@ -101,6 +64,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                style: Theme.of(context).textTheme.bodyLarge, // Ajustado para bodyLarge (14.0)
               ),
             ),
             Expanded(
@@ -113,67 +77,70 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Erro ao carregar pacientes: ${snapshot.error}',
-                          ),
-                        );
+                        return Center(child: Text('Erro ao carregar pacientes: ${snapshot.error}'));
                       }
+                      // Se não houver dados, exibe a mensagem inicial
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('Nenhum paciente inativo encontrado.'),
-                        );
+                        return Center(child: Text('Nenhum paciente inativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
                       }
 
-                      // Ordena os pacientes por nome em ordem alfabética
-                      final sortedPacientes = _filteredPacientes
-                        ..sort((a, b) => a.nome.compareTo(b.nome));
+                      // Aplica filtro e ordena diretamente nos dados do stream
+                      List<Paciente> currentPacientes = snapshot.data!;
+                      final String query = _searchController.text.toLowerCase();
+
+                      if (query.isNotEmpty) {
+                        currentPacientes = currentPacientes
+                            .where((paciente) =>
+                                paciente.nome.toLowerCase().contains(query) ||
+                                (paciente.telefoneResponsavel?.toLowerCase().contains(query) ?? false) ||
+                                (paciente.emailResponsavel?.toLowerCase().contains(query) ?? false))
+                            .toList();
+                      }
+
+                      // Ordena a lista filtrada
+                      currentPacientes.sort((a, b) => a.nome.compareTo(b.nome));
+
+                      // Se a lista filtrada estiver vazia (após a busca)
+                      if (currentPacientes.isEmpty && query.isNotEmpty) {
+                        return Center(child: Text('Nenhum paciente encontrado com os critérios de busca.', style: Theme.of(context).textTheme.bodyMedium));
+                      } else if (currentPacientes.isEmpty) {
+                        // Isso só deve acontecer se snapshot.data!.isEmpty for true,
+                        // mas é uma salvaguarda.
+                        return Center(child: Text('Nenhum paciente inativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
+                      }
+
 
                       return ListView.builder(
-                        itemCount: sortedPacientes.length,
+                        itemCount: currentPacientes.length,
                         itemBuilder: (context, index) {
-                          final paciente = sortedPacientes[index];
+                          final paciente = currentPacientes[index];
                           return PacienteCard(
                             paciente: paciente,
                             onEdit: () {
-                              context.go(
-                                '/pacientes-ativos/editar/${paciente.id}',
-                              ); // Reutiliza a tela de edição
+                              context.push('/pacientes-ativos/editar/${paciente.id}'); // ALTERADO DE .go PARA .push
                             },
-                            onInactivate: () async {
-                              // Ação de reativar paciente
-                              final confirm = await _showConfirmationDialog(
-                                context,
-                                'Confirmar Reativação',
-                                'Tem certeza que deseja reativar este paciente?',
-                              );
+                            onAction: () async {
+                              final confirm = await _showConfirmationDialog(context,
+                                  'Confirmar Reativação', 'Tem certeza que deseja reativar este paciente?');
                               if (confirm == true) {
                                 try {
-                                  await viewModel.reativarPaciente(
-                                    paciente.id!,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Paciente reativado com sucesso!',
-                                      ),
-                                    ),
-                                  );
+                                  await viewModel.reativarPaciente(paciente.id!);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Paciente reativado com sucesso!')));
+                                  }
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Erro ao reativar paciente: $e',
-                                      ),
-                                    ),
-                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Erro ao reativar paciente: $e')));
+                                  }
                                 }
                               }
                             },
+                            actionIcon: Icons.person_add_alt_1,
+                            actionTooltip: 'Reativar Paciente',
                             onTap: () {
-                              context.go(
-                                '/pacientes-ativos/historico/${paciente.id}',
-                              ); // Navega para o histórico
+                              context.go('/pacientes-ativos/historico/${paciente.id}');
                             },
                           );
                         },
@@ -189,11 +156,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
     );
   }
 
-  Future<bool?> _showConfirmationDialog(
-    BuildContext context,
-    String title,
-    String content,
-  ) async {
+  Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {

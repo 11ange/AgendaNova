@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart'; // Importação corrigida
-import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart'; // Importação corrigida
-import 'package:agendanova/domain/repositories/paciente_repository.dart'; // Importação corrigida
+import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
+import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
 
 // ViewModel para a tela de formulário de Paciente (cadastro e edição)
 class PacienteFormViewModel extends ChangeNotifier {
   // Obtenha as instâncias via GetIt
-  final CadastrarPacienteUseCase _cadastrarPacienteUseCase =
-      GetIt.instance<CadastrarPacienteUseCase>();
-  final EditarPacienteUseCase _editarPacienteUseCase =
-      GetIt.instance<EditarPacienteUseCase>();
-  final PacienteRepository _pacienteRepository =
-      GetIt.instance<PacienteRepository>();
+  final CadastrarPacienteUseCase _cadastrarPacienteUseCase = GetIt.instance<CadastrarPacienteUseCase>();
+  final EditarPacienteUseCase _editarPacienteUseCase = GetIt.instance<EditarPacienteUseCase>();
+  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
 
   bool _isLoading = false;
   Paciente? _paciente; // Para edição
@@ -27,14 +24,16 @@ class PacienteFormViewModel extends ChangeNotifier {
   Future<void> loadPaciente(String pacienteId) async {
     _setLoading(true);
     try {
-      _paciente = await _pacienteRepository.getPacienteById(pacienteId);
-      if (_paciente == null) {
-        throw Exception('Paciente não encontrado.');
+      final fetchedPaciente = await _pacienteRepository.getPacienteById(pacienteId);
+      if (fetchedPaciente == null) {
+        throw Exception('Paciente não encontrado com o ID: $pacienteId');
       }
+      _paciente = fetchedPaciente; // Define o paciente carregado
     } catch (e) {
-      rethrow;
+      _paciente = null; // Garante que o paciente seja nulo em caso de erro
+      rethrow; // Relança a exceção para ser tratada na UI
     } finally {
-      _setLoading(false);
+      _setLoading(false); // Garante que o estado de carregamento seja resetado
     }
   }
 
@@ -64,6 +63,6 @@ class PacienteFormViewModel extends ChangeNotifier {
 
   void _setLoading(bool value) {
     _isLoading = value;
-    notifyListeners();
+    notifyListeners(); // Notifica os ouvintes sobre a mudança no estado de carregamento
   }
 }

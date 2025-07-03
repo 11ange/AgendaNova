@@ -8,20 +8,19 @@ import 'dart:async';
 // ViewModel para a tela de Pacientes Inativos
 class PacientesInativosViewModel extends ChangeNotifier {
   // Obtenha as instâncias via GetIt
-  final PacienteRepository _pacienteRepository =
-      GetIt.instance<PacienteRepository>();
-  final ReativarPacienteUseCase _reativarPacienteUseCase =
-      GetIt.instance<ReativarPacienteUseCase>();
+  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
+  final ReativarPacienteUseCase _reativarPacienteUseCase = GetIt.instance<ReativarPacienteUseCase>();
 
   List<Paciente> _pacientes = [];
   List<Paciente> get pacientes => _pacientes;
 
-  final _pacientesStreamController =
-      StreamController<List<Paciente>>.broadcast();
-  Stream<List<Paciente>> get pacientesStream =>
-      _pacientesStreamController.stream;
+  final _pacientesStreamController = StreamController<List<Paciente>>.broadcast();
+  Stream<List<Paciente>> get pacientesStream => _pacientesStreamController.stream;
 
-  PacientesInativosViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
+  // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
+  PacientesInativosViewModel() {
+    _listenToPacientes(); // Chamar o método para iniciar a escuta do stream
+  }
 
   void _listenToPacientes() {
     _pacienteRepository.getPacientesInativos().listen(
@@ -39,7 +38,8 @@ class PacientesInativosViewModel extends ChangeNotifier {
   }
 
   void loadPacientesInativos() {
-    // A escuta já é iniciada no construtor.
+    // Este método pode ser usado para forçar um recarregamento se necessário,
+    // mas a escuta já é iniciada no construtor.
   }
 
   // Reativa um paciente
@@ -57,3 +57,4 @@ class PacientesInativosViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
+
