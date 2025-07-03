@@ -37,7 +37,8 @@ class AppTheme {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
-    cardTheme: CardTheme(
+    // CORREÇÃO AQUI: Usando CardThemeData em vez de CardTheme
+    cardTheme: CardThemeData(
       elevation: 2, // Sombra dos cards
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10), // Borda arredondada para cards
@@ -61,4 +62,3 @@ class AppTheme {
     // ... configurações de tema escuro
   );
 }
-

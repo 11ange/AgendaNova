@@ -1,78 +1,64 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
+// Entidade pura de domínio Paciente
+class Paciente {
+  final String? id; // ID do documento no Firestore
+  final String nome;
+  final DateTime dataNascimento;
+  final String nomeResponsavel;
+  final String? telefoneResponsavel;
+  final String? emailResponsavel;
+  final String? afinandoCerebro; // "Não enviado", "Enviado", "Cadastrado"
+  final String? observacoes;
+  final DateTime dataCadastro;
+  final String status; // "ativo" ou "inativo"
 
-// Modelo de dados para a entidade Paciente, com métodos para serialização/desserialização do Firestore
-class PacienteModel extends Paciente {
-  PacienteModel({
+  Paciente({
+    this.id,
+    required this.nome,
+    required this.dataNascimento,
+    required this.nomeResponsavel,
+    this.telefoneResponsavel,
+    this.emailResponsavel,
+    this.afinandoCerebro,
+    this.observacoes,
+    required this.dataCadastro,
+    required this.status,
+  });
+
+  // Método para calcular a idade do paciente
+  int get idade {
+    final now = DateTime.now();
+    int age = now.year - dataNascimento.year;
+    if (now.month < dataNascimento.month ||
+        (now.month == dataNascimento.month && now.day < dataNascimento.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  // Método para criar uma cópia da entidade com campos atualizados
+  Paciente copyWith({
     String? id,
-    required String nome,
-    required DateTime dataNascimento,
-    required String nomeResponsavel,
+    String? nome,
+    DateTime? dataNascimento,
+    String? nomeResponsavel,
     String? telefoneResponsavel,
     String? emailResponsavel,
     String? afinandoCerebro,
     String? observacoes,
-    required DateTime dataCadastro,
-    required String status,
-  }) : super(
-          id: id,
-          nome: nome,
-          dataNascimento: dataNascimento,
-          nomeResponsavel: nomeResponsavel,
-          telefoneResponsavel: telefoneResponsavel,
-          emailResponsavel: emailResponsavel,
-          afinandoCerebro: afinandoCerebro,
-          observacoes: observacoes,
-          dataCadastro: dataCadastro,
-          status: status,
-        );
-
-  // Construtor para criar um PacienteModel a partir de um DocumentSnapshot do Firestore
-  factory PacienteModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return PacienteModel(
-      id: doc.id,
-      nome: data['nome'] as String,
-      dataNascimento: (data['dataNascimento'] as Timestamp).toDate(),
-      nomeResponsavel: data['nomeResponsavel'] as String,
-      telefoneResponsavel: data['telefoneResponsavel'] as String?,
-      emailResponsavel: data['emailResponsavel'] as String?,
-      afinandoCerebro: data['afinandoCerebro'] as String?,
-      observacoes: data['observacoes'] as String?,
-      dataCadastro: (data['dataCadastro'] as Timestamp).toDate(),
-      status: data['status'] as String,
-    );
-  }
-
-  // Converte o PacienteModel para um mapa de dados compatível com o Firestore
-  Map<String, dynamic> toFirestore() {
-    return {
-      'nome': nome,
-      'dataNascimento': Timestamp.fromDate(dataNascimento),
-      'nomeResponsavel': nomeResponsavel,
-      'telefoneResponsavel': telefoneResponsavel,
-      'emailResponsavel': emailResponsavel,
-      'afinandoCerebro': afinandoCerebro,
-      'observacoes': observacoes,
-      'dataCadastro': Timestamp.fromDate(dataCadastro),
-      'status': status,
-    };
-  }
-
-  // Construtor para criar um PacienteModel a partir de uma entidade Paciente
-  factory PacienteModel.fromEntity(Paciente paciente) {
-    return PacienteModel(
-      id: paciente.id,
-      nome: paciente.nome,
-      dataNascimento: paciente.dataNascimento,
-      nomeResponsavel: paciente.nomeResponsavel,
-      telefoneResponsavel: paciente.telefoneResponsavel,
-      emailResponsavel: paciente.emailResponsavel,
-      afinandoCerebro: paciente.afinandoCerebro,
-      observacoes: paciente.observacoes,
-      dataCadastro: paciente.dataCadastro,
-      status: paciente.status,
+    DateTime? dataCadastro,
+    String? status,
+  }) {
+    return Paciente(
+      id: id ?? this.id,
+      nome: nome ?? this.nome,
+      dataNascimento: dataNascimento ?? this.dataNascimento,
+      nomeResponsavel: nomeResponsavel ?? this.nomeResponsavel,
+      telefoneResponsavel: telefoneResponsavel ?? this.telefoneResponsavel,
+      emailResponsavel: emailResponsavel ?? this.emailResponsavel,
+      afinandoCerebro: afinandoCerebro ?? this.afinandoCerebro,
+      observacoes: observacoes ?? this.observacoes,
+      dataCadastro: dataCadastro ?? this.dataCadastro,
+      status: status ?? this.status,
     );
   }
 }
-

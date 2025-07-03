@@ -1,9 +1,9 @@
-import 'package:get_it/get_it.dart'; // Adicione get_it ao seu pubspec.yaml
+import 'package:get_it/get_it.dart';
 import 'package:agendanova/core/services/firebase_service.dart';
 import 'package:agendanova/data/datasources/firebase_datasource.dart';
 import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
 import 'package:agendanova/data/repositories/lista_espera_repository_impl.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:agendanova/data/repositories/paciente_repository_impl.dart'; // Importação adicionada
 import 'package:agendanova/data/repositories/pagamento_repository_impl.dart';
 import 'package:agendanova/data/repositories/relatorio_repository_impl.dart';
 import 'package:agendanova/data/repositories/sessao_repository_impl.dart';
@@ -18,9 +18,9 @@ import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/usecases/agenda/definir_agenda_usecase.dart';
 import 'package:agendanova/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
 import 'package:agendanova/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
-import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
+import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart'; // Importação adicionada
 import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart';
-import 'package:agendanova/domain/usecases/paciente/inativar_paciente_usecase.dart';
+import 'package:agendanova/domain/usecases/paciente/inativar_paciente_usecase.dart'; // Importação adicionada
 import 'package:agendanova/domain/usecases/paciente/reativar_paciente_usecase.dart';
 import 'package:agendanova/domain/usecases/pagamento/registrar_pagamento_usecase.dart';
 import 'package:agendanova/domain/usecases/pagamento/reverter_pagamento_usecase.dart';

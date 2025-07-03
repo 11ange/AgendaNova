@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/entities/paciente.dart'; // Importação corrigida para a entidade Paciente
 
 // Modelo de dados para a entidade Paciente, com métodos para serialização/desserialização do Firestore
 class PacienteModel extends Paciente {

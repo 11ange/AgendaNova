@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/entities/paciente.dart'; // Importação adicionada/corrigida
 
 // Contrato (interface) para o repositório de Pacientes
 abstract class PacienteRepository {
@@ -29,4 +29,3 @@ abstract class PacienteRepository {
   // Verifica se um paciente com o nome fornecido já existe (incluindo inativos)
   Future<bool> pacienteExistsByName(String nome, {String? excludeId});
 }
-

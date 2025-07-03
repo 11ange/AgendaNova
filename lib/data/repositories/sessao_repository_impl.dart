@@ -1,8 +1,8 @@
 import 'package:agendanova/core/constants/firestore_collections.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/models/sessao_model.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart'; // Importação corrigida
+import 'package:agendanova/data/models/sessao_model.dart'; // Importação corrigida
+import 'package:agendanova/domain/entities/sessao.dart'; // Importação corrigida
+import 'package:agendanova/domain/repositories/sessao_repository.dart'; // Importação corrigida
 import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp e WriteBatch
 
 // Implementação concreta do SessaoRepository que usa o FirebaseDatasource
@@ -13,7 +13,9 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   Stream<List<Sessao>> getSessoes() {
-    return _firebaseDatasource.getCollectionStream(FirestoreCollections.sessoes).map(
+    return _firebaseDatasource
+        .getCollectionStream(FirestoreCollections.sessoes)
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => SessaoModel.fromFirestore(doc))
               .toList(),
@@ -22,11 +24,13 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   Stream<List<Sessao>> getSessoesByTreinamentoId(String treinamentoId) {
-    return _firebaseDatasource.queryCollectionStream(
-      FirestoreCollections.sessoes,
-      field: 'treinamentoId',
-      isEqualTo: treinamentoId,
-    ).map(
+    return _firebaseDatasource
+        .queryCollectionStream(
+          FirestoreCollections.sessoes,
+          field: 'treinamentoId',
+          isEqualTo: treinamentoId,
+        )
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => SessaoModel.fromFirestore(doc))
               .toList(),
@@ -41,12 +45,14 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final startOfDay = DateTime(date.year, date.month, date.day, 0, 0, 0);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
-    return _firebaseDatasource.queryCollectionStreamWithRange(
-      FirestoreCollections.sessoes,
-      field: 'dataHora',
-      startValue: Timestamp.fromDate(startOfDay),
-      endValue: Timestamp.fromDate(endOfDay),
-    ).map(
+    return _firebaseDatasource
+        .queryCollectionStreamWithRange(
+          FirestoreCollections.sessoes,
+          field: 'dataHora',
+          startValue: Timestamp.fromDate(startOfDay),
+          endValue: Timestamp.fromDate(endOfDay),
+        )
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => SessaoModel.fromFirestore(doc))
               .toList(),
@@ -56,7 +62,10 @@ class SessaoRepositoryImpl implements SessaoRepository {
   @override
   Future<String> addSessao(Sessao sessao) async {
     final sessaoModel = SessaoModel.fromEntity(sessao);
-    final docRef = await _firebaseDatasource.addDocument(FirestoreCollections.sessoes, sessaoModel.toFirestore());
+    final docRef = await _firebaseDatasource.addDocument(
+      FirestoreCollections.sessoes,
+      sessaoModel.toFirestore(),
+    );
     return docRef.id;
   }
 
@@ -65,7 +74,10 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final batch = FirebaseFirestore.instance.batch();
     for (var sessao in sessoes) {
       final sessaoModel = SessaoModel.fromEntity(sessao);
-      final docRef = _firebaseDatasource.getCollectionRef(FirestoreCollections.sessoes).doc();
+      // Usando getCollectionRef do FirebaseDatasource para obter a referência da coleção
+      final docRef = _firebaseDatasource
+          .getCollectionRef(FirestoreCollections.sessoes)
+          .doc();
       batch.set(docRef, sessaoModel.toFirestore());
     }
     await batch.commit();
@@ -77,7 +89,11 @@ class SessaoRepositoryImpl implements SessaoRepository {
       throw Exception('ID da sessão é obrigatório para atualização.');
     }
     final sessaoModel = SessaoModel.fromEntity(sessao);
-    await _firebaseDatasource.updateDocument(FirestoreCollections.sessoes, sessao.id!, sessaoModel.toFirestore());
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.sessoes,
+      sessao.id!,
+      sessaoModel.toFirestore(),
+    );
   }
 
   @override
@@ -89,10 +105,13 @@ class SessaoRepositoryImpl implements SessaoRepository {
   Future<void> deleteMultipleSessoes(List<String> sessaoIds) async {
     final batch = FirebaseFirestore.instance.batch();
     for (var id in sessaoIds) {
-      final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, id);
+      // Usando getDocumentRef do FirebaseDatasource para obter a referência do documento
+      final docRef = _firebaseDatasource.getDocumentRef(
+        FirestoreCollections.sessoes,
+        id,
+      );
       batch.delete(docRef);
     }
     await batch.commit();
   }
 }
-

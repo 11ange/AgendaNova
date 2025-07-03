@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
 import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart';
@@ -9,10 +7,13 @@ import 'package:agendanova/domain/repositories/paciente_repository.dart';
 
 // ViewModel para a tela de formulário de Paciente (cadastro e edição)
 class PacienteFormViewModel extends ChangeNotifier {
-  final CadastrarPacienteUseCase _cadastrarPacienteUseCase;
-  final EditarPacienteUseCase _editarPacienteUseCase;
-  final PacienteRepository
-  _pacienteRepository; // Para carregar o paciente existente
+  // Obtenha as instâncias via GetIt
+  final CadastrarPacienteUseCase _cadastrarPacienteUseCase =
+      GetIt.instance<CadastrarPacienteUseCase>();
+  final EditarPacienteUseCase _editarPacienteUseCase =
+      GetIt.instance<EditarPacienteUseCase>();
+  final PacienteRepository _pacienteRepository =
+      GetIt.instance<PacienteRepository>();
 
   bool _isLoading = false;
   Paciente? _paciente; // Para edição
@@ -20,22 +21,7 @@ class PacienteFormViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   Paciente? get paciente => _paciente;
 
-  PacienteFormViewModel({PacienteRepository? pacienteRepository})
-    : _pacienteRepository =
-          pacienteRepository ??
-          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-      _cadastrarPacienteUseCase = CadastrarPacienteUseCase(
-        pacienteRepository ??
-            PacienteRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ),
-      _editarPacienteUseCase = EditarPacienteUseCase(
-        pacienteRepository ??
-            PacienteRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      );
+  PacienteFormViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
 
   // Carrega os dados de um paciente existente para edição
   Future<void> loadPaciente(String pacienteId) async {
