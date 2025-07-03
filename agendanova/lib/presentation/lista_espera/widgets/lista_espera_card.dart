@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_fono/domain/entities/lista_espera.dart';
-import 'package:flutter_agenda_fono/core/utils/date_formatter.dart';
+import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
 
 // Widget reutilizável para exibir um item da lista de espera em um card
 class ListaEsperaCard extends StatelessWidget {

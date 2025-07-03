@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
 
 // Modelo de dados para a entidade Treinamento, com métodos para serialização/desserialização do Firestore
 class TreinamentoModel extends Treinamento {

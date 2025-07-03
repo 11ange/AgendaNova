@@ -1,15 +1,15 @@
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/auth/pages/login_page.dart';
-import 'package:flutter_agenda_fono/presentation/home/pages/home_page.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/pages/pacientes_ativos_page.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/pages/paciente_form_page.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/pages/pacientes_inativos_page.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/pages/historico_paciente_page.dart';
-import 'package:flutter_agenda_fono/presentation/agenda/pages/agenda_page.dart';
-import 'package:flutter_agenda_fono/presentation/sessoes/pages/sessoes_page.dart';
-import 'package:flutter_agenda_fono/presentation/pagamentos/pages/pagamentos_page.dart';
-import 'package:flutter_agenda_fono/presentation/relatorios/pages/relatorios_page.dart';
-import 'package:flutter_agenda_fono/presentation/lista_espera/pages/lista_espera_page.dart';
+import 'package:agendanova/presentation/auth/pages/login_page.dart';
+import 'package:agendanova/presentation/home/pages/home_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart';
+import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart';
+import 'package:agendanova/presentation/agenda/pages/agenda_page.dart';
+import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
+import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart';
+import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart';
+import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart';
 
 
 // Classe para gerenciar as rotas do aplicativo usando GoRouter

@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/domain/entities/relatorio.dart';
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
-import 'package:flutter_agenda_fono/domain/repositories/sessao_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/treinamento_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/entities/relatorio.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
 
 // Use case para gerar o relatório individual de um paciente
 class GerarRelatorioIndividualPacienteUseCase {

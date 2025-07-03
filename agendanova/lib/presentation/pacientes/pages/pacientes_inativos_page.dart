@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/widgets/paciente_card.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // Será criado em breve
 import 'package:provider/provider.dart';
 
 // Esta página exibe a lista de pacientes inativos

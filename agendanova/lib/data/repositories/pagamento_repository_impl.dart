@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/core/constants/firestore_collections.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/models/pagamento_model.dart';
-import 'package:flutter_agenda_fono/domain/entities/pagamento.dart';
-import 'package:flutter_agenda_fono/domain/repositories/pagamento_repository.dart';
+import 'package:agendanova/core/constants/firestore_collections.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/pagamento_model.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/repositories/pagamento_repository.dart';
 
 // Implementação concreta do PagamentoRepository que usa o FirebaseDatasource
 class PagamentoRepositoryImpl implements PagamentoRepository {

@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
 
 // Contrato (interface) para o repositório de Sessões
 abstract class SessaoRepository {

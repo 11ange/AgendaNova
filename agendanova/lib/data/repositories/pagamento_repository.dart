@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
 
 // Contrato (interface) para o repositório de Pagamentos
 abstract class PagamentoRepository {

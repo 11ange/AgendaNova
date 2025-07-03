@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_fono/core/services/firebase_service.dart';
+import 'package:agendanova/core/services/firebase_service.dart';
 
 // ViewModel para a tela de Login
 class LoginViewModel extends ChangeNotifier {

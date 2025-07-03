@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_agenda_fono/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
 
 // Modelo de dados para a entidade Pagamento, com métodos para serialização/desserialização do Firestore
 class PagamentoModel extends Pagamento {

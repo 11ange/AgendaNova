@@ -1,5 +1,5 @@
-import 'package:flutter_agenda_fono/domain/entities/lista_espera.dart';
-import 'package:flutter_agenda_fono/domain/repositories/lista_espera_repository.dart';
+import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agendanova/domain/repositories/lista_espera_repository.dart';
 
 // Use case para adicionar um novo item à lista de espera
 class AdicionarListaEsperaUseCase {

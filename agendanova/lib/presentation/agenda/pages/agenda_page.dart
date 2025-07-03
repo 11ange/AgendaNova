@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/agenda/viewmodels/agenda_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart'; // Será criado em breve
 import 'package:provider/provider.dart';
 
 // Tela de Definição de Agenda

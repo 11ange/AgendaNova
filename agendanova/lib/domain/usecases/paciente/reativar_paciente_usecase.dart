@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
 
 // Use case para reativar um paciente
 class ReativarPacienteUseCase {

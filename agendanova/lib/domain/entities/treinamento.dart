@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
 
 // Entidade pura de domínio para Treinamento
 class Treinamento {

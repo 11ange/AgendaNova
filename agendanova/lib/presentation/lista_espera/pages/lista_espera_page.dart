@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/domain/entities/lista_espera.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart'; // Será criado em breve
-import 'package:flutter_agenda_fono/presentation/lista_espera/widgets/lista_espera_card.dart'; // Será criado em breve
-import 'package:flutter_agenda_fono/core/utils/input_validators.dart';
+import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/lista_espera/widgets/lista_espera_card.dart'; // Será criado em breve
+import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
 
 // Tela de Lista de Espera

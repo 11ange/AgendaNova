@@ -1,7 +1,7 @@
-import 'package:flutter_agenda_fono/domain/entities/pagamento.dart';
-import 'package:flutter_agenda_fono/domain/repositories/pagamento_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/sessao_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/repositories/pagamento_repository.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 
 // Use case para reverter um pagamento
 class ReverterPagamentoUseCase {

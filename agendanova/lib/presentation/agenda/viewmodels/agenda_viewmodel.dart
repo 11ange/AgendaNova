@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_fono/core/services/firebase_service.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/repositories/agenda_disponibilidade_repository_impl.dart';
-import 'package:flutter_agenda_fono/domain/entities/agenda_disponibilidade.dart';
-import 'package:flutter_agenda_fono/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:flutter_agenda_fono/domain/usecases/agenda/definir_agenda_usecase.dart';
+import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
+import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agendanova/domain/usecases/agenda/definir_agenda_usecase.dart';
 
 // ViewModel para a tela de Definição de Agenda
 class AgendaViewModel extends ChangeNotifier {

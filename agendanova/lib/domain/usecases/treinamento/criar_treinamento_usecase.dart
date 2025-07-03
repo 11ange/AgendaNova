@@ -1,10 +1,10 @@
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
-import 'package:flutter_agenda_fono/domain/entities/sessao.dart';
-import 'package:flutter_agenda_fono/domain/repositories/treinamento_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/sessao_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/paciente_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:flutter_agenda_fono/core/utils/date_time_helper.dart'; // Para ajudar com cálculo de datas
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agendanova/core/utils/date_time_helper.dart'; // Para ajudar com cálculo de datas
 
 // Use case para criar um novo treinamento e suas sessões
 class CriarTreinamentoUseCase {

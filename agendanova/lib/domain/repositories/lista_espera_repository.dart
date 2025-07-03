@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/lista_espera.dart';
+import 'package:agendanova/domain/entities/lista_espera.dart';
 
 // Contrato (interface) para o repositório de Lista de Espera
 abstract class ListaEsperaRepository {

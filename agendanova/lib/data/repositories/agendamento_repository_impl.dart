@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/models/paciente_model.dart';
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
-import 'package:flutter_agenda_fono/domain/repositories/paciente_repository.dart';
-import 'package:flutter_agenda_fono/core/constants/firestore_collections.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/paciente_model.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/core/constants/firestore_collections.dart';
 
 // Implementação concreta do PacienteRepository que usa o FirebaseDatasource
 class PacienteRepositoryImpl implements PacienteRepository {

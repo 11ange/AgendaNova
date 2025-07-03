@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_fono/core/services/firebase_service.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/repositories/paciente_repository_impl.dart';
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
-import 'package:flutter_agenda_fono/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
 // Importe o repositório de agendamento quando ele for criado
-// import 'package:flutter_agenda_fono/data/repositories/agendamento_repository_impl.dart';
-// import 'package:flutter_agenda_fono/domain/repositories/agendamento_repository.dart';
-// import 'package:flutter_agenda_fono/domain/entities/treinamento.dart'; // Entidade de Treinamento
+// import 'package:agendanova/data/repositories/agendamento_repository_impl.dart';
+// import 'package:agendanova/domain/repositories/agendamento_repository.dart';
+// import 'package:agendanova/domain/entities/treinamento.dart'; // Entidade de Treinamento
 
 // ViewModel para a tela de Histórico do Paciente
 class HistoricoPacienteViewModel extends ChangeNotifier {

@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
 
 // Contrato (interface) para o repositório de Treinamentos
 abstract class TreinamentoRepository {

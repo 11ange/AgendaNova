@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/core/services/firebase_service.dart'; // Para logout
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/core/services/firebase_service.dart'; // Para logout
 
 // Tela Inicial do aplicativo
 class HomePage extends StatelessWidget {

@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/core/constants/firestore_collections.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/models/agenda_disponibilidade_model.dart';
-import 'package:flutter_agenda_fono/domain/entities/agenda_disponibilidade.dart';
-import 'package:flutter_agenda_fono/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agendanova/core/constants/firestore_collections.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/agenda_disponibilidade_model.dart';
+import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 
 // Implementação concreta do AgendaDisponibilidadeRepository que usa o FirebaseDatasource
 class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeRepository {

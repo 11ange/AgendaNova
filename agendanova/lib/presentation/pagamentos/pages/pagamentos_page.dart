@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart'; // Será criado em breve
-import 'package:flutter_agenda_fono/presentation/pagamentos/widgets/pagamento_card.dart'; // Será criado em breve
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
-import 'package:flutter_agenda_fono/domain/entities/pagamento.dart';
-import 'package:flutter_agenda_fono/domain/entities/sessao.dart';
-import 'package:flutter_agenda_fono/core/utils/date_formatter.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/pagamentos/widgets/pagamento_card.dart'; // Será criado em breve
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 
 // Tela de Controle de Pagamentos

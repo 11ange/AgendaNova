@@ -1,4 +1,4 @@
-import 'package:flutter_agenda_fono/domain/entities/relatorio.dart';
+import 'package:agendanova/domain/entities/relatorio.dart';
 
 // Contrato (interface) para o repositório de Relatórios
 abstract class RelatorioRepository {

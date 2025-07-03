@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/relatorios/viewmodels/relatorios_viewmodel.dart'; // Será criado em breve
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart'; // Para seleção de paciente
-import 'package:flutter_agenda_fono/core/utils/date_formatter.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/domain/entities/paciente.dart'; // Para seleção de paciente
+import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 
 // Tela de Relatórios

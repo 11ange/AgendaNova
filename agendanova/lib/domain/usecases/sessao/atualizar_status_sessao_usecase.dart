@@ -1,9 +1,9 @@
-import 'package:flutter_agenda_fono/domain/entities/sessao.dart';
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
-import 'package:flutter_agenda_fono/domain/repositories/sessao_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/treinamento_repository.dart';
-import 'package:flutter_agenda_fono/domain/repositories/agenda_disponibilidade_repository.dart'; // Para verificar bloqueios
-import 'package:flutter_agenda_fono/core/utils/date_time_helper.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart'; // Para verificar bloqueios
+import 'package:agendanova/core/utils/date_time_helper.dart';
 
 // Use case para atualizar o status de uma sessão
 class AtualizarStatusSessaoUseCase {

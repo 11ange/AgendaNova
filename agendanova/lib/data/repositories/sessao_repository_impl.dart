@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/core/constants/firestore_collections.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/models/sessao_model.dart';
-import 'package:flutter_agenda_fono/domain/entities/sessao.dart';
-import 'package:flutter_agenda_fono/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/core/constants/firestore_collections.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/sessao_model.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp e WriteBatch
 
 // Implementação concreta do SessaoRepository que usa o FirebaseDatasource

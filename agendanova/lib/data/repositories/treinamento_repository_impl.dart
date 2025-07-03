@@ -1,8 +1,8 @@
-import 'package:flutter_agenda_fono/core/constants/firestore_collections.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/models/treinamento_model.dart';
-import 'package:flutter_agenda_fono/domain/entities/treinamento.dart';
-import 'package:flutter_agenda_fono/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/core/constants/firestore_collections.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/treinamento_model.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp
 
 // Implementação concreta do TreinamentoRepository que usa o FirebaseDatasource

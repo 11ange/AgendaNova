@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/domain/entities/paciente.dart';
-import 'package:flutter_agenda_fono/presentation/common_widgets/custom_app_bar.dart';
-import 'package:flutter_agenda_fono/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart'; // Será criado em breve
 import 'package:provider/provider.dart';
 
 // Tela de Histórico do Paciente

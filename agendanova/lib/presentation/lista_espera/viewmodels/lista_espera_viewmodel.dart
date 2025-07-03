@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_agenda_fono/core/services/firebase_service.dart';
-import 'package:flutter_agenda_fono/data/datasources/firebase_datasource.dart';
-import 'package:flutter_agenda_fono/data/repositories/lista_espera_repository_impl.dart';
-import 'package:flutter_agenda_fono/domain/entities/lista_espera.dart';
-import 'package:flutter_agenda_fono/domain/repositories/lista_espera_repository.dart';
-import 'package:flutter_agenda_fono/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
-import 'package:flutter_agenda_fono/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
+import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/repositories/lista_espera_repository_impl.dart';
+import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agendanova/domain/repositories/lista_espera_repository.dart';
+import 'package:agendanova/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
+import 'package:agendanova/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'dart:async';
 
 // ViewModel para a tela de Lista de Espera

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_agenda_fono/presentation/auth/viewmodels/login_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart'; // Será criado em breve
 import 'package:provider/provider.dart'; // Usaremos Provider para gerenciamento de estado
 
 // Tela de Login do aplicativo

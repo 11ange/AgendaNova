@@ -1,8 +1,8 @@
     import 'package:flutter/material.dart';
     import 'package:firebase_core/firebase_core.dart';
-    import 'package:flutter_agenda_fono/app/app_widget.dart';
-    import 'package:flutter_agenda_fono/firebase_options.dart';
-    import 'package:flutter_agenda_fono/injection_container.dart' as di; // Importe com alias
+    import 'package:agendanova/app/app_widget.dart';
+    import 'package:agendanova/firebase_options.dart';
+    import 'package:agendanova/injection_container.dart' as di; // Importe com alias
 
     void main() async {
       WidgetsFlutterBinding.ensureInitialized();

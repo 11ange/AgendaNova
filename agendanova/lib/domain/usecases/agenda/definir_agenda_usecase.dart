@@ -1,7 +1,7 @@
-import 'package:flutter_agenda_fono/domain/entities/agenda_disponibilidade.dart';
-import 'package:flutter_agenda_fono/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 // Importe o repositório de agendamento quando ele for criado
-// import 'package:flutter_agenda_fono/domain/repositories/agendamento_repository.dart';
+// import 'package:agendanova/domain/repositories/agendamento_repository.dart';
 
 // Use case para definir a agenda de horários de atendimento
 class DefinirAgendaUseCase {
