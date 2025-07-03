@@ -39,7 +39,6 @@ import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmod
 import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 
-
 final GetIt sl = GetIt.instance; // sl = Service Locator
 
 Future<void> init() async {
@@ -48,14 +47,25 @@ Future<void> init() async {
   sl.registerLazySingleton<FirebaseDatasource>(() => FirebaseDatasource(sl()));
 
   // Repositories
-  sl.registerLazySingleton<PacienteRepository>(() => PacienteRepositoryImpl(sl()));
-  sl.registerLazySingleton<ListaEsperaRepository>(() => ListaEsperaRepositoryImpl(sl()));
-  sl.registerLazySingleton<AgendaDisponibilidadeRepository>(() => AgendaDisponibilidadeRepositoryImpl(sl()));
-  sl.registerLazySingleton<TreinamentoRepository>(() => TreinamentoRepositoryImpl(sl()));
+  sl.registerLazySingleton<PacienteRepository>(
+    () => PacienteRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<ListaEsperaRepository>(
+    () => ListaEsperaRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<AgendaDisponibilidadeRepository>(
+    () => AgendaDisponibilidadeRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<TreinamentoRepository>(
+    () => TreinamentoRepositoryImpl(sl()),
+  );
   sl.registerLazySingleton<SessaoRepository>(() => SessaoRepositoryImpl(sl()));
-  sl.registerLazySingleton<PagamentoRepository>(() => PagamentoRepositoryImpl(sl()));
-  sl.registerLazySingleton<RelatorioRepository>(() => RelatorioRepositoryImpl(sl()));
-
+  sl.registerLazySingleton<PagamentoRepository>(
+    () => PagamentoRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<RelatorioRepository>(
+    () => RelatorioRepositoryImpl(sl()),
+  );
 
   // Use Cases
   // Pacientes
@@ -72,43 +82,61 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DefinirAgendaUseCase(sl()));
 
   // Treinamento
-  sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
+  sl.registerLazySingleton(
+    () => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()),
+  );
 
   // Sessão
-  sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl()));
+  sl.registerLazySingleton(
+    () => AtualizarStatusSessaoUseCase(sl(), sl(), sl()),
+  );
 
   // Pagamento
   sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => ReverterPagamentoUseCase(sl(), sl(), sl()));
 
   // Relatórios
-  sl.registerLazySingleton(() => GerarRelatorioMensalGlobalUseCase(sl(), sl(), sl()));
-  sl.registerLazySingleton(() => GerarRelatorioIndividualPacienteUseCase(sl(), sl(), sl()));
-
+  sl.registerLazySingleton(
+    () => GerarRelatorioMensalGlobalUseCase(sl(), sl(), sl()),
+  );
+  sl.registerLazySingleton(
+    () => GerarRelatorioIndividualPacienteUseCase(sl(), sl(), sl()),
+  );
 
   // ViewModels (Factories para que uma nova instância seja criada quando solicitada)
   sl.registerFactory(() => LoginViewModel(firebaseService: sl()));
-  sl.registerFactory(() => AgendaViewModel(agendaDisponibilidadeRepository: sl()));
+  sl.registerFactory(
+    () => AgendaViewModel(agendaDisponibilidadeRepository: sl()),
+  );
   sl.registerFactory(() => ListaEsperaViewModel(listaEsperaRepository: sl()));
   sl.registerFactory(() => PacientesAtivosViewModel(pacienteRepository: sl()));
-  sl.registerFactory(() => PacientesInativosViewModel(pacienteRepository: sl()));
+  sl.registerFactory(
+    () => PacientesInativosViewModel(pacienteRepository: sl()),
+  );
   sl.registerFactory(() => PacienteFormViewModel(pacienteRepository: sl()));
-  sl.registerFactory(() => HistoricoPacienteViewModel(pacienteRepository: sl()));
-  sl.registerFactory(() => PagamentosViewModel(
-    pagamentoRepository: sl(),
-    treinamentoRepository: sl(),
-    sessaoRepository: sl(),
-    pacienteRepository: sl(),
-  ));
-  sl.registerFactory(() => RelatoriosViewModel(
-    sessaoRepository: sl(),
-    treinamentoRepository: sl(),
-    pacienteRepository: sl(),
-  ));
-  sl.registerFactory(() => SessoesViewModel(
-    sessaoRepository: sl(),
-    treinamentoRepository: sl(),
-    agendaDisponibilidadeRepository: sl(),
-  ));
+  sl.registerFactory(
+    () => HistoricoPacienteViewModel(pacienteRepository: sl()),
+  );
+  sl.registerFactory(
+    () => PagamentosViewModel(
+      pagamentoRepository: sl(),
+      treinamentoRepository: sl(),
+      sessaoRepository: sl(),
+      pacienteRepository: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RelatoriosViewModel(
+      sessaoRepository: sl(),
+      treinamentoRepository: sl(),
+      pacienteRepository: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => SessoesViewModel(
+      sessaoRepository: sl(),
+      treinamentoRepository: sl(),
+      agendaDisponibilidadeRepository: sl(),
+    ),
+  );
 }
-

@@ -9,9 +9,7 @@ abstract class PagamentoRepository {
   Stream<List<Pagamento>> getPagamentosByTreinamentoId(String treinamentoId);
 
   // Adiciona um novo pagamento
-  Future<String> addPagamento(
-    Pagamento pagamento,
-  ); // Retorna o ID do novo pagamento
+  Future<String> addPagamento(Pagamento pagamento); // Retorna o ID do novo pagamento
 
   // Atualiza um pagamento existente
   Future<void> updatePagamento(Pagamento pagamento);
@@ -19,3 +17,4 @@ abstract class PagamentoRepository {
   // Exclui um pagamento
   Future<void> deletePagamento(String id);
 }
+

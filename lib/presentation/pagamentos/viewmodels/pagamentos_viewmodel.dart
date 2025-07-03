@@ -28,60 +28,101 @@ class PagamentosViewModel extends ChangeNotifier {
   bool _isLoading = false;
   List<Treinamento> _treinamentosComPagamentos = []; // Treinamentos ativos
   List<Paciente> _pacientes = []; // Para exibir o nome do paciente
-  Map<String, List<Pagamento>> _pagamentosPorTreinamento = {}; // Pagamentos agrupados por treinamento
+  Map<String, List<Pagamento>> _pagamentosPorTreinamento =
+      {}; // Pagamentos agrupados por treinamento
 
   bool get isLoading => _isLoading;
   List<Treinamento> get treinamentosComPagamentos => _treinamentosComPagamentos;
   List<Paciente> get pacientes => _pacientes;
-  Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento;
+  Map<String, List<Pagamento>> get pagamentosPorTreinamento =>
+      _pagamentosPorTreinamento;
 
   PagamentosViewModel({
     PagamentoRepository? pagamentoRepository,
     TreinamentoRepository? treinamentoRepository,
     SessaoRepository? sessaoRepository,
     PacienteRepository? pacienteRepository,
-  })  : _pagamentoRepository = pagamentoRepository ?? PagamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _treinamentoRepository = treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _sessaoRepository = sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _pacienteRepository = pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _registrarPagamentoUseCase = RegistrarPagamentoUseCase(
-          pagamentoRepository ?? PagamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        ),
-        _reverterPagamentoUseCase = ReverterPagamentoUseCase(
-          pagamentoRepository ?? PagamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        ) {
+  }) : _pagamentoRepository =
+           pagamentoRepository ??
+           PagamentoRepositoryImpl(
+             FirebaseDatasource(FirebaseService.instance),
+           ),
+       _treinamentoRepository =
+           treinamentoRepository ??
+           TreinamentoRepositoryImpl(
+             FirebaseDatasource(FirebaseService.instance),
+           ),
+       _sessaoRepository =
+           sessaoRepository ??
+           SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+       _pacienteRepository =
+           pacienteRepository ??
+           PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+       _registrarPagamentoUseCase = RegistrarPagamentoUseCase(
+         pagamentoRepository ??
+             PagamentoRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+         treinamentoRepository ??
+             TreinamentoRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+         sessaoRepository ??
+             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+       ),
+       _reverterPagamentoUseCase = ReverterPagamentoUseCase(
+         pagamentoRepository ??
+             PagamentoRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+         sessaoRepository ??
+             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+         treinamentoRepository ??
+             TreinamentoRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+       ) {
     _listenToDataChanges();
   }
 
   void _listenToDataChanges() {
     // Escuta mudanças nos treinamentos
-    _treinamentoRepository.getTreinamentos().listen((treinamentosList) async {
-      _treinamentosComPagamentos = treinamentosList.where((t) => t.status == 'ativo').toList(); // Apenas treinamentos ativos
-      await _loadRelatedData(); // Recarrega pacientes e pagamentos
-      notifyListeners();
-    }, onError: (error) {
-      print('Erro ao carregar treinamentos: $error');
-    });
+    _treinamentoRepository.getTreinamentos().listen(
+      (treinamentosList) async {
+        _treinamentosComPagamentos = treinamentosList
+            .where((t) => t.status == 'ativo')
+            .toList(); // Apenas treinamentos ativos
+        await _loadRelatedData(); // Recarrega pacientes e pagamentos
+        notifyListeners();
+      },
+      onError: (error) {
+        print('Erro ao carregar treinamentos: $error');
+      },
+    );
 
     // Escuta mudanças nos pagamentos
-    _pagamentoRepository.getPagamentos().listen((pagamentosList) {
-      _pagamentosPorTreinamento = _groupPagamentosByTreinamento(pagamentosList);
-      notifyListeners();
-    }, onError: (error) {
-      print('Erro ao carregar pagamentos: $error');
-    });
+    _pagamentoRepository.getPagamentos().listen(
+      (pagamentosList) {
+        _pagamentosPorTreinamento = _groupPagamentosByTreinamento(
+          pagamentosList,
+        );
+        notifyListeners();
+      },
+      onError: (error) {
+        print('Erro ao carregar pagamentos: $error');
+      },
+    );
 
     // Escuta mudanças nos pacientes
-    _pacienteRepository.getPacientes().listen((pacientesList) {
-      _pacientes = pacientesList;
-      notifyListeners();
-    }, onError: (error) {
-      print('Erro ao carregar pacientes: $error');
-    });
+    _pacienteRepository.getPacientes().listen(
+      (pacientesList) {
+        _pacientes = pacientesList;
+        notifyListeners();
+      },
+      onError: (error) {
+        print('Erro ao carregar pacientes: $error');
+      },
+    );
   }
 
   Future<void> _loadRelatedData() async {
@@ -100,7 +141,9 @@ class PagamentosViewModel extends ChangeNotifier {
     }
   }
 
-  Map<String, List<Pagamento>> _groupPagamentosByTreinamento(List<Pagamento> pagamentos) {
+  Map<String, List<Pagamento>> _groupPagamentosByTreinamento(
+    List<Pagamento> pagamentos,
+  ) {
     final Map<String, List<Pagamento>> grouped = {};
     for (var p in pagamentos) {
       if (!grouped.containsKey(p.treinamentoId)) {
@@ -167,4 +210,3 @@ class PagamentosViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-

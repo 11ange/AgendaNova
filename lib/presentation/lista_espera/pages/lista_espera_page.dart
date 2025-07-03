@@ -29,7 +29,10 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
     super.dispose();
   }
 
-  Future<void> _showAddToListaEsperaDialog(BuildContext context, ListaEsperaViewModel viewModel) async {
+  Future<void> _showAddToListaEsperaDialog(
+    BuildContext context,
+    ListaEsperaViewModel viewModel,
+  ) async {
     _nomeController.clear();
     _telefoneController.clear();
     _observacoesController.clear();
@@ -48,7 +51,8 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                   TextFormField(
                     controller: _nomeController,
                     decoration: const InputDecoration(labelText: 'Nome *'),
-                    validator: (value) => InputValidators.requiredField(value, 'Nome'),
+                    validator: (value) =>
+                        InputValidators.requiredField(value, 'Nome'),
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -80,22 +84,32 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                 if (_formKey.currentState!.validate()) {
                   final newItem = ListaEspera(
                     nome: _nomeController.text,
-                    telefone: _telefoneController.text.isEmpty ? null : _telefoneController.text,
-                    observacoes: _observacoesController.text.isEmpty ? null : _observacoesController.text,
+                    telefone: _telefoneController.text.isEmpty
+                        ? null
+                        : _telefoneController.text,
+                    observacoes: _observacoesController.text.isEmpty
+                        ? null
+                        : _observacoesController.text,
                     dataCadastro: DateTime.now(),
                   );
                   try {
                     await viewModel.adicionarItem(newItem);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Adicionado à lista de espera com sucesso!')),
+                        const SnackBar(
+                          content: Text(
+                            'Adicionado à lista de espera com sucesso!',
+                          ),
+                        ),
                       );
                       Navigator.of(dialogContext).pop();
                     }
                   } catch (e) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao adicionar: ${e.toString()}')),
+                        SnackBar(
+                          content: Text('Erro ao adicionar: ${e.toString()}'),
+                        ),
                       );
                     }
                   }
@@ -108,7 +122,11 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
     );
   }
 
-  Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {
+  Future<bool?> _showConfirmationDialog(
+    BuildContext context,
+    String title,
+    String content,
+  ) async {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -146,7 +164,10 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showAddToListaEsperaDialog(context, Provider.of<ListaEsperaViewModel>(context, listen: false)),
+                  onPressed: () => _showAddToListaEsperaDialog(
+                    context,
+                    Provider.of<ListaEsperaViewModel>(context, listen: false),
+                  ),
                   icon: const Icon(Icons.person_add),
                   label: const Text('Adicionar Pessoa'),
                   style: ElevatedButton.styleFrom(
@@ -168,10 +189,16 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
-                        return Center(child: Text('Erro ao carregar lista de espera: ${snapshot.error}'));
+                        return Center(
+                          child: Text(
+                            'Erro ao carregar lista de espera: ${snapshot.error}',
+                          ),
+                        );
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('A lista de espera está vazia.'));
+                        return const Center(
+                          child: Text('A lista de espera está vazia.'),
+                        );
                       }
 
                       // A ordenação já é feita no ViewModel, então apenas exibe
@@ -184,16 +211,27 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                           return ListaEsperaCard(
                             item: item,
                             onRemove: () async {
-                              final confirm = await _showConfirmationDialog(context,
-                                  'Confirmar Remoção', 'Tem certeza que deseja remover ${item.nome} da lista de espera?');
+                              final confirm = await _showConfirmationDialog(
+                                context,
+                                'Confirmar Remoção',
+                                'Tem certeza que deseja remover ${item.nome} da lista de espera?',
+                              );
                               if (confirm == true) {
                                 try {
                                   await viewModel.removerItem(item.id!);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Removido da lista de espera com sucesso!')));
+                                    const SnackBar(
+                                      content: Text(
+                                        'Removido da lista de espera com sucesso!',
+                                      ),
+                                    ),
+                                  );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Erro ao remover: $e')));
+                                    SnackBar(
+                                      content: Text('Erro ao remover: $e'),
+                                    ),
+                                  );
                                 }
                               }
                             },
@@ -211,4 +249,3 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
     );
   }
 }
-

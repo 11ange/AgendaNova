@@ -6,10 +6,7 @@ class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
   AgendaDisponibilidadeModel({
     String? id,
     required Map<String, List<String>> agenda,
-  }) : super(
-          id: id,
-          agenda: agenda,
-        );
+  }) : super(id: id, agenda: agenda);
 
   // Construtor para criar um AgendaDisponibilidadeModel a partir de um DocumentSnapshot do Firestore
   factory AgendaDisponibilidadeModel.fromFirestore(DocumentSnapshot doc) {
@@ -19,25 +16,21 @@ class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
       agendaMap[key] = List<String>.from(value);
     });
 
-    return AgendaDisponibilidadeModel(
-      id: doc.id,
-      agenda: agendaMap,
-    );
+    return AgendaDisponibilidadeModel(id: doc.id, agenda: agendaMap);
   }
 
   // Converte o AgendaDisponibilidadeModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
-    return {
-      'agenda': agenda,
-    };
+    return {'agenda': agenda};
   }
 
   // Construtor para criar um AgendaDisponibilidadeModel a partir de uma entidade AgendaDisponibilidade
-  factory AgendaDisponibilidadeModel.fromEntity(AgendaDisponibilidade agendaDisponibilidade) {
+  factory AgendaDisponibilidadeModel.fromEntity(
+    AgendaDisponibilidade agendaDisponibilidade,
+  ) {
     return AgendaDisponibilidadeModel(
       id: agendaDisponibilidade.id,
       agenda: agendaDisponibilidade.agenda,
     );
   }
 }
-

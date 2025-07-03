@@ -12,7 +12,9 @@ class PacienteRepositoryImpl implements PacienteRepository {
 
   @override
   Stream<List<Paciente>> getPacientes() {
-    return _firebaseDatasource.getCollectionStream(FirestoreCollections.pacientes).map(
+    return _firebaseDatasource
+        .getCollectionStream(FirestoreCollections.pacientes)
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => PacienteModel.fromFirestore(doc))
               .toList(),
@@ -21,11 +23,13 @@ class PacienteRepositoryImpl implements PacienteRepository {
 
   @override
   Stream<List<Paciente>> getPacientesAtivos() {
-    return _firebaseDatasource.queryCollectionStream(
-      FirestoreCollections.pacientes,
-      field: 'status',
-      isEqualTo: 'ativo',
-    ).map(
+    return _firebaseDatasource
+        .queryCollectionStream(
+          FirestoreCollections.pacientes,
+          field: 'status',
+          isEqualTo: 'ativo',
+        )
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => PacienteModel.fromFirestore(doc))
               .toList(),
@@ -34,11 +38,13 @@ class PacienteRepositoryImpl implements PacienteRepository {
 
   @override
   Stream<List<Paciente>> getPacientesInativos() {
-    return _firebaseDatasource.queryCollectionStream(
-      FirestoreCollections.pacientes,
-      field: 'status',
-      isEqualTo: 'inativo',
-    ).map(
+    return _firebaseDatasource
+        .queryCollectionStream(
+          FirestoreCollections.pacientes,
+          field: 'status',
+          isEqualTo: 'inativo',
+        )
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => PacienteModel.fromFirestore(doc))
               .toList(),
@@ -47,7 +53,10 @@ class PacienteRepositoryImpl implements PacienteRepository {
 
   @override
   Future<Paciente?> getPacienteById(String id) async {
-    final doc = await _firebaseDatasource.getDocumentById(FirestoreCollections.pacientes, id);
+    final doc = await _firebaseDatasource.getDocumentById(
+      FirestoreCollections.pacientes,
+      id,
+    );
     if (doc.exists) {
       return PacienteModel.fromFirestore(doc);
     }
@@ -57,7 +66,10 @@ class PacienteRepositoryImpl implements PacienteRepository {
   @override
   Future<void> addPaciente(Paciente paciente) async {
     final pacienteModel = PacienteModel.fromEntity(paciente);
-    await _firebaseDatasource.addDocument(FirestoreCollections.pacientes, pacienteModel.toFirestore());
+    await _firebaseDatasource.addDocument(
+      FirestoreCollections.pacientes,
+      pacienteModel.toFirestore(),
+    );
   }
 
   @override
@@ -66,17 +78,29 @@ class PacienteRepositoryImpl implements PacienteRepository {
       throw Exception('ID do paciente é obrigatório para atualização.');
     }
     final pacienteModel = PacienteModel.fromEntity(paciente);
-    await _firebaseDatasource.updateDocument(FirestoreCollections.pacientes, paciente.id!, pacienteModel.toFirestore());
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.pacientes,
+      paciente.id!,
+      pacienteModel.toFirestore(),
+    );
   }
 
   @override
   Future<void> inativarPaciente(String id) async {
-    await _firebaseDatasource.updateDocument(FirestoreCollections.pacientes, id, {'status': 'inativo'});
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.pacientes,
+      id,
+      {'status': 'inativo'},
+    );
   }
 
   @override
   Future<void> reativarPaciente(String id) async {
-    await _firebaseDatasource.updateDocument(FirestoreCollections.pacientes, id, {'status': 'ativo'});
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.pacientes,
+      id,
+      {'status': 'ativo'},
+    );
   }
 
   @override
@@ -90,4 +114,3 @@ class PacienteRepositoryImpl implements PacienteRepository {
     return querySnapshot.docs.any((doc) => doc.id != excludeId);
   }
 }
-

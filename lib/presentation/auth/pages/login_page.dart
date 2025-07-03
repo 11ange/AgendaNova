@@ -14,7 +14,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>(); // Chave para o formulário de validação
+  final _formKey =
+      GlobalKey<FormState>(); // Chave para o formulário de validação
 
   @override
   void dispose() {
@@ -50,7 +51,9 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Text(
                         'Bem-vindo!',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).primaryColor),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).primaryColor,
+                        ),
                       ),
                       const SizedBox(height: 24.0),
                       TextFormField(
@@ -110,8 +113,14 @@ class _LoginPageState extends State<LoginPage> {
                                         } catch (e) {
                                           // Exibe mensagem de erro
                                           if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Erro de login: ${e.toString()}')),
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Erro de login: ${e.toString()}',
+                                                ),
+                                              ),
                                             );
                                           }
                                         }
@@ -127,7 +136,11 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () {
                           // TODO: Implementar funcionalidade de "Esqueceu a senha?"
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Funcionalidade "Esqueceu a senha?" em desenvolvimento.')),
+                            const SnackBar(
+                              content: Text(
+                                'Funcionalidade "Esqueceu a senha?" em desenvolvimento.',
+                              ),
+                            ),
                           );
                         },
                         child: const Text('Esqueceu a senha?'),
@@ -143,4 +156,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-

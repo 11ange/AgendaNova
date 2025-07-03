@@ -15,12 +15,21 @@ class PacientesInativosViewModel extends ChangeNotifier {
   List<Paciente> _pacientes = [];
   List<Paciente> get pacientes => _pacientes;
 
-  final _pacientesStreamController = StreamController<List<Paciente>>.broadcast();
-  Stream<List<Paciente>> get pacientesStream => _pacientesStreamController.stream;
+  final _pacientesStreamController =
+      StreamController<List<Paciente>>.broadcast();
+  Stream<List<Paciente>> get pacientesStream =>
+      _pacientesStreamController.stream;
 
   PacientesInativosViewModel({PacienteRepository? pacienteRepository})
-      : _pacienteRepository = pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _reativarPacienteUseCase = ReativarPacienteUseCase(pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance))) {
+    : _pacienteRepository =
+          pacienteRepository ??
+          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+      _reativarPacienteUseCase = ReativarPacienteUseCase(
+        pacienteRepository ??
+            PacienteRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
+      ) {
     _listenToPacientes();
   }
 
@@ -57,4 +66,3 @@ class PacientesInativosViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-

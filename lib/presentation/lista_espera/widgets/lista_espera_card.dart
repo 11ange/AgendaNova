@@ -51,7 +51,9 @@ class ListaEsperaCard extends StatelessWidget {
               ),
             Text(
               'Data de Cadastro: ${DateFormatter.formatDate(item.dataCadastro)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -59,4 +61,3 @@ class ListaEsperaCard extends StatelessWidget {
     );
   }
 }
-

@@ -8,7 +8,9 @@ class DefinirAgendaUseCase {
   final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
   // final AgendamentoRepository _agendamentoRepository; // Descomentar quando AgendamentoRepository for criado
 
-  DefinirAgendaUseCase(this._agendaDisponibilidadeRepository /*, this._agendamentoRepository*/);
+  DefinirAgendaUseCase(
+    this._agendaDisponibilidadeRepository /*, this._agendamentoRepository*/,
+  );
 
   Future<void> call(AgendaDisponibilidade novaAgenda) async {
     // Regra de negócio: Inclusão e exclusão de horários deve validar se do dia atual para frente
@@ -24,4 +26,3 @@ class DefinirAgendaUseCase {
     await _agendaDisponibilidadeRepository.setAgendaDisponibilidade(novaAgenda);
   }
 }
-

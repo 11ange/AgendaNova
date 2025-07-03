@@ -19,7 +19,9 @@ class HomePage extends StatelessWidget {
             onPressed: () async {
               await FirebaseService.instance.signOut();
               if (context.mounted) {
-                context.go('/login'); // Volta para a tela de login após o logout
+                context.go(
+                  '/login',
+                ); // Volta para a tela de login após o logout
               }
             },
             tooltip: 'Sair',
@@ -34,7 +36,9 @@ class HomePage extends StatelessWidget {
             // Seção de Próximos Horários Disponíveis
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -58,7 +62,9 @@ class HomePage extends StatelessWidget {
             // Seção de Próximos Agendamentos
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -86,12 +92,42 @@ class HomePage extends StatelessWidget {
                 crossAxisSpacing: 16.0,
                 mainAxisSpacing: 16.0,
                 children: [
-                  _buildModuleButton(context, 'Pacientes', Icons.people, '/pacientes-ativos'),
-                  _buildModuleButton(context, 'Sessões', Icons.event_note, '/sessoes'),
-                  _buildModuleButton(context, 'Agenda', Icons.calendar_today, '/agenda'),
-                  _buildModuleButton(context, 'Lista de Espera', Icons.queue, '/lista-espera'),
-                  _buildModuleButton(context, 'Pagamentos', Icons.payment, '/pagamentos'),
-                  _buildModuleButton(context, 'Relatórios', Icons.bar_chart, '/relatorios'),
+                  _buildModuleButton(
+                    context,
+                    'Pacientes',
+                    Icons.people,
+                    '/pacientes-ativos',
+                  ),
+                  _buildModuleButton(
+                    context,
+                    'Sessões',
+                    Icons.event_note,
+                    '/sessoes',
+                  ),
+                  _buildModuleButton(
+                    context,
+                    'Agenda',
+                    Icons.calendar_today,
+                    '/agenda',
+                  ),
+                  _buildModuleButton(
+                    context,
+                    'Lista de Espera',
+                    Icons.queue,
+                    '/lista-espera',
+                  ),
+                  _buildModuleButton(
+                    context,
+                    'Pagamentos',
+                    Icons.payment,
+                    '/pagamentos',
+                  ),
+                  _buildModuleButton(
+                    context,
+                    'Relatórios',
+                    Icons.bar_chart,
+                    '/relatorios',
+                  ),
                 ],
               ),
             ),
@@ -102,7 +138,12 @@ class HomePage extends StatelessWidget {
   }
 
   // Widget auxiliar para criar botões de módulo
-  Widget _buildModuleButton(BuildContext context, String title, IconData icon, String route) {
+  Widget _buildModuleButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    String route,
+  ) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -125,4 +166,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-

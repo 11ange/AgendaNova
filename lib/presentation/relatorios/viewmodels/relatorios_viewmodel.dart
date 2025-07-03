@@ -16,7 +16,8 @@ import 'dart:async';
 // ViewModel para a tela de Relatórios
 class RelatoriosViewModel extends ChangeNotifier {
   final GerarRelatorioMensalGlobalUseCase _gerarRelatorioMensalGlobalUseCase;
-  final GerarRelatorioIndividualPacienteUseCase _gerarRelatorioIndividualPacienteUseCase;
+  final GerarRelatorioIndividualPacienteUseCase
+  _gerarRelatorioIndividualPacienteUseCase;
   final PacienteRepository _pacienteRepository;
 
   bool _isLoading = false;
@@ -29,29 +30,57 @@ class RelatoriosViewModel extends ChangeNotifier {
     SessaoRepository? sessaoRepository,
     TreinamentoRepository? treinamentoRepository,
     PacienteRepository? pacienteRepository,
-  })  : _sessaoRepository = sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _treinamentoRepository = treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _pacienteRepository = pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _gerarRelatorioMensalGlobalUseCase = GerarRelatorioMensalGlobalUseCase(
-          sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        ),
-        _gerarRelatorioIndividualPacienteUseCase = GerarRelatorioIndividualPacienteUseCase(
-          sessaoRepository ?? SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          treinamentoRepository ?? TreinamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-          pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        );
+  }) : _sessaoRepository =
+           sessaoRepository ??
+           SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+       _treinamentoRepository =
+           treinamentoRepository ??
+           TreinamentoRepositoryImpl(
+             FirebaseDatasource(FirebaseService.instance),
+           ),
+       _pacienteRepository =
+           pacienteRepository ??
+           PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+       _gerarRelatorioMensalGlobalUseCase = GerarRelatorioMensalGlobalUseCase(
+         sessaoRepository ??
+             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+         treinamentoRepository ??
+             TreinamentoRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+         pacienteRepository ??
+             PacienteRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+       ),
+       _gerarRelatorioIndividualPacienteUseCase =
+           GerarRelatorioIndividualPacienteUseCase(
+             sessaoRepository ??
+                 SessaoRepositoryImpl(
+                   FirebaseDatasource(FirebaseService.instance),
+                 ),
+             treinamentoRepository ??
+                 TreinamentoRepositoryImpl(
+                   FirebaseDatasource(FirebaseService.instance),
+                 ),
+             pacienteRepository ??
+                 PacienteRepositoryImpl(
+                   FirebaseDatasource(FirebaseService.instance),
+                 ),
+           );
 
   final SessaoRepository _sessaoRepository; // Adicionado para o construtor
-  final TreinamentoRepository _treinamentoRepository; // Adicionado para o construtor
+  final TreinamentoRepository
+  _treinamentoRepository; // Adicionado para o construtor
 
   // Carrega a lista de pacientes para o dropdown de relatório individual
   void loadPacientes() {
     _setLoading(true);
     _pacienteRepository.getPacientes().listen(
       (pacientesList) {
-        _pacientes = pacientesList.where((p) => p.status == 'ativo').toList(); // Apenas pacientes ativos
+        _pacientes = pacientesList
+            .where((p) => p.status == 'ativo')
+            .toList(); // Apenas pacientes ativos
         notifyListeners();
         _setLoading(false);
       },
@@ -89,4 +118,3 @@ class RelatoriosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-

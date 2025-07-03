@@ -1,15 +1,15 @@
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/auth/pages/login_page.dart';
-import 'package:agendanova/presentation/home/pages/home_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart';
-import 'package:agendanova/presentation/agenda/pages/agenda_page.dart';
-import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
-import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart';
-import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart';
-import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart';
+import 'package:agendanova/presentation/auth/pages/login_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/home/pages/home_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/agenda/pages/agenda_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart'; // Caminho corrigido
+import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart'; // Caminho corrigido
 
 
 // Classe para gerenciar as rotas do aplicativo usando GoRouter

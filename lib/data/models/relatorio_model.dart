@@ -9,11 +9,11 @@ class RelatorioModel extends Relatorio {
     required DateTime dataGeracao,
     required Map<String, dynamic> dados,
   }) : super(
-          id: id,
-          tipoRelatorio: tipoRelatorio,
-          dataGeracao: dataGeracao,
-          dados: dados,
-        );
+         id: id,
+         tipoRelatorio: tipoRelatorio,
+         dataGeracao: dataGeracao,
+         dados: dados,
+       );
 
   // Construtor para criar um RelatorioModel a partir de um DocumentSnapshot do Firestore
   factory RelatorioModel.fromFirestore(DocumentSnapshot doc) {
@@ -45,4 +45,3 @@ class RelatorioModel extends Relatorio {
     );
   }
 }
-

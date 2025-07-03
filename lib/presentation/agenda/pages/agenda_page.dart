@@ -22,10 +22,26 @@ class _AgendaPageState extends State<AgendaPage> {
   ];
 
   final List<String> _times = [
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-    '17:00', '17:30',
+    '08:00',
+    '08:30',
+    '09:00',
+    '09:30',
+    '10:00',
+    '10:30',
+    '11:00',
+    '11:30',
+    '12:00',
+    '12:30',
+    '13:00',
+    '13:30',
+    '14:00',
+    '14:30',
+    '15:00',
+    '15:30',
+    '16:00',
+    '16:30',
+    '17:00',
+    '17:30',
   ];
 
   @override
@@ -69,27 +85,37 @@ class _AgendaPageState extends State<AgendaPage> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3, // 3 botões lado a lado
-                            crossAxisSpacing: 10.0,
-                            mainAxisSpacing: 10.0,
-                            childAspectRatio: 2.5, // Ajuste para o tamanho do botão
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3, // 3 botões lado a lado
+                                crossAxisSpacing: 10.0,
+                                mainAxisSpacing: 10.0,
+                                childAspectRatio:
+                                    2.5, // Ajuste para o tamanho do botão
+                              ),
                           itemCount: _times.length,
                           itemBuilder: (context, index) {
                             final time = _times[index];
-                            final isSelected = viewModel.isTimeSelected(day, time);
+                            final isSelected = viewModel.isTimeSelected(
+                              day,
+                              time,
+                            );
                             return ElevatedButton(
                               onPressed: () {
                                 viewModel.toggleTimeSelection(day, time);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isSelected ? Colors.blue.shade700 : Colors.grey.shade300,
-                                foregroundColor: isSelected ? Colors.white : Colors.black87,
+                                backgroundColor: isSelected
+                                    ? Colors.blue.shade700
+                                    : Colors.grey.shade300,
+                                foregroundColor: isSelected
+                                    ? Colors.white
+                                    : Colors.black87,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                padding: EdgeInsets.zero, // Remove padding padrão para melhor controle
+                                padding: EdgeInsets
+                                    .zero, // Remove padding padrão para melhor controle
                               ),
                               child: Text(
                                 time,
@@ -113,18 +139,28 @@ class _AgendaPageState extends State<AgendaPage> {
                                 await viewModel.saveAgenda();
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Agenda salva com sucesso!')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Agenda salva com sucesso!',
+                                      ),
+                                    ),
                                   );
                                 }
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Erro ao salvar agenda: ${e.toString()}')),
+                                    SnackBar(
+                                      content: Text(
+                                        'Erro ao salvar agenda: ${e.toString()}',
+                                      ),
+                                    ),
                                   );
                                 }
                               }
                             },
-                      child: viewModel.isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salvar Agenda'),
+                      child: viewModel.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Salvar Agenda'),
                     ),
                   ),
                 ],
@@ -136,4 +172,3 @@ class _AgendaPageState extends State<AgendaPage> {
     );
   }
 }
-

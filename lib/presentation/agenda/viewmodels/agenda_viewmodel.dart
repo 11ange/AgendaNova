@@ -12,16 +12,25 @@ class AgendaViewModel extends ChangeNotifier {
   final DefinirAgendaUseCase _definirAgendaUseCase;
 
   bool _isLoading = false;
-  Map<String, List<String>> _currentAgenda = {}; // Estado local da agenda selecionada
+  Map<String, List<String>> _currentAgenda =
+      {}; // Estado local da agenda selecionada
 
   bool get isLoading => _isLoading;
   Map<String, List<String>> get currentAgenda => _currentAgenda;
 
-  AgendaViewModel({AgendaDisponibilidadeRepository? agendaDisponibilidadeRepository})
-      : _agendaDisponibilidadeRepository = agendaDisponibilidadeRepository ??
-            AgendaDisponibilidadeRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _definirAgendaUseCase = DefinirAgendaUseCase(
-            agendaDisponibilidadeRepository ?? AgendaDisponibilidadeRepositoryImpl(FirebaseDatasource(FirebaseService.instance))) {
+  AgendaViewModel({
+    AgendaDisponibilidadeRepository? agendaDisponibilidadeRepository,
+  }) : _agendaDisponibilidadeRepository =
+           agendaDisponibilidadeRepository ??
+           AgendaDisponibilidadeRepositoryImpl(
+             FirebaseDatasource(FirebaseService.instance),
+           ),
+       _definirAgendaUseCase = DefinirAgendaUseCase(
+         agendaDisponibilidadeRepository ??
+             AgendaDisponibilidadeRepositoryImpl(
+               FirebaseDatasource(FirebaseService.instance),
+             ),
+       ) {
     _listenToAgendaChanges();
   }
 
@@ -30,7 +39,9 @@ class AgendaViewModel extends ChangeNotifier {
     _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
       (agenda) {
         if (agenda != null) {
-          _currentAgenda = Map.from(agenda.agenda); // Cria uma cópia para poder modificar
+          _currentAgenda = Map.from(
+            agenda.agenda,
+          ); // Cria uma cópia para poder modificar
         } else {
           _currentAgenda = {}; // Agenda vazia se não houver dados no Firestore
         }
@@ -87,4 +98,3 @@ class AgendaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-

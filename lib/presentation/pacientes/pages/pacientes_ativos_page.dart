@@ -3,18 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // Será criado em breve
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-// Esta página exibe a lista de pacientes inativos
-class PacientesInativosPage extends StatefulWidget {
-  const PacientesInativosPage({super.key});
+// Esta página exibe a lista de pacientes ativos
+class PacientesAtivosPage extends StatefulWidget {
+  const PacientesAtivosPage({super.key});
 
   @override
-  State<PacientesInativosPage> createState() => _PacientesInativosPageState();
+  State<PacientesAtivosPage> createState() => _PacientesAtivosPageState();
 }
 
-class _PacientesInativosPageState extends State<PacientesInativosPage> {
+class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Paciente> _filteredPacientes = [];
 
@@ -23,11 +23,8 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
     super.initState();
     // Inicializa o ViewModel e escuta as mudanças
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<PacientesInativosViewModel>(
-        context,
-        listen: false,
-      );
-      viewModel.loadPacientesInativos();
+      final viewModel = Provider.of<PacientesAtivosViewModel>(context, listen: false);
+      viewModel.loadPacientesAtivos();
       viewModel.pacientesStream.listen((pacientes) {
         setState(() {
           _filteredPacientes = pacientes;
@@ -42,10 +39,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
   }
 
   void _applyFilter(String query) {
-    final viewModel = Provider.of<PacientesInativosViewModel>(
-      context,
-      listen: false,
-    );
+    final viewModel = Provider.of<PacientesAtivosViewModel>(context, listen: false);
     if (query.isEmpty) {
       setState(() {
         _filteredPacientes = viewModel.pacientes;
@@ -53,18 +47,10 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
     } else {
       setState(() {
         _filteredPacientes = viewModel.pacientes
-            .where(
-              (paciente) =>
-                  paciente.nome.toLowerCase().contains(query.toLowerCase()) ||
-                  (paciente.telefoneResponsavel?.toLowerCase().contains(
-                        query.toLowerCase(),
-                      ) ??
-                      false) ||
-                  (paciente.emailResponsavel?.toLowerCase().contains(
-                        query.toLowerCase(),
-                      ) ??
-                      false),
-            )
+            .where((paciente) =>
+                paciente.nome.toLowerCase().contains(query.toLowerCase()) ||
+                (paciente.telefoneResponsavel?.toLowerCase().contains(query.toLowerCase()) ?? false) ||
+                (paciente.emailResponsavel?.toLowerCase().contains(query.toLowerCase()) ?? false))
             .toList();
       });
     }
@@ -73,19 +59,18 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    // Não chame dispose no ViewModel aqui se ele for gerenciado pelo Provider no nível superior
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PacientesInativosViewModel(),
+      create: (_) => PacientesAtivosViewModel(),
       child: Scaffold(
         appBar: CustomAppBar(
-          title: 'Pacientes Inativos',
-          onBackButtonPressed: () => context.go(
-            '/pacientes-ativos',
-          ), // Volta para a tela de pacientes ativos
+          title: 'Pacientes Ativos',
+          onBackButtonPressed: () => context.go('/home'), // Volta para a tela inicial
         ),
         body: Column(
           children: [
@@ -103,8 +88,25 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => context.go('/pacientes-ativos/novo'), // Navega para a tela de novo paciente
+                    icon: const Icon(Icons.add),
+                    label: const Text('Novo Paciente'),
+                  ),
+                  TextButton(
+                    onPressed: () => context.go('/pacientes-inativos'), // Navega para pacientes inativos
+                    child: const Text('Ver Pacientes Inativos'),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
-              child: Consumer<PacientesInativosViewModel>(
+              child: Consumer<PacientesAtivosViewModel>(
                 builder: (context, viewModel, child) {
                   return StreamBuilder<List<Paciente>>(
                     stream: viewModel.pacientesStream,
@@ -113,21 +115,14 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Erro ao carregar pacientes: ${snapshot.error}',
-                          ),
-                        );
+                        return Center(child: Text('Erro ao carregar pacientes: ${snapshot.error}'));
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('Nenhum paciente inativo encontrado.'),
-                        );
+                        return const Center(child: Text('Nenhum paciente ativo encontrado.'));
                       }
 
                       // Ordena os pacientes por nome em ordem alfabética
-                      final sortedPacientes = _filteredPacientes
-                        ..sort((a, b) => a.nome.compareTo(b.nome));
+                      final sortedPacientes = _filteredPacientes..sort((a, b) => a.nome.compareTo(b.nome));
 
                       return ListView.builder(
                         itemCount: sortedPacientes.length,
@@ -136,44 +131,29 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                           return PacienteCard(
                             paciente: paciente,
                             onEdit: () {
-                              context.go(
-                                '/pacientes-ativos/editar/${paciente.id}',
-                              ); // Reutiliza a tela de edição
+                              context.go('/pacientes-ativos/editar/${paciente.id}');
                             },
                             onInactivate: () async {
-                              // Ação de reativar paciente
-                              final confirm = await _showConfirmationDialog(
-                                context,
-                                'Confirmar Reativação',
-                                'Tem certeza que deseja reativar este paciente?',
-                              );
+                              // Implementar a lógica de inativação aqui, com confirmação
+                              final confirm = await _showConfirmationDialog(context,
+                                  'Confirmar Inativação', 'Tem certeza que deseja inativar este paciente?');
                               if (confirm == true) {
                                 try {
-                                  await viewModel.reativarPaciente(
-                                    paciente.id!,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Paciente reativado com sucesso!',
-                                      ),
-                                    ),
-                                  );
+                                  await viewModel.inativarPaciente(paciente.id!);
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Paciente inativado com sucesso!')));
+                                  }
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Erro ao reativar paciente: $e',
-                                      ),
-                                    ),
-                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Erro ao inativar paciente: $e')));
+                                  }
                                 }
                               }
                             },
                             onTap: () {
-                              context.go(
-                                '/pacientes-ativos/historico/${paciente.id}',
-                              ); // Navega para o histórico
+                              context.go('/pacientes-ativos/historico/${paciente.id}');
                             },
                           );
                         },
@@ -189,11 +169,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
     );
   }
 
-  Future<bool?> _showConfirmationDialog(
-    BuildContext context,
-    String title,
-    String content,
-  ) async {
+  Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {

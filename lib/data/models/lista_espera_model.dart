@@ -10,12 +10,12 @@ class ListaEsperaModel extends ListaEspera {
     String? observacoes,
     required DateTime dataCadastro,
   }) : super(
-          id: id,
-          nome: nome,
-          telefone: telefone,
-          observacoes: observacoes,
-          dataCadastro: dataCadastro,
-        );
+         id: id,
+         nome: nome,
+         telefone: telefone,
+         observacoes: observacoes,
+         dataCadastro: dataCadastro,
+       );
 
   // Construtor para criar um ListaEsperaModel a partir de um DocumentSnapshot do Firestore
   factory ListaEsperaModel.fromFirestore(DocumentSnapshot doc) {
@@ -50,4 +50,3 @@ class ListaEsperaModel extends ListaEspera {
     );
   }
 }
-

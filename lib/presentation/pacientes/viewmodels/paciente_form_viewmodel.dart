@@ -11,7 +11,8 @@ import 'package:agendanova/domain/repositories/paciente_repository.dart';
 class PacienteFormViewModel extends ChangeNotifier {
   final CadastrarPacienteUseCase _cadastrarPacienteUseCase;
   final EditarPacienteUseCase _editarPacienteUseCase;
-  final PacienteRepository _pacienteRepository; // Para carregar o paciente existente
+  final PacienteRepository
+  _pacienteRepository; // Para carregar o paciente existente
 
   bool _isLoading = false;
   Paciente? _paciente; // Para edição
@@ -20,9 +21,21 @@ class PacienteFormViewModel extends ChangeNotifier {
   Paciente? get paciente => _paciente;
 
   PacienteFormViewModel({PacienteRepository? pacienteRepository})
-      : _pacienteRepository = pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _cadastrarPacienteUseCase = CadastrarPacienteUseCase(pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance))),
-        _editarPacienteUseCase = EditarPacienteUseCase(pacienteRepository ?? PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)));
+    : _pacienteRepository =
+          pacienteRepository ??
+          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+      _cadastrarPacienteUseCase = CadastrarPacienteUseCase(
+        pacienteRepository ??
+            PacienteRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
+      ),
+      _editarPacienteUseCase = EditarPacienteUseCase(
+        pacienteRepository ??
+            PacienteRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
+      );
 
   // Carrega os dados de um paciente existente para edição
   Future<void> loadPaciente(String pacienteId) async {
@@ -68,4 +81,3 @@ class PacienteFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-

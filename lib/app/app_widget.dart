@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/app/app_router.dart';
-import 'package:agendanova/app/app_theme.dart';
+import 'app_router.dart';
+import 'app_theme.dart';
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});

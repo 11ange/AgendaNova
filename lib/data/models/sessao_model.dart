@@ -14,16 +14,16 @@ class SessaoModel extends Sessao {
     DateTime? dataPagamento,
     String? observacoes,
   }) : super(
-          id: id,
-          treinamentoId: treinamentoId,
-          pacienteId: pacienteId,
-          dataHora: dataHora,
-          numeroSessao: numeroSessao,
-          status: status,
-          statusPagamento: statusPagamento,
-          dataPagamento: dataPagamento,
-          observacoes: observacoes,
-        );
+         id: id,
+         treinamentoId: treinamentoId,
+         pacienteId: pacienteId,
+         dataHora: dataHora,
+         numeroSessao: numeroSessao,
+         status: status,
+         statusPagamento: statusPagamento,
+         dataPagamento: dataPagamento,
+         observacoes: observacoes,
+       );
 
   // Construtor para criar um SessaoModel a partir de um DocumentSnapshot do Firestore
   factory SessaoModel.fromFirestore(DocumentSnapshot doc) {
@@ -50,7 +50,9 @@ class SessaoModel extends Sessao {
       'numeroSessao': numeroSessao,
       'status': status,
       'statusPagamento': statusPagamento,
-      'dataPagamento': dataPagamento != null ? Timestamp.fromDate(dataPagamento!) : null,
+      'dataPagamento': dataPagamento != null
+          ? Timestamp.fromDate(dataPagamento!)
+          : null,
       'observacoes': observacoes,
     };
   }
@@ -70,4 +72,3 @@ class SessaoModel extends Sessao {
     );
   }
 }
-

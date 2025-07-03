@@ -30,7 +30,9 @@ class PagamentoCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${pagamento.formaPagamento} ${pagamento.tipoParcelamento != null ? '(${pagamento.tipoParcelamento})' : ''}',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -41,18 +43,34 @@ class PagamentoCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text('Status: ${pagamento.status}', style: Theme.of(context).textTheme.bodyMedium),
-            Text('Data: ${DateFormatter.formatDate(pagamento.dataPagamento)}', style: Theme.of(context).textTheme.bodyMedium),
-            if (pagamento.guiaConvenio != null && pagamento.guiaConvenio!.isNotEmpty)
-              Text('Guia Convênio: ${pagamento.guiaConvenio}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Status: ${pagamento.status}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Text(
+              'Data: ${DateFormatter.formatDate(pagamento.dataPagamento)}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            if (pagamento.guiaConvenio != null &&
+                pagamento.guiaConvenio!.isNotEmpty)
+              Text(
+                'Guia Convênio: ${pagamento.guiaConvenio}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             if (pagamento.dataEnvioGuia != null)
-              Text('Envio Guia: ${DateFormatter.formatDate(pagamento.dataEnvioGuia!)}', style: Theme.of(context).textTheme.bodyMedium),
-            if (pagamento.observacoes != null && pagamento.observacoes!.isNotEmpty)
-              Text('Obs: ${pagamento.observacoes}', style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                'Envio Guia: ${DateFormatter.formatDate(pagamento.dataEnvioGuia!)}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            if (pagamento.observacoes != null &&
+                pagamento.observacoes!.isNotEmpty)
+              Text(
+                'Obs: ${pagamento.observacoes}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ),
       ),
     );
   }
 }
-

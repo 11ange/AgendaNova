@@ -17,16 +17,32 @@ class ListaEsperaViewModel extends ChangeNotifier {
   List<ListaEspera> _listaEspera = [];
   List<ListaEspera> get listaEspera => _listaEspera;
 
-  final _listaEsperaStreamController = StreamController<List<ListaEspera>>.broadcast();
-  Stream<List<ListaEspera>> get listaEsperaStream => _listaEsperaStreamController.stream;
+  final _listaEsperaStreamController =
+      StreamController<List<ListaEspera>>.broadcast();
+  Stream<List<ListaEspera>> get listaEsperaStream =>
+      _listaEsperaStreamController.stream;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   ListaEsperaViewModel({ListaEsperaRepository? listaEsperaRepository})
-      : _listaEsperaRepository = listaEsperaRepository ?? ListaEsperaRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-        _adicionarListaEsperaUseCase = AdicionarListaEsperaUseCase(listaEsperaRepository ?? ListaEsperaRepositoryImpl(FirebaseDatasource(FirebaseService.instance))),
-        _removerListaEsperaUseCase = RemoverListaEsperaUseCase(listaEsperaRepository ?? ListaEsperaRepositoryImpl(FirebaseDatasource(FirebaseService.instance))) {
+    : _listaEsperaRepository =
+          listaEsperaRepository ??
+          ListaEsperaRepositoryImpl(
+            FirebaseDatasource(FirebaseService.instance),
+          ),
+      _adicionarListaEsperaUseCase = AdicionarListaEsperaUseCase(
+        listaEsperaRepository ??
+            ListaEsperaRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
+      ),
+      _removerListaEsperaUseCase = RemoverListaEsperaUseCase(
+        listaEsperaRepository ??
+            ListaEsperaRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
+      ) {
     _listenToListaEspera();
   }
 
@@ -79,4 +95,3 @@ class ListaEsperaViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
-

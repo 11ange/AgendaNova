@@ -15,17 +15,17 @@ class PagamentoModel extends Pagamento {
     String? guiaConvenio,
     DateTime? dataEnvioGuia,
   }) : super(
-          id: id,
-          treinamentoId: treinamentoId,
-          pacienteId: pacienteId,
-          formaPagamento: formaPagamento,
-          tipoParcelamento: tipoParcelamento,
-          status: status,
-          dataPagamento: dataPagamento,
-          observacoes: observacoes,
-          guiaConvenio: guiaConvenio,
-          dataEnvioGuia: dataEnvioGuia,
-        );
+         id: id,
+         treinamentoId: treinamentoId,
+         pacienteId: pacienteId,
+         formaPagamento: formaPagamento,
+         tipoParcelamento: tipoParcelamento,
+         status: status,
+         dataPagamento: dataPagamento,
+         observacoes: observacoes,
+         guiaConvenio: guiaConvenio,
+         dataEnvioGuia: dataEnvioGuia,
+       );
 
   // Construtor para criar um PagamentoModel a partir de um DocumentSnapshot do Firestore
   factory PagamentoModel.fromFirestore(DocumentSnapshot doc) {
@@ -55,7 +55,9 @@ class PagamentoModel extends Pagamento {
       'dataPagamento': Timestamp.fromDate(dataPagamento),
       'observacoes': observacoes,
       'guiaConvenio': guiaConvenio,
-      'dataEnvioGuia': dataEnvioGuia != null ? Timestamp.fromDate(dataEnvioGuia!) : null,
+      'dataEnvioGuia': dataEnvioGuia != null
+          ? Timestamp.fromDate(dataEnvioGuia!)
+          : null,
     };
   }
 
@@ -75,4 +77,3 @@ class PagamentoModel extends Pagamento {
     );
   }
 }
-

@@ -16,18 +16,18 @@ class TreinamentoModel extends Treinamento {
     String? tipoParcelamento,
     required DateTime dataCadastro,
   }) : super(
-          id: id,
-          pacienteId: pacienteId,
-          diaSemana: diaSemana,
-          horario: horario,
-          numeroSessoesTotal: numeroSessoesTotal,
-          dataInicio: dataInicio,
-          dataFimPrevista: dataFimPrevista,
-          status: status,
-          formaPagamento: formaPagamento,
-          tipoParcelamento: tipoParcelamento,
-          dataCadastro: dataCadastro,
-        );
+         id: id,
+         pacienteId: pacienteId,
+         diaSemana: diaSemana,
+         horario: horario,
+         numeroSessoesTotal: numeroSessoesTotal,
+         dataInicio: dataInicio,
+         dataFimPrevista: dataFimPrevista,
+         status: status,
+         formaPagamento: formaPagamento,
+         tipoParcelamento: tipoParcelamento,
+         dataCadastro: dataCadastro,
+       );
 
   // Construtor para criar um TreinamentoModel a partir de um DocumentSnapshot do Firestore
   factory TreinamentoModel.fromFirestore(DocumentSnapshot doc) {
@@ -80,4 +80,3 @@ class TreinamentoModel extends Treinamento {
     );
   }
 }
-
