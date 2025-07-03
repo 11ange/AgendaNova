@@ -1,37 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/usecases/paciente/inativar_paciente_usecase.dart';
+import 'package:agendanova/domain/usecases/paciente/inativar_paciente_usecase.dart'; // Importação corrigida
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'dart:async';
 
 // ViewModel para a tela de Pacientes Ativos
 class PacientesAtivosViewModel extends ChangeNotifier {
   // Obtenha as instâncias via GetIt
-  final PacienteRepository _pacienteRepository =
-      GetIt.instance<PacienteRepository>();
-  final InativarPacienteUseCase _inativarPacienteUseCase =
-      GetIt.instance<InativarPacienteUseCase>();
+  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
+  final InativarPacienteUseCase _inativarPacienteUseCase = GetIt.instance<InativarPacienteUseCase>();
 
   List<Paciente> _pacientes = [];
   List<Paciente> get pacientes => _pacientes;
 
   // StreamController para gerenciar o stream de pacientes
-  final _pacientesStreamController =
-      StreamController<List<Paciente>>.broadcast();
-  Stream<List<Paciente>> get pacientesStream =>
-      _pacientesStreamController.stream;
+  final _pacientesStreamController = StreamController<List<Paciente>>.broadcast();
+  Stream<List<Paciente>> get pacientesStream => _pacientesStreamController.stream;
 
-  PacientesAtivosViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
+  PacientesAtivosViewModel() { // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
+    _listenToPacientes(); // Chamar o método no construtor
+  }
 
   // Escuta as mudanças nos pacientes ativos e atualiza a lista
   void _listenToPacientes() {
     _pacienteRepository.getPacientesAtivos().listen(
       (pacientesList) {
         _pacientes = pacientesList;
-        _pacientesStreamController.add(
-          _pacientes,
-        ); // Adiciona a nova lista ao stream
+        _pacientesStreamController.add(_pacientes); // Adiciona a nova lista ao stream
         notifyListeners(); // Notifica os ouvintes da mudança de estado
       },
       onError: (error) {

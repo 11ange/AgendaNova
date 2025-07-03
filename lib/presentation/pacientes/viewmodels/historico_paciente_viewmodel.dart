@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart'; // Importar TreinamentoRepository
+// Importe o repositório de agendamento quando ele for criado
+// import 'package:agendanova/data/repositories/agendamento_repository_impl.dart';
+// import 'package:agendanova/domain/repositories/agendamento_repository.dart';
+// import 'package:agendanova/domain/entities/treinamento.dart'; // Entidade de Treinamento
 
 // ViewModel para a tela de Histórico do Paciente
 class HistoricoPacienteViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository;
+  // Obtenha as instâncias via GetIt
+  final PacienteRepository _pacienteRepository =
+      GetIt.instance<PacienteRepository>();
+  final TreinamentoRepository _treinamentoRepository =
+      GetIt.instance<TreinamentoRepository>();
   // final AgendamentoRepository _agendamentoRepository; // Descomentar quando AgendamentoRepository for criado
 
   bool _isLoading = false;
@@ -19,11 +26,7 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   Paciente? get paciente => _paciente;
   List<dynamic> get treinamentos => _treinamentos;
 
-  HistoricoPacienteViewModel({PacienteRepository? pacienteRepository})
-    : _pacienteRepository =
-          pacienteRepository ??
-          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance));
-  // _agendamentoRepository = agendamentoRepository ?? AgendamentoRepositoryImpl(FirebaseDatasource(FirebaseService.instance));
+  HistoricoPacienteViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
 
   Future<void> loadPacienteAndTreinamentos(String pacienteId) async {
     _setLoading(true);

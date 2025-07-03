@@ -61,7 +61,7 @@ class _SessoesPageState extends State<SessoesPage> {
                     formatButtonVisible: false,
                     titleCentered: true,
                   ),
-                  calendarStyle: CalendarStyle(
+                  calendarStyle: const CalendarStyle( // Adicionado const
                     outsideDaysVisible: false,
                     // TODO: Cores para dias (verde: livre, amarelo: parcial, vermelho: cheio)
                     // Isso exigirá uma lógica para determinar o status do dia com base nas sessões.
@@ -77,9 +77,11 @@ class _SessoesPageState extends State<SessoesPage> {
                         child: ElevatedButton(
                           onPressed: () {
                             // TODO: Lógica para bloquear o dia inteiro
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Bloquear dia inteiro em desenvolvimento.')),
-                            );
+                            if (mounted) { // Adicionado mounted check
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Bloquear dia inteiro em desenvolvimento.')),
+                              );
+                            }
                           },
                           child: const Text('Bloquear Dia'),
                         ),
@@ -89,9 +91,11 @@ class _SessoesPageState extends State<SessoesPage> {
                         child: ElevatedButton(
                           onPressed: () {
                             // TODO: Lógica para desbloquear o dia inteiro
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Desbloquear dia inteiro em desenvolvimento.')),
-                            );
+                            if (mounted) { // Adicionado mounted check
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Desbloquear dia inteiro em desenvolvimento.')),
+                              );
+                            }
                           },
                           child: const Text('Desbloquear Dia'),
                         ),
@@ -184,13 +188,17 @@ class _SessoesPageState extends State<SessoesPage> {
                   Navigator.pop(bc);
                   try {
                     await viewModel.updateSessaoStatus(sessao, 'Realizada');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sessão marcada como Realizada!')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sessão marcada como Realizada!')),
+                      );
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro: ${e.toString()}')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: ${e.toString()}')),
+                      );
+                    }
                   }
                 },
               ),
@@ -201,13 +209,17 @@ class _SessoesPageState extends State<SessoesPage> {
                   Navigator.pop(bc);
                   try {
                     await viewModel.updateSessaoStatus(sessao, 'Falta');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sessão marcada como Falta!')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sessão marcada como Falta!')),
+                      );
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro: ${e.toString()}')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: ${e.toString()}')),
+                      );
+                    }
                   }
                 },
               ),
@@ -240,13 +252,17 @@ class _SessoesPageState extends State<SessoesPage> {
                   if (desmarcarTodas != null) {
                     try {
                       await viewModel.updateSessaoStatus(sessao, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sessão(ões) marcada(s) como Cancelada(s)!')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sessão(ões) marcada(s) como Cancelada(s)!')),
+                        );
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro: ${e.toString()}')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro: ${e.toString()}')),
+                        );
+                      }
                     }
                   }
                 },
@@ -258,13 +274,17 @@ class _SessoesPageState extends State<SessoesPage> {
                   Navigator.pop(bc);
                   try {
                     await viewModel.updateSessaoStatus(sessao, 'Bloqueada');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Sessão marcada como Bloqueada!')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sessão marcada como Bloqueada!')),
+                      );
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro: ${e.toString()}')),
-                    );
+                    if (mounted) { // Adicionado mounted check
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro: ${e.toString()}')),
+                      );
+                    }
                   }
                 },
               ),
@@ -276,13 +296,17 @@ class _SessoesPageState extends State<SessoesPage> {
                     Navigator.pop(bc);
                     try {
                       await viewModel.updateSessaoStatus(sessao, 'Agendada');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sessão revertida para Agendada!')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sessão revertida para Agendada!')),
+                        );
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro: ${e.toString()}')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro: ${e.toString()}')),
+                        );
+                      }
                     }
                   },
                 ),
@@ -295,13 +319,17 @@ class _SessoesPageState extends State<SessoesPage> {
                     Navigator.pop(bc);
                     try {
                       await viewModel.markPaymentAsRealizado(sessao.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Pagamento marcado como Realizado!')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Pagamento marcado como Realizado!')),
+                        );
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao marcar pagamento: ${e.toString()}')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao marcar pagamento: ${e.toString()}')),
+                        );
+                      }
                     }
                   },
                 ),
@@ -313,13 +341,17 @@ class _SessoesPageState extends State<SessoesPage> {
                     Navigator.pop(bc);
                     try {
                       await viewModel.undoPayment(sessao.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Pagamento desfeito!')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Pagamento desfeito!')),
+                        );
+                      }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao desfazer pagamento: ${e.toString()}')),
-                      );
+                      if (mounted) { // Adicionado mounted check
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao desfazer pagamento: ${e.toString()}')),
+                        );
+                      }
                     }
                   },
                 ),
