@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/core/services/firebase_service.dart';
 import 'package:agendanova/data/datasources/firebase_datasource.dart';
 import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
@@ -8,29 +9,16 @@ import 'package:agendanova/domain/usecases/agenda/definir_agenda_usecase.dart';
 
 // ViewModel para a tela de Definição de Agenda
 class AgendaViewModel extends ChangeNotifier {
-  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
-  final DefinirAgendaUseCase _definirAgendaUseCase;
+  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
+  final DefinirAgendaUseCase _definirAgendaUseCase = GetIt.instance<DefinirAgendaUseCase>();
 
   bool _isLoading = false;
-  Map<String, List<String>> _currentAgenda =
-      {}; // Estado local da agenda selecionada
+  Map<String, List<String>> _currentAgenda = {}; // Estado local da agenda selecionada
 
   bool get isLoading => _isLoading;
   Map<String, List<String>> get currentAgenda => _currentAgenda;
 
-  AgendaViewModel({
-    AgendaDisponibilidadeRepository? agendaDisponibilidadeRepository,
-  }) : _agendaDisponibilidadeRepository =
-           agendaDisponibilidadeRepository ??
-           AgendaDisponibilidadeRepositoryImpl(
-             FirebaseDatasource(FirebaseService.instance),
-           ),
-       _definirAgendaUseCase = DefinirAgendaUseCase(
-         agendaDisponibilidadeRepository ??
-             AgendaDisponibilidadeRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-       ) {
+  AgendaViewModel() {
     _listenToAgendaChanges();
   }
 
@@ -39,17 +27,15 @@ class AgendaViewModel extends ChangeNotifier {
     _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
       (agenda) {
         if (agenda != null) {
-          _currentAgenda = Map.from(
-            agenda.agenda,
-          ); // Cria uma cópia para poder modificar
+          _currentAgenda = Map.from(agenda.agenda); // Cria uma cópia para poder modificar
         } else {
           _currentAgenda = {}; // Agenda vazia se não houver dados no Firestore
         }
         notifyListeners();
       },
       onError: (error) {
-        print('Erro ao carregar agenda: $error');
         // TODO: Lidar com o erro, talvez mostrar uma mensagem para o usuário
+        // print('Erro ao carregar agenda: $error'); // Evitar print em produção
       },
     );
   }
@@ -78,6 +64,21 @@ class AgendaViewModel extends ChangeNotifier {
       _currentAgenda[day] = [time];
     }
     notifyListeners();
+  }
+
+  // NOVO MÉTODO: Limpa todos os horários para um dia específico e salva
+  Future<void> clearDayAgenda(String day) async {
+    _setLoading(true);
+    try {
+      if (_currentAgenda.containsKey(day)) {
+        _currentAgenda[day]!.clear(); // Limpa a lista de horários para o dia
+      }
+      await saveAgenda(); // Salva a agenda atualizada no Firestore
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Salva a agenda atual no Firestore

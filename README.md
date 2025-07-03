@@ -40,3 +40,6 @@ dart pub global activate flutterfire_cli
 export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 source ~/.bashrc
+
+
+flutter run -d web-server

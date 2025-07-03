@@ -7,7 +7,8 @@ import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository
 // Implementação concreta do AgendaDisponibilidadeRepository que usa o FirebaseDatasource
 class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeRepository {
   final FirebaseDatasource _firebaseDatasource;
-  static const String _disponibilidadeDocId = 'horarios_padrao'; // ID fixo para o documento de disponibilidade
+  // ID fixo para o documento de disponibilidade, conforme sua estrutura no Firestore
+  static const String _disponibilidadeDocId = 'minha_agenda'; // ID do documento
 
   AgendaDisponibilidadeRepositoryImpl(this._firebaseDatasource);
 
@@ -15,7 +16,7 @@ class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeReposi
   Stream<AgendaDisponibilidade?> getAgendaDisponibilidade() {
     return _firebaseDatasource.getDocumentByIdStream(FirestoreCollections.disponibilidade, _disponibilidadeDocId)
         .map((doc) {
-      if (doc.exists) {
+      if (doc.exists && doc.data() != null) { // Garante que o documento e os dados existam
         return AgendaDisponibilidadeModel.fromFirestore(doc);
       }
       return null;
@@ -25,6 +26,7 @@ class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeReposi
   @override
   Future<void> setAgendaDisponibilidade(AgendaDisponibilidade agenda) async {
     final agendaModel = AgendaDisponibilidadeModel.fromEntity(agenda);
+    // Salva o mapa da agenda diretamente no documento 'minha_agenda'
     await _firebaseDatasource.setDocument(
         FirestoreCollections.disponibilidade, _disponibilidadeDocId, agendaModel.toFirestore());
   }
