@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "892404673434",
+    "project_id": "agenda-treinamento-6fa61",
+    "storage_bucket": "agenda-treinamento-6fa61.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892404673434:android:e5e5344e9bd1fad470e823",
+        "android_client_info": {
+          "package_name": "com.example.agenda_treinamento"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHEg-F8YL0Q6iTgdqP6bnLb2aneaOSMX8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892404673434:android:e70bf8d6d9e5b7cf70e823",
+        "android_client_info": {
+          "package_name": "com.example.agendanova"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHEg-F8YL0Q6iTgdqP6bnLb2aneaOSMX8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
