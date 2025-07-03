@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:intl/intl.dart'; // Importado para DateFormat
 
 // Tela de Sessões
 class SessoesPage extends StatefulWidget {
@@ -74,6 +75,8 @@ class _SessoesPageState extends State<SessoesPage> {
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     calendarFormat: CalendarFormat.month,
+                    locale: 'pt_BR', // Calendário em português
+                    rowHeight: 42.0, // Diminuir o espaço entre linhas
                     onDaySelected: (selectedDay, focusedDay) {
                       setState(() {
                         _selectedDay = selectedDay;
@@ -215,7 +218,7 @@ class _SessoesPageState extends State<SessoesPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
-                  'Sessões para: ${DateFormatter.formatDate(_selectedDay!)}',
+                  DateFormat('EEEE, dd \'de\' MMMM \'de\' yyyy', 'pt_BR').format(_selectedDay!),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -226,8 +229,8 @@ class _SessoesPageState extends State<SessoesPage> {
                   builder: (context, snapshot) {
                     print('DEBUG UI: snapshot.connectionState (Horarios): ${snapshot.connectionState}');
                     print('DEBUG UI: snapshot.hasData (Horarios): ${snapshot.hasData}');
-                    print('DEBUG UI: snapshot.data?.isEmpty (Horarios): ${snapshot.data?.isEmpty}');
-                    print('DEBUG UI: snapshot.data?.length (Horarios): ${snapshot.data?.length}');
+                    print('DEBUG UI: snapshot.data?.isEmpty: ${snapshot.data?.isEmpty}');
+                    print('DEBUG UI: snapshot.data?.length: ${snapshot.data?.length}');
                     print('DEBUG UI: snapshot.data (Horarios): ${snapshot.data}');
 
                     if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
