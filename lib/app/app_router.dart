@@ -10,46 +10,45 @@ import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
 import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart';
 import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart';
 import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart';
-import 'package:provider/provider.dart'; // Importar Provider
-import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart'; // Importar o ViewModel
+import 'package:provider/provider.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
+import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart'; // Importar AgendaViewModel
+import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart'; // Importar ListaEsperaViewModel
 
 
 // Classe para gerenciar as rotas do aplicativo usando GoRouter
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/login', // Rota inicial do aplicativo
+    initialLocation: '/login',
     routes: <GoRoute>[
-      // Rota para a tela de Login
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
       ),
-      // Rota para a tela inicial após o login
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomePage(),
       ),
-      // Rotas para o módulo de Pacientes
       GoRoute(
         path: '/pacientes-ativos',
         builder: (context, state) => const PacientesAtivosPage(),
         routes: [
           GoRoute(
-            path: 'novo', // Rota para o formulário de novo paciente
-            builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+            path: 'novo',
+            builder: (context, state) => ChangeNotifierProvider(
               create: (_) => PacienteFormViewModel(),
               child: const PacienteFormPage(),
             ),
           ),
           GoRoute(
-            path: 'editar/:id', // Rota para o formulário de edição de paciente
-            builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+            path: 'editar/:id',
+            builder: (context, state) => ChangeNotifierProvider(
               create: (_) => PacienteFormViewModel(),
               child: PacienteFormPage(pacienteId: state.pathParameters['id']!),
             ),
           ),
           GoRoute(
-            path: 'historico/:id', // Rota para o histórico do paciente
+            path: 'historico/:id',
             builder: (context, state) {
               final pacienteId = state.pathParameters['id']!;
               return HistoricoPacientePage(pacienteId: pacienteId);
@@ -61,30 +60,31 @@ class AppRouter {
         path: '/pacientes-inativos',
         builder: (context, state) => const PacientesInativosPage(),
       ),
-      // Rota para a tela de Agenda
       GoRoute(
         path: '/agenda',
-        builder: (context, state) => const AgendaPage(),
+        builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+          create: (_) => AgendaViewModel(),
+          child: const AgendaPage(),
+        ),
       ),
-      // Rota para a tela de Sessões
       GoRoute(
         path: '/sessoes',
         builder: (context, state) => const SessoesPage(),
       ),
-      // Rota para a tela de Pagamentos
       GoRoute(
         path: '/pagamentos',
         builder: (context, state) => const PagamentosPage(),
       ),
-      // Rota para a tela de Relatórios
       GoRoute(
         path: '/relatorios',
         builder: (context, state) => const RelatoriosPage(),
       ),
-      // Rota para a tela de Lista de Espera
       GoRoute(
         path: '/lista-espera',
-        builder: (context, state) => const ListaEsperaPage(),
+        builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+          create: (_) => ListaEsperaViewModel(),
+          child: const ListaEsperaPage(),
+        ),
       ),
     ],
   );

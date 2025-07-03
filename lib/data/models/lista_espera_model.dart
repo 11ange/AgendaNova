@@ -10,32 +10,35 @@ class ListaEsperaModel extends ListaEspera {
     String? observacoes,
     required DateTime dataCadastro,
   }) : super(
-         id: id,
-         nome: nome,
-         telefone: telefone,
-         observacoes: observacoes,
-         dataCadastro: dataCadastro,
-       );
+          id: id,
+          nome: nome,
+          telefone: telefone,
+          observacoes: observacoes,
+          dataCadastro: dataCadastro,
+        );
 
   // Construtor para criar um ListaEsperaModel a partir de um DocumentSnapshot do Firestore
   factory ListaEsperaModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    // Lê do campo 'timestamp' no Firestore, tratando como opcional
+    final dataCadastro = (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     return ListaEsperaModel(
       id: doc.id,
       nome: data['nome'] as String,
       telefone: data['telefone'] as String?,
       observacoes: data['observacoes'] as String?,
-      dataCadastro: (data['dataCadastro'] as Timestamp).toDate(),
+      dataCadastro: dataCadastro,
     );
   }
 
   // Converte o ListaEsperaModel para um mapa de dados compatível com o Firestore
+  @override
   Map<String, dynamic> toFirestore() {
     return {
       'nome': nome,
       'telefone': telefone,
       'observacoes': observacoes,
-      'dataCadastro': Timestamp.fromDate(dataCadastro),
+      'timestamp': Timestamp.fromDate(dataCadastro), // Salva no campo 'timestamp'
     };
   }
 
