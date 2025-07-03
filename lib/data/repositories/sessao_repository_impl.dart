@@ -1,9 +1,10 @@
 import 'package:agendanova/core/constants/firestore_collections.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart'; // Importação corrigida
-import 'package:agendanova/data/models/sessao_model.dart'; // Importação corrigida
-import 'package:agendanova/domain/entities/sessao.dart'; // Importação corrigida
-import 'package:agendanova/domain/repositories/sessao_repository.dart'; // Importação corrigida
-import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp e WriteBatch
+import 'package:agendanova/data/datasources/firebase_datasource.dart';
+import 'package:agendanova/data/models/sessao_model.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 // Implementação concreta do SessaoRepository que usa o FirebaseDatasource
 class SessaoRepositoryImpl implements SessaoRepository {
@@ -13,104 +14,147 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   Stream<List<Sessao>> getSessoes() {
-    return _firebaseDatasource
-        .getCollectionStream(FirestoreCollections.sessoes)
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => SessaoModel.fromFirestore(doc))
-              .toList(),
-        );
+    return Stream.value([]);
   }
 
   @override
   Stream<List<Sessao>> getSessoesByTreinamentoId(String treinamentoId) {
-    return _firebaseDatasource
-        .queryCollectionStream(
-          FirestoreCollections.sessoes,
-          field: 'treinamentoId',
-          isEqualTo: treinamentoId,
-        )
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => SessaoModel.fromFirestore(doc))
-              .toList(),
-        );
+    return Stream.value([]);
   }
 
   @override
   Stream<List<Sessao>> getSessoesByDate(DateTime date) {
-    // Para filtrar por data, precisamos de um range de timestamps.
-    // Firestore não permite query direta por apenas data (sem hora) facilmente sem índices.
-    // A melhor abordagem é filtrar por um range de início e fim do dia.
-    final startOfDay = DateTime(date.year, date.month, date.day, 0, 0, 0);
-    final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    final docId = DateFormat('yyyy-MM-dd').format(date);
 
-    return _firebaseDatasource
-        .queryCollectionStreamWithRange(
-          FirestoreCollections.sessoes,
-          field: 'dataHora',
-          startValue: Timestamp.fromDate(startOfDay),
-          endValue: Timestamp.fromDate(endOfDay),
-        )
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => SessaoModel.fromFirestore(doc))
-              .toList(),
-        );
+    return _firebaseDatasource.getDocumentByIdStream(FirestoreCollections.sessoes, docId)
+        .map((docSnapshot) {
+      if (!docSnapshot.exists || docSnapshot.data() == null) {
+        return [];
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      List<Sessao> sessoesDoDia = [];
+
+      data.forEach((horarioKey, sessaoMap) {
+        if (sessaoMap is Map<String, dynamic>) {
+          try {
+            sessoesDoDia.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
+          } catch (e) {
+            print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+          }
+        }
+      });
+
+      sessoesDoDia.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+      return sessoesDoDia;
+    });
   }
+
+  // NOVO MÉTODO: Obtém todas as sessões para um determinado mês
+  @override
+  Stream<List<Sessao>> getSessoesByMonth(DateTime monthDate) {
+    final startOfMonth = DateTime(monthDate.year, monthDate.month, 1);
+    final endOfMonth = DateTime(monthDate.year, monthDate.month + 1, 0); // Último dia do mês
+    final startDocId = DateFormat('yyyy-MM-dd').format(startOfMonth);
+    final endDocId = DateFormat('yyyy-MM-dd').format(endOfMonth);
+
+    return _firebaseDatasource.queryCollectionStreamByDocIdRange(
+      FirestoreCollections.sessoes,
+      startDocId: startDocId,
+      endDocId: endDocId,
+    ).map((querySnapshot) {
+      List<Sessao> sessoesDoMes = [];
+      for (var docSnapshot in querySnapshot.docs) {
+        if (docSnapshot.exists && docSnapshot.data() != null) {
+          final data = docSnapshot.data() as Map<String, dynamic>;
+          final docId = docSnapshot.id; // A data é o ID do documento
+
+          data.forEach((horarioKey, sessaoMap) {
+            if (sessaoMap is Map<String, dynamic>) {
+              try {
+                sessoesDoMes.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
+              } catch (e) {
+                print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+              }
+            }
+          });
+        }
+      }
+      return sessoesDoMes;
+    });
+  }
+
 
   @override
   Future<String> addSessao(Sessao sessao) async {
+    final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
+    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
+
     final sessaoModel = SessaoModel.fromEntity(sessao);
-    final docRef = await _firebaseDatasource.addDocument(
+    await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
-      sessaoModel.toFirestore(),
+      docId,
+      {horarioKey: sessaoModel.toFirestore()},
     );
-    return docRef.id;
+    return '$docId-$horarioKey';
   }
 
   @override
   Future<void> addMultipleSessoes(List<Sessao> sessoes) async {
     final batch = FirebaseFirestore.instance.batch();
     for (var sessao in sessoes) {
+      final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
+      final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
       final sessaoModel = SessaoModel.fromEntity(sessao);
-      // Usando getCollectionRef do FirebaseDatasource para obter a referência da coleção
-      final docRef = _firebaseDatasource
-          .getCollectionRef(FirestoreCollections.sessoes)
-          .doc();
-      batch.set(docRef, sessaoModel.toFirestore());
+
+      final docRef = _firebaseDatasource.getCollectionRef(FirestoreCollections.sessoes).doc(docId);
+
+      batch.set(docRef, {horarioKey: sessaoModel.toFirestore()}, SetOptions(merge: true));
     }
     await batch.commit();
   }
+
 
   @override
   Future<void> updateSessao(Sessao sessao) async {
     if (sessao.id == null) {
       throw Exception('ID da sessão é obrigatório para atualização.');
     }
+    final parts = sessao.id!.split('-');
+    final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
+    final horarioKey = parts[3];
+
     final sessaoModel = SessaoModel.fromEntity(sessao);
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.sessoes,
-      sessao.id!,
-      sessaoModel.toFirestore(),
+      docId,
+      {horarioKey: sessaoModel.toFirestore()},
     );
   }
 
   @override
   Future<void> deleteSessao(String id) async {
-    await _firebaseDatasource.deleteDocument(FirestoreCollections.sessoes, id);
+    final parts = id.split('-');
+    final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
+    final horarioKey = parts[3];
+
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.sessoes,
+      docId,
+      {horarioKey: FieldValue.delete()},
+    );
   }
 
   @override
   Future<void> deleteMultipleSessoes(List<String> sessaoIds) async {
     final batch = FirebaseFirestore.instance.batch();
     for (var id in sessaoIds) {
-      // Usando getDocumentRef do FirebaseDatasource para obter a referência do documento
-      final docRef = _firebaseDatasource.getDocumentRef(
-        FirestoreCollections.sessoes,
-        id,
-      );
-      batch.delete(docRef);
+      final parts = id.split('-');
+      final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
+      final horarioKey = parts[3];
+
+      final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
+      batch.update(docRef, {horarioKey: FieldValue.delete()});
     }
     await batch.commit();
   }

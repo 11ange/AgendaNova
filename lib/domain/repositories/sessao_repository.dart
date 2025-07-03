@@ -11,8 +11,11 @@ abstract class SessaoRepository {
   // Obtém sessões para um dia específico
   Stream<List<Sessao>> getSessoesByDate(DateTime date);
 
+  // NOVO MÉTODO: Obtém sessões para um determinado mês
+  Stream<List<Sessao>> getSessoesByMonth(DateTime monthDate);
+
   // Adiciona uma nova sessão
-  Future<String> addSessao(Sessao sessao); // Retorna o ID da nova sessão
+  Future<String> addSessao(Sessao sessao);
 
   // Adiciona múltiplas sessões (usado na criação de treinamento)
   Future<void> addMultipleSessoes(List<Sessao> sessoes);

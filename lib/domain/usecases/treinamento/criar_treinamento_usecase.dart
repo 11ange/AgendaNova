@@ -4,7 +4,7 @@ import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agendanova/core/utils/date_time_helper.dart'; // Para ajudar com cálculo de datas
+import 'package:agendanova/core/utils/date_time_helper.dart';
 
 // Use case para criar um novo treinamento e suas sessões
 class CriarTreinamentoUseCase {
@@ -48,6 +48,12 @@ class CriarTreinamentoUseCase {
       throw Exception('O horário selecionado ($horario) não está disponível para $diaSemana.');
     }
 
+    // Obter nome do paciente para a sessão
+    final paciente = await _pacienteRepository.getPacienteById(pacienteId);
+    if (paciente == null) {
+      throw Exception('Paciente não encontrado.');
+    }
+
     // 4. Gerar automaticamente as sessões futuras
     List<Sessao> sessoes = [];
     DateTime currentSessionDate = dataInicio;
@@ -74,12 +80,19 @@ class CriarTreinamentoUseCase {
       sessoes.add(Sessao(
         treinamentoId: '', // Será preenchido após criar o treinamento
         pacienteId: pacienteId,
+        pacienteNome: paciente.nome, // Passando pacienteNome
         dataHora: sessionDateTime,
         numeroSessao: sessionNumber,
         status: 'Agendada',
         statusPagamento: 'Pendente',
         dataPagamento: null,
         observacoes: null,
+        formaPagamento: formaPagamento, // Passando forma de pagamento
+        agendamentoStartDate: dataInicio, // Passando data de início do agendamento
+        parcelamento: tipoParcelamento, // Passando tipo de parcelamento
+        pagamentosParcelados: null, // Não aplicável na criação inicial
+        reagendada: false, // Não é reagendada na criação
+        totalSessoes: numeroSessoesTotal, // Passando total de sessões
       ));
       sessionsCreated++;
       sessionNumber++;
@@ -110,4 +123,3 @@ class CriarTreinamentoUseCase {
     await _sessaoRepository.addMultipleSessoes(sessoesComTreinamentoId);
   }
 }
-

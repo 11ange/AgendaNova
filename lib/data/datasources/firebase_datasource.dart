@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/core/services/firebase_service.dart'; // Importação corrigida
+import 'package:agendanova/core/services/firebase_service.dart';
 
 // DataSource que interage diretamente com o Firebase Firestore
 class FirebaseDatasource {
@@ -7,12 +7,12 @@ class FirebaseDatasource {
 
   FirebaseDatasource(this._firebaseService);
 
-  // NOVO MÉTODO: Obtém uma referência para uma coleção (delegando para FirebaseService)
+  // Obtém uma referência para uma coleção (delegando para FirebaseService)
   CollectionReference<Map<String, dynamic>> getCollectionRef(String collectionPath) {
     return _firebaseService.getCollectionRef(collectionPath);
   }
 
-  // NOVO MÉTODO: Obtém uma referência para um documento (delegando para FirebaseService)
+  // Obtém uma referência para um documento (delegando para FirebaseService)
   DocumentReference<Map<String, dynamic>> getDocumentRef(String collectionPath, String docId) {
     return _firebaseService.getDocumentRef(collectionPath, docId);
   }
@@ -41,6 +41,19 @@ class FirebaseDatasource {
     return _firebaseService.getCollectionRef(collectionPath)
         .where(field, isGreaterThanOrEqualTo: startValue)
         .where(field, isLessThanOrEqualTo: endValue)
+        .snapshots();
+  }
+
+  // NOVO MÉTODO: Obtém um stream de documentos de uma coleção por range de IDs (datas)
+  Stream<QuerySnapshot> queryCollectionStreamByDocIdRange(
+    String collectionPath, {
+    required String startDocId,
+    required String endDocId,
+  }) {
+    return _firebaseService.getCollectionRef(collectionPath)
+        .orderBy(FieldPath.documentId) // Ordena pelo ID do documento
+        .startAt([startDocId])
+        .endAt([endDocId])
         .snapshots();
   }
 
