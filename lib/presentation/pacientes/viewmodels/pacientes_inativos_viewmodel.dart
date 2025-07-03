@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/usecases/paciente/reativar_paciente_usecase.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
@@ -9,8 +7,11 @@ import 'dart:async';
 
 // ViewModel para a tela de Pacientes Inativos
 class PacientesInativosViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository;
-  final ReativarPacienteUseCase _reativarPacienteUseCase;
+  // Obtenha as instâncias via GetIt
+  final PacienteRepository _pacienteRepository =
+      GetIt.instance<PacienteRepository>();
+  final ReativarPacienteUseCase _reativarPacienteUseCase =
+      GetIt.instance<ReativarPacienteUseCase>();
 
   List<Paciente> _pacientes = [];
   List<Paciente> get pacientes => _pacientes;
@@ -20,18 +21,7 @@ class PacientesInativosViewModel extends ChangeNotifier {
   Stream<List<Paciente>> get pacientesStream =>
       _pacientesStreamController.stream;
 
-  PacientesInativosViewModel({PacienteRepository? pacienteRepository})
-    : _pacienteRepository =
-          pacienteRepository ??
-          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-      _reativarPacienteUseCase = ReativarPacienteUseCase(
-        pacienteRepository ??
-            PacienteRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ) {
-    _listenToPacientes();
-  }
+  PacientesInativosViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
 
   void _listenToPacientes() {
     _pacienteRepository.getPacientesInativos().listen(
@@ -42,7 +32,8 @@ class PacientesInativosViewModel extends ChangeNotifier {
       },
       onError: (error) {
         _pacientesStreamController.addError(error);
-        print('Erro ao carregar pacientes inativos: $error');
+        // Em vez de print, você pode usar um logger ou exibir uma mensagem mais amigável
+        // print('Erro ao carregar pacientes inativos: $error');
       },
     );
   }

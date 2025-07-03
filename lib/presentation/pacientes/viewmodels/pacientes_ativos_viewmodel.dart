@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
+import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/usecases/paciente/inativar_paciente_usecase.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
@@ -9,8 +7,11 @@ import 'dart:async';
 
 // ViewModel para a tela de Pacientes Ativos
 class PacientesAtivosViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository;
-  final InativarPacienteUseCase _inativarPacienteUseCase;
+  // Obtenha as instâncias via GetIt
+  final PacienteRepository _pacienteRepository =
+      GetIt.instance<PacienteRepository>();
+  final InativarPacienteUseCase _inativarPacienteUseCase =
+      GetIt.instance<InativarPacienteUseCase>();
 
   List<Paciente> _pacientes = [];
   List<Paciente> get pacientes => _pacientes;
@@ -21,18 +22,7 @@ class PacientesAtivosViewModel extends ChangeNotifier {
   Stream<List<Paciente>> get pacientesStream =>
       _pacientesStreamController.stream;
 
-  PacientesAtivosViewModel({PacienteRepository? pacienteRepository})
-    : _pacienteRepository =
-          pacienteRepository ??
-          PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-      _inativarPacienteUseCase = InativarPacienteUseCase(
-        pacienteRepository ??
-            PacienteRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ) {
-    _listenToPacientes();
-  }
+  PacientesAtivosViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
 
   // Escuta as mudanças nos pacientes ativos e atualiza a lista
   void _listenToPacientes() {
@@ -45,9 +35,9 @@ class PacientesAtivosViewModel extends ChangeNotifier {
         notifyListeners(); // Notifica os ouvintes da mudança de estado
       },
       onError: (error) {
-        // Lidar com erros, por exemplo, logar ou exibir uma mensagem
         _pacientesStreamController.addError(error);
-        print('Erro ao carregar pacientes ativos: $error');
+        // Em vez de print, você pode usar um logger ou exibir uma mensagem mais amigável
+        // print('Erro ao carregar pacientes ativos: $error');
       },
     );
   }

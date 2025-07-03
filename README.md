@@ -34,3 +34,9 @@ yes | sdkmanager --licenses
 
 # Instale as plataformas e build-tools necessárias (ex: 34)
 sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+
+dart pub global activate flutterfire_cli
+
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+source ~/.bashrc

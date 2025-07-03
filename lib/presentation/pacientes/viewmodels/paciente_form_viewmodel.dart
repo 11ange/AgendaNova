@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart'; // Importar GetIt
 import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
-import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart'; // Importação corrigida
+import 'package:agendanova/domain/usecases/paciente/editar_paciente_usecase.dart'; // Importação corrigida
+import 'package:agendanova/domain/repositories/paciente_repository.dart'; // Importação corrigida
 
 // ViewModel para a tela de formulário de Paciente (cadastro e edição)
 class PacienteFormViewModel extends ChangeNotifier {
