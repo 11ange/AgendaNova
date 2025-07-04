@@ -173,7 +173,7 @@ class _SessoesPageState extends State<SessoesPage> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () async { // Adicionado async
+                        onPressed: () async {
                           final confirm = await showDialog<bool>(
                             context: context,
                             builder: (BuildContext dialogContext) {
@@ -217,7 +217,7 @@ class _SessoesPageState extends State<SessoesPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () async { // Adicionado async
+                        onPressed: () async {
                           final confirm = await showDialog<bool>(
                             context: context,
                             builder: (BuildContext dialogContext) {
@@ -264,7 +264,7 @@ class _SessoesPageState extends State<SessoesPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
-                  DateFormat('EEEE, dd \'de\' MMMM \'de\' BCE', 'pt_BR').format(_selectedDay!),
+                  DateFormat('EEEE, dd \'de\' MMMM \'de\' BBBB', 'pt_BR').format(_selectedDay!),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -299,7 +299,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         final timeSlot = sortedTimes[index];
                         final sessao = horarios[timeSlot];
                         final isOccupied = sessao != null;
-                        final isBlocked = isOccupied && sessao!.status == 'Bloqueada';
+                        final isBlocked = isOccupied && (sessao!.status == 'Bloqueada');
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
@@ -309,9 +309,11 @@ class _SessoesPageState extends State<SessoesPage> {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             subtitle: Text(
-                              isOccupied
-                                  ? 'Paciente: ${sessao!.pacienteNome} - Sessão ${sessao.numeroSessao}/${sessao.totalSessoes} | Status: ${sessao.status} | Pagamento: ${sessao.statusPagamento}'
-                                  : 'Horário Disponível',
+                              isBlocked
+                                  ? 'Status: Bloqueado'
+                                  : isOccupied
+                                      ? 'Paciente: ${sessao!.pacienteNome} - Sessão ${sessao.numeroSessao}/${sessao.totalSessoes} | Status: ${sessao.status} | Pagamento: ${sessao.statusPagamento}'
+                                      : 'Horário Disponível',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             trailing: IconButton(
@@ -358,6 +360,8 @@ class _SessoesPageState extends State<SessoesPage> {
   void _showSessionActions(BuildContext context, SessoesViewModel viewModel, Sessao? sessao, String timeSlot) {
     final bool isOccupied = sessao != null;
     final bool isBlocked = isOccupied && sessao!.status == 'Bloqueada';
+    final bool isDayBlockedComplete = isBlocked && sessao!.treinamentoId == 'dia_bloqueado_completo';
+
 
     showModalBottomSheet(
       context: context,
@@ -365,30 +369,27 @@ class _SessoesPageState extends State<SessoesPage> {
         return SafeArea(
           child: Wrap(
             children: <Widget>[
-              // Ações para horário disponível (não ocupado e não bloqueado)
               if (!isOccupied)
                 ListTile(
                   leading: const Icon(Icons.event_available),
                   title: const Text('Agendar Treinamento'),
                   onTap: () {
                     Navigator.pop(bc);
-                    // TODO: Implementar navegação para tela de agendamento de treinamento
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Agendar treinamento para ${DateFormatter.formatDate(_selectedDay!)} às $timeSlot em desenvolvimento.')),
                     );
                   },
                 ),
-              // Ação para bloquear horário (disponível ou agendado, mas não bloqueado)
-              if (!isBlocked) // Se não estiver bloqueado, pode bloquear
+              if (!isBlocked && !isDayBlockedComplete)
                 ListTile(
                   leading: const Icon(Icons.block),
                   title: const Text('Bloquear Horário'),
                   onTap: () async {
                     Navigator.pop(bc);
                     try {
-                      if (isOccupied) { // Se já tem uma sessão, muda o status dela para Bloqueada
+                      if (isOccupied) {
                         await viewModel.updateSessaoStatus(sessao!, 'Bloqueada');
-                      } else { // Se é um slot livre, cria uma nova sessão bloqueada
+                      } else {
                         await viewModel.blockTimeSlot(timeSlot, _selectedDay!);
                       }
                       if (mounted) {
@@ -406,7 +407,6 @@ class _SessoesPageState extends State<SessoesPage> {
                   },
                 ),
               
-              // Ações para sessões agendadas (ocupadas e não bloqueadas)
               if (isOccupied && !isBlocked)
                 ListTile(
                   leading: const Icon(Icons.check_circle),
@@ -496,19 +496,17 @@ class _SessoesPageState extends State<SessoesPage> {
                   },
                 ),
               
-              // Ação de desbloquear para sessões bloqueadas
               if (isBlocked)
                 ListTile(
-                  leading: const Icon(Icons.lock_open), // Ícone para desbloquear
+                  leading: const Icon(Icons.lock_open),
                   title: const Text('Desbloquear Horário'),
                   onTap: () async {
                     Navigator.pop(bc);
                     try {
-                      // Se for um bloqueio de dia inteiro, usa unblockEntireDay
-                      if (sessao!.treinamentoId == 'dia_bloqueado_completo') {
+                      if (isDayBlockedComplete) {
                         await viewModel.unblockEntireDay(_selectedDay!);
-                      } else { // Caso contrário, reverte a sessão bloqueada individual para Agendada
-                        await viewModel.updateSessaoStatus(sessao, 'Agendada');
+                      } else {
+                        await viewModel.deleteBlockedTimeSlot(sessao!.id!);
                       }
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -525,7 +523,6 @@ class _SessoesPageState extends State<SessoesPage> {
                   },
                 ),
 
-              // Ação de reverter para Agendada (se for ocupado, não bloqueado e não Agendada)
               if (isOccupied && !isBlocked && sessao!.status != 'Agendada')
                 ListTile(
                   leading: const Icon(Icons.refresh),
@@ -549,7 +546,6 @@ class _SessoesPageState extends State<SessoesPage> {
                   },
                 ),
 
-              // Lógica de pagamento (apenas se for ocupado e não bloqueado)
               if (isOccupied && !isBlocked && sessao!.statusPagamento == 'Pendente' && sessao.status != 'Realizada')
                 ListTile(
                   leading: const Icon(Icons.payments),

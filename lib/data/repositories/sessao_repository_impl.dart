@@ -158,15 +158,26 @@ class SessaoRepositoryImpl implements SessaoRepository {
   @override
   Future<String> addSessao(Sessao sessao) async {
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
-    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
+    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora); // Garante HH:mm
 
-    final sessaoModel = SessaoModel.fromEntity(sessao);
-    // CORREÇÃO: Passando SetOptions(merge: true) para garantir que não sobrescreva o documento do dia
+    Map<String, dynamic> dataToSave;
+    // Verifica se é uma sessão de bloqueio manual para salvar de forma simplificada
+    if (sessao.treinamentoId == 'bloqueio_manual' && sessao.status == 'Bloqueada') {
+      dataToSave = {
+        'status': 'Bloqueada',
+        'treinamentoId': 'bloqueio_manual',
+        'observacoes': sessao.observacoes, // Manter observações se houver
+      };
+    } else {
+      final sessaoModel = SessaoModel.fromEntity(sessao);
+      dataToSave = sessaoModel.toFirestore();
+    }
+
     await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
       docId,
-      {horarioKey: sessaoModel.toFirestore()},
-      SetOptions(merge: true),
+      {horarioKey: dataToSave}, // Usa HH:mm como chave
+      SetOptions(merge: true), // Garante que o documento do dia seja criado/mesclado
     );
     return '$docId-$horarioKey';
   }
@@ -177,12 +188,21 @@ class SessaoRepositoryImpl implements SessaoRepository {
     for (var sessao in sessoes) {
       final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
       final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
-      final sessaoModel = SessaoModel.fromEntity(sessao);
+      
+      Map<String, dynamic> dataToSave;
+      if (sessao.treinamentoId == 'bloqueio_manual' && sessao.status == 'Bloqueada') {
+        dataToSave = {
+          'status': 'Bloqueada',
+          'treinamentoId': 'bloqueio_manual',
+        };
+      } else {
+        final sessaoModel = SessaoModel.fromEntity(sessao);
+        dataToSave = sessaoModel.toFirestore();
+      }
 
       final docRef = _firebaseDatasource.getCollectionRef(FirestoreCollections.sessoes).doc(docId);
 
-      // CORREÇÃO: Passando SetOptions(merge: true) para garantir que não sobrescreva outros horários
-      batch.set(docRef, {horarioKey: sessaoModel.toFirestore()}, SetOptions(merge: true));
+      batch.set(docRef, {horarioKey: dataToSave}, SetOptions(merge: true));
     }
     await batch.commit();
   }
@@ -193,27 +213,35 @@ class SessaoRepositoryImpl implements SessaoRepository {
     if (sessao.id == null) {
       throw Exception('ID da sessão é obrigatório para atualização.');
     }
-    // O ID da sessão é como "yyyy-MM-dd-HHmm", precisamos reconstruir "HH:mm"
     final parts = sessao.id!.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final rawHorarioKey = parts[3]; // Ex: "0800"
-    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
+    final rawHorarioKey = parts[3];
+    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}';
 
-    final sessaoModel = SessaoModel.fromEntity(sessao);
-    await _firebaseDatasource.updateDocument(
+    Map<String, dynamic> dataToSave;
+    if (sessao.treinamentoId == 'bloqueio_manual' && sessao.status == 'Bloqueada') {
+      dataToSave = {
+        'status': 'Bloqueada',
+        'treinamentoId': 'bloqueio_manual',
+      };
+    } else {
+      final sessaoModel = SessaoModel.fromEntity(sessao);
+      dataToSave = sessaoModel.toFirestore();
+    }
+
+    await _firebaseDatasource.updateDocument( // updateDocument não usa merge por padrão
       FirestoreCollections.sessoes,
       docId,
-      {horarioKey: sessaoModel.toFirestore()},
+      {horarioKey: dataToSave},
     );
   }
 
   @override
   Future<void> deleteSessao(String id) async {
-    // O ID da sessão é como "yyyy-MM-dd-HHmm", precisamos reconstruir "HH:mm"
     final parts = id.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final rawHorarioKey = parts[3]; // Ex: "0800"
-    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
+    final rawHorarioKey = parts[3];
+    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}';
 
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.sessoes,
@@ -228,8 +256,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
     for (var id in sessaoIds) {
       final parts = id.split('-');
       final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-      final rawHorarioKey = parts[3]; // "HHmm"
-      final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
+      final rawHorarioKey = parts[3];
+      final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}';
 
       final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
       batch.update(docRef, {horarioKey: FieldValue.delete()});

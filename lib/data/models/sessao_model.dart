@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/sessao.dart'; // Importação da entidade Sessao
-import 'package:intl/intl.dart'; // Para DateFormat
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:intl/intl.dart';
 
 // Modelo de dados para a entidade Sessão, com métodos para serialização/desserialização do Firestore
 class SessaoModel extends Sessao {
@@ -46,29 +46,61 @@ class SessaoModel extends Sessao {
     final String dateTimeString = '$docId $horarioKey';
     final DateTime parsedDataHora = DateFormat('yyyy-MM-dd HH:mm').parse(dateTimeString);
 
+    // Verifique se é uma sessão de bloqueio manual simplificada
+    if (map['treinamentoId'] == 'bloqueio_manual' && map['status'] == 'Bloqueada') {
+      return SessaoModel(
+        id: '${docId}-${horarioKey.replaceAll(':', '')}',
+        treinamentoId: 'bloqueio_manual',
+        pacienteId: 'bloqueio_manual',
+        pacienteNome: 'Horário Bloqueado',
+        dataHora: parsedDataHora,
+        numeroSessao: 0,
+        status: 'Bloqueada',
+        statusPagamento: 'N/A',
+        dataPagamento: null,
+        observacoes: map['observacoes'] as String?,
+        formaPagamento: 'N/A',
+        agendamentoStartDate: parsedDataHora,
+        parcelamento: null,
+        pagamentosParcelados: null,
+        reagendada: false,
+        totalSessoes: 0,
+      );
+    }
+
     return SessaoModel(
-      id: '${docId}-${horarioKey.replaceAll(':', '')}', // ID combinado para referência
-      treinamentoId: map['agendamentoId'] as String? ?? '', // Fornece fallback se nulo/ausente
-      pacienteId: map['pacienteId'] as String? ?? '', // Fornece fallback se nulo/ausente
-      pacienteNome: map['pacienteNome'] as String? ?? 'Desconhecido', // Fornece fallback se nulo/ausente
+      id: '${docId}-${horarioKey.replaceAll(':', '')}',
+      treinamentoId: map['agendamentoId'] as String? ?? '',
+      pacienteId: map['pacienteId'] as String? ?? '',
+      pacienteNome: map['pacienteNome'] as String? ?? 'Desconhecido',
       dataHora: parsedDataHora,
-      numeroSessao: (map['sessaoNumero'] as num?)?.toInt() ?? 0, // Fornece fallback se nulo/ausente
-      status: map['status'] as String? ?? 'Agendada', // Fornece fallback se nulo/ausente
-      statusPagamento: map['statusPagamento'] as String? ?? 'Pendente', // Fornece fallback se nulo/ausente
+      numeroSessao: (map['sessaoNumero'] as num?)?.toInt() ?? 0,
+      status: map['status'] as String? ?? 'Agendada',
+      statusPagamento: map['statusPagamento'] as String? ?? 'Pendente',
       dataPagamento: (map['dataPagamento'] as Timestamp?)?.toDate(),
       observacoes: map['observacoes'] as String?,
-      formaPagamento: map['formaPagamento'] as String? ?? 'Desconhecida', // Fornece fallback se nulo/ausente
-      agendamentoStartDate: (map['agendamentoStartDate'] as Timestamp?)?.toDate() ?? DateTime.now(), // Fornece fallback se nulo/ausente
+      formaPagamento: map['formaPagamento'] as String? ?? 'Desconhecida',
+      agendamentoStartDate: (map['agendamentoStartDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       parcelamento: map['parcelamento'] as String?,
       pagamentosParcelados: map['pagamentosParcelados'] as Map<String, dynamic>?,
-      reagendada: map['reagendada'] as bool? ?? false, // Fornece fallback se nulo/ausente
-      totalSessoes: (map['totalSessoes'] as num?)?.toInt() ?? 0, // Fornece fallback se nulo/ausente
+      reagendada: map['reagendada'] as bool? ?? false,
+      totalSessoes: (map['totalSessoes'] as num?)?.toInt() ?? 0,
     );
   }
 
   // Converte o SessaoModel para um mapa de dados compatível com o Firestore
   @override
   Map<String, dynamic> toFirestore() {
+    // Se for uma sessão de bloqueio manual, retorna a representação simplificada
+    if (treinamentoId == 'bloqueio_manual' && status == 'Bloqueada') {
+      return {
+        'status': 'Bloqueada',
+        'treinamentoId': 'bloqueio_manual',
+        'observacoes': observacoes, // Manter observações se houver
+      };
+    }
+
+    // Para sessões normais, retorna o mapa completo
     return {
       'agendamentoId': treinamentoId,
       'pacienteId': pacienteId,

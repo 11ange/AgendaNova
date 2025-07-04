@@ -128,19 +128,18 @@ class SessoesViewModel extends ChangeNotifier {
               sessao.dataHora.day == currentDay.day)
           .toList();
 
-      // Verifica se o dia inteiro está bloqueado (pela sessão "fantasma" de bloqueio de dia)
       bool isDayBlocked = sessionsForCurrentDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
 
       if (isDayBlocked) {
-        dailyStatus[currentDay] = 'indisponivel'; // Dia inteiro bloqueado
+        dailyStatus[currentDay] = 'indisponivel';
       } else if (availableTimesForDay.isEmpty) {
-        dailyStatus[currentDay] = 'indisponivel'; // Não há horários definidos para este dia
+        dailyStatus[currentDay] = 'indisponivel';
       } else if (sessionsForCurrentDay.isEmpty) {
-        dailyStatus[currentDay] = 'livre'; // Há horários, mas nenhuma sessão agendada
+        dailyStatus[currentDay] = 'livre';
       } else if (sessionsForCurrentDay.length < availableTimesForDay.length) {
-        dailyStatus[currentDay] = 'parcial'; // Há sessões, mas ainda há horários disponíveis
+        dailyStatus[currentDay] = 'parcial';
       } else {
-        dailyStatus[currentDay] = 'cheio'; // Todos os horários disponíveis estão ocupados
+        dailyStatus[currentDay] = 'cheio';
       }
     }
     print('DEBUG: Daily status calculated: $dailyStatus');
@@ -163,11 +162,9 @@ class SessoesViewModel extends ChangeNotifier {
         .toList();
     print('DEBUG: Sessions for current day (raw): ${sessionsForSelectedDay.map((s) => DateFormat('HH:mm').format(s.dataHora))}');
 
-    // Verifica se o dia inteiro está bloqueado (pela sessão "fantasma" de bloqueio de dia)
     bool isDayBlocked = sessionsForSelectedDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
 
     if (isDayBlocked) {
-      // Se o dia inteiro está bloqueado, exibe APENAS os horários da agenda disponível como bloqueados
       for (String timeSlot in availableTimesFromAgenda.toList()..sort()) {
         combinedSchedule[timeSlot] = Sessao(
           id: '${DateFormat('yyyy-MM-dd').format(date)}-${timeSlot.replaceAll(':', '')}',
@@ -186,7 +183,6 @@ class SessoesViewModel extends ChangeNotifier {
         );
       }
     } else {
-      // Lógica existente para combinar horários disponíveis e agendados
       Set<String> timesToDisplay = <String>{};
       
       for (String agendaTime in availableTimesFromAgenda) {
@@ -258,6 +254,27 @@ class SessoesViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
+  // NOVO MÉTODO: Deleta uma sessão de bloqueio individual
+  Future<void> deleteBlockedTimeSlot(String sessionId) async {
+    _setLoading(true);
+    try {
+      await _sessaoRepository.deleteSessao(sessionId); // Usa o deleteSessao existente
+
+      // Recarrega os dados para atualizar a UI
+      if (_currentFocusedMonth != null) {
+        loadSessoesForMonth(_currentFocusedMonth!);
+      }
+      if (_currentSelectedDate != null) {
+        _combineAndEmitSchedule(_currentSelectedDate!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
 
   Future<void> blockEntireDay(DateTime date) async {
     _setLoading(true);
