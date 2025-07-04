@@ -70,9 +70,10 @@ class FirebaseService {
   }
 
   // Define (cria ou sobrescreve) um documento com um ID específico
-  Future<void> setDocument(String collectionPath, String docId, Map<String, dynamic> data) async {
+  // CORREÇÃO: Adicionado optional SetOptions para permitir merge
+  Future<void> setDocument(String collectionPath, String docId, Map<String, dynamic> data, [SetOptions? options]) async {
     try {
-      await _firestore.collection(collectionPath).doc(docId).set(data);
+      await _firestore.collection(collectionPath).doc(docId).set(data, options);
     } catch (e) {
       throw Exception('Erro ao definir documento $docId na coleção $collectionPath: $e');
     }

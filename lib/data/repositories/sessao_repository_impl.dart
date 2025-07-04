@@ -35,26 +35,54 @@ class SessaoRepositoryImpl implements SessaoRepository {
       final data = docSnapshot.data() as Map<String, dynamic>;
       List<Sessao> sessoesDoDia = [];
 
-      data.forEach((horarioKey, sessaoMap) {
-        if (sessaoMap is Map<String, dynamic>) {
-          try {
-            sessoesDoDia.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
-          } catch (e) {
-            print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+      // Verifica se o dia inteiro está bloqueado por um campo no documento
+      final bool isDayBlockedFlag = data['isDayBlocked'] as bool? ?? false;
+
+      if (isDayBlockedFlag) {
+        // Se o dia está bloqueado, retorna uma lista de sessões bloqueadas
+        // APENAS para os horários que estão na agenda de disponibilidade (se for o caso)
+        // ou todos os horários padrão se não houver agenda específica para o dia.
+        // A lógica de quais horários são "disponíveis" para um dia bloqueado
+        // é melhor tratada no ViewModel combinando com a agenda de disponibilidade.
+        // Aqui, apenas criamos uma sessão "fantasma" para indicar o bloqueio do dia.
+        sessoesDoDia.add(Sessao(
+          id: '${docId}-dia-bloqueado', // ID único para o bloqueio do dia
+          treinamentoId: 'dia_bloqueado_completo', // ID especial para bloqueio de dia
+          pacienteId: 'dia_bloqueado_completo',
+          pacienteNome: 'Dia Bloqueado',
+          dataHora: DateTime(date.year, date.month, date.day, 0, 0), // Apenas a data para o bloqueio do dia
+          numeroSessao: 0,
+          status: 'Bloqueada',
+          statusPagamento: 'N/A',
+          formaPagamento: 'N/A',
+          agendamentoStartDate: date,
+          totalSessoes: 0,
+          reagendada: false,
+          observacoes: 'Dia inteiro bloqueado',
+        ));
+      } else {
+        // Se o dia não está bloqueado, itera sobre os horários individuais
+        data.forEach((horarioKey, sessaoMap) {
+          // Garante que não estamos tentando parsear o campo 'isDayBlocked' como uma sessão
+          if (horarioKey != 'isDayBlocked' && sessaoMap is Map<String, dynamic>) {
+            try {
+              sessoesDoDia.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
+            } catch (e) {
+              print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+            }
           }
-        }
-      });
+        });
+      }
 
       sessoesDoDia.sort((a, b) => a.dataHora.compareTo(b.dataHora));
       return sessoesDoDia;
     });
   }
 
-  // NOVO MÉTODO: Obtém todas as sessões para um determinado mês
   @override
   Stream<List<Sessao>> getSessoesByMonth(DateTime monthDate) {
     final startOfMonth = DateTime(monthDate.year, monthDate.month, 1);
-    final endOfMonth = DateTime(monthDate.year, monthDate.month + 1, 0); // Último dia do mês
+    final endOfMonth = DateTime(monthDate.year, monthDate.month + 1, 0);
     final startDocId = DateFormat('yyyy-MM-dd').format(startOfMonth);
     final endDocId = DateFormat('yyyy-MM-dd').format(endOfMonth);
 
@@ -67,10 +95,31 @@ class SessaoRepositoryImpl implements SessaoRepository {
       for (var docSnapshot in querySnapshot.docs) {
         if (docSnapshot.exists && docSnapshot.data() != null) {
           final data = docSnapshot.data() as Map<String, dynamic>;
-          final docId = docSnapshot.id; // A data é o ID do documento
+          final docId = docSnapshot.id;
 
+          // Adiciona a sessão "fantasma" de bloqueio de dia inteiro se o flag estiver true
+          final bool isDayBlockedFlag = data['isDayBlocked'] as bool? ?? false;
+          if (isDayBlockedFlag) {
+            sessoesDoMes.add(Sessao(
+              id: '${docId}-dia-bloqueado',
+              treinamentoId: 'dia_bloqueado_completo',
+              pacienteId: 'dia_bloqueado_completo',
+              pacienteNome: 'Dia Bloqueado',
+              dataHora: DateTime(int.parse(docId.split('-')[0]), int.parse(docId.split('-')[1]), int.parse(docId.split('-')[2])),
+              numeroSessao: 0,
+              status: 'Bloqueada',
+              statusPagamento: 'N/A',
+              formaPagamento: 'N/A',
+              agendamentoStartDate: DateTime(int.parse(docId.split('-')[0]), int.parse(docId.split('-')[1]), int.parse(docId.split('-')[2])),
+              totalSessoes: 0,
+              reagendada: false,
+              observacoes: 'Dia inteiro bloqueado',
+            ));
+          }
+
+          // Itera sobre os horários individuais (excluindo o flag de bloqueio)
           data.forEach((horarioKey, sessaoMap) {
-            if (sessaoMap is Map<String, dynamic>) {
+            if (horarioKey != 'isDayBlocked' && sessaoMap is Map<String, dynamic>) {
               try {
                 sessoesDoMes.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
               } catch (e) {
@@ -84,6 +133,27 @@ class SessaoRepositoryImpl implements SessaoRepository {
     });
   }
 
+  @override
+  Future<void> setDayBlockedStatus(DateTime date, bool isBlocked) async {
+    final docId = DateFormat('yyyy-MM-dd').format(date);
+    await _firebaseDatasource.setDocument(
+      FirestoreCollections.sessoes,
+      docId,
+      {'isDayBlocked': isBlocked},
+      SetOptions(merge: true),
+    );
+    if (!isBlocked) {
+      final sessionsForDay = await getSessoesByDate(date).first;
+      final blockedIndividualSessions = sessionsForDay
+          .where((s) => s.treinamentoId == 'bloqueio_manual' && s.status == 'Bloqueada' && s.id != null)
+          .map((s) => s.id!)
+          .toList();
+      if (blockedIndividualSessions.isNotEmpty) {
+        await deleteMultipleSessoes(blockedIndividualSessions);
+      }
+    }
+  }
+
 
   @override
   Future<String> addSessao(Sessao sessao) async {
@@ -91,10 +161,12 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
 
     final sessaoModel = SessaoModel.fromEntity(sessao);
+    // CORREÇÃO: Passando SetOptions(merge: true) para garantir que não sobrescreva o documento do dia
     await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
       docId,
       {horarioKey: sessaoModel.toFirestore()},
+      SetOptions(merge: true),
     );
     return '$docId-$horarioKey';
   }
@@ -109,6 +181,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
       final docRef = _firebaseDatasource.getCollectionRef(FirestoreCollections.sessoes).doc(docId);
 
+      // CORREÇÃO: Passando SetOptions(merge: true) para garantir que não sobrescreva outros horários
       batch.set(docRef, {horarioKey: sessaoModel.toFirestore()}, SetOptions(merge: true));
     }
     await batch.commit();
@@ -120,9 +193,11 @@ class SessaoRepositoryImpl implements SessaoRepository {
     if (sessao.id == null) {
       throw Exception('ID da sessão é obrigatório para atualização.');
     }
+    // O ID da sessão é como "yyyy-MM-dd-HHmm", precisamos reconstruir "HH:mm"
     final parts = sessao.id!.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final horarioKey = parts[3];
+    final rawHorarioKey = parts[3]; // Ex: "0800"
+    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
 
     final sessaoModel = SessaoModel.fromEntity(sessao);
     await _firebaseDatasource.updateDocument(
@@ -134,9 +209,11 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   Future<void> deleteSessao(String id) async {
+    // O ID da sessão é como "yyyy-MM-dd-HHmm", precisamos reconstruir "HH:mm"
     final parts = id.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final horarioKey = parts[3];
+    final rawHorarioKey = parts[3]; // Ex: "0800"
+    final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
 
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.sessoes,
@@ -151,7 +228,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
     for (var id in sessaoIds) {
       final parts = id.split('-');
       final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-      final horarioKey = parts[3];
+      final rawHorarioKey = parts[3]; // "HHmm"
+      final horarioKey = '${rawHorarioKey.substring(0, 2)}:${rawHorarioKey.substring(2, 4)}'; // Reconstroi para "HH:mm"
 
       final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
       batch.update(docRef, {horarioKey: FieldValue.delete()});

@@ -38,10 +38,10 @@ class SessoesViewModel extends ChangeNotifier {
   DateTime? _currentSelectedDate;
   DateTime? _currentFocusedMonth;
 
-  // Getters públicos para as datas
   DateTime? get currentSelectedDate => _currentSelectedDate;
   DateTime? get currentFocusedMonth => _currentFocusedMonth;
 
+  bool _isAgendaListenerActive = false;
 
   SessoesViewModel()
       : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
@@ -50,12 +50,14 @@ class SessoesViewModel extends ChangeNotifier {
           GetIt.instance<AgendaDisponibilidadeRepository>(),
           GetIt.instance<PacienteRepository>(),
         ) {
-    _listenToAgendaDisponibilidade();
     _horariosCompletosStreamController.add({});
     _dailyStatusMapStreamController.add({});
   }
 
   void _listenToAgendaDisponibilidade() {
+    if (_isAgendaListenerActive) return;
+    _isAgendaListenerActive = true;
+
     _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
       (agenda) {
         _agendaDisponibilidade = agenda;
@@ -77,6 +79,10 @@ class SessoesViewModel extends ChangeNotifier {
     _currentFocusedMonth = focusedMonth;
     _setLoading(true);
     print('DEBUG: Carregando sessões para o mês: $focusedMonth');
+
+    if (!_isAgendaListenerActive) {
+      _listenToAgendaDisponibilidade();
+    }
 
     _sessaoRepository.getSessoesByMonth(focusedMonth).listen(
       (sessoesList) {
@@ -122,14 +128,19 @@ class SessoesViewModel extends ChangeNotifier {
               sessao.dataHora.day == currentDay.day)
           .toList();
 
-      if (availableTimesForDay.isEmpty) {
-        dailyStatus[currentDay] = 'indisponivel';
+      // Verifica se o dia inteiro está bloqueado (pela sessão "fantasma" de bloqueio de dia)
+      bool isDayBlocked = sessionsForCurrentDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
+
+      if (isDayBlocked) {
+        dailyStatus[currentDay] = 'indisponivel'; // Dia inteiro bloqueado
+      } else if (availableTimesForDay.isEmpty) {
+        dailyStatus[currentDay] = 'indisponivel'; // Não há horários definidos para este dia
       } else if (sessionsForCurrentDay.isEmpty) {
-        dailyStatus[currentDay] = 'livre';
+        dailyStatus[currentDay] = 'livre'; // Há horários, mas nenhuma sessão agendada
       } else if (sessionsForCurrentDay.length < availableTimesForDay.length) {
-        dailyStatus[currentDay] = 'parcial';
+        dailyStatus[currentDay] = 'parcial'; // Há sessões, mas ainda há horários disponíveis
       } else {
-        dailyStatus[currentDay] = 'cheio';
+        dailyStatus[currentDay] = 'cheio'; // Todos os horários disponíveis estão ocupados
       }
     }
     print('DEBUG: Daily status calculated: $dailyStatus');
@@ -141,8 +152,8 @@ class SessoesViewModel extends ChangeNotifier {
     final String weekdayName = _capitalizeFirstLetter(DateFormat('EEEE', 'pt_BR').format(date));
     print('DEBUG: Combinando agenda para $weekdayName ($date)');
 
-    final List<String> availableTimesForDay = _agendaDisponibilidade?.agenda[weekdayName] ?? [];
-    print('DEBUG: Horários disponíveis da agenda para $weekdayName: $availableTimesForDay');
+    final List<String> availableTimesFromAgenda = _agendaDisponibilidade?.agenda[weekdayName] ?? [];
+    print('DEBUG: Horários disponíveis da agenda (raw): $availableTimesFromAgenda');
 
     final List<Sessao> sessionsForSelectedDay = _sessoesDoMes
         .where((sessao) =>
@@ -150,23 +161,55 @@ class SessoesViewModel extends ChangeNotifier {
             sessao.dataHora.month == date.month &&
             sessao.dataHora.day == date.day)
         .toList();
+    print('DEBUG: Sessions for current day (raw): ${sessionsForSelectedDay.map((s) => DateFormat('HH:mm').format(s.dataHora))}');
 
-    Set<String> timesToDisplay = availableTimesForDay.toSet();
-    for (var sessao in sessionsForSelectedDay) {
-      timesToDisplay.add(DateFormat('HH:mm').format(sessao.dataHora));
-    }
+    // Verifica se o dia inteiro está bloqueado (pela sessão "fantasma" de bloqueio de dia)
+    bool isDayBlocked = sessionsForSelectedDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
 
-    for (String timeSlot in timesToDisplay.toList()..sort()) {
-      final sessaoExistente = sessionsForSelectedDay.firstWhereOrNull(
-        (sessao) => DateFormat('HH:mm').format(sessao.dataHora) == timeSlot,
-      );
+    if (isDayBlocked) {
+      // Se o dia inteiro está bloqueado, exibe APENAS os horários da agenda disponível como bloqueados
+      for (String timeSlot in availableTimesFromAgenda.toList()..sort()) {
+        combinedSchedule[timeSlot] = Sessao(
+          id: '${DateFormat('yyyy-MM-dd').format(date)}-${timeSlot.replaceAll(':', '')}',
+          treinamentoId: 'dia_bloqueado_completo',
+          pacienteId: 'dia_bloqueado_completo',
+          pacienteNome: 'Dia Bloqueado',
+          dataHora: DateTime(date.year, date.month, date.day, int.parse(timeSlot.split(':')[0]), int.parse(timeSlot.split(':')[1])),
+          numeroSessao: 0,
+          status: 'Bloqueada',
+          statusPagamento: 'N/A',
+          formaPagamento: 'N/A',
+          agendamentoStartDate: date,
+          totalSessoes: 0,
+          reagendada: false,
+          observacoes: 'Dia inteiro bloqueado',
+        );
+      }
+    } else {
+      // Lógica existente para combinar horários disponíveis e agendados
+      Set<String> timesToDisplay = <String>{};
+      
+      for (String agendaTime in availableTimesFromAgenda) {
+        timesToDisplay.add(agendaTime);
+      }
 
-      if (sessaoExistente != null) {
-        combinedSchedule[timeSlot] = sessaoExistente;
-      } else if (availableTimesForDay.contains(timeSlot)) {
-        combinedSchedule[timeSlot] = null;
-      } else {
-        combinedSchedule[timeSlot] = null;
+      for (var sessao in sessionsForSelectedDay) {
+        timesToDisplay.add(DateFormat('HH:mm').format(sessao.dataHora));
+      }
+
+      final List<String> sortedTimesToDisplay = timesToDisplay.toList()..sort();
+      print('DEBUG: Times to display after explicit build and sort: $sortedTimesToDisplay');
+
+      for (String timeSlot in sortedTimesToDisplay) {
+        final sessaoExistente = sessionsForSelectedDay.firstWhereOrNull(
+          (sessao) => DateFormat('HH:mm').format(sessao.dataHora) == timeSlot,
+        );
+
+        if (sessaoExistente != null) {
+          combinedSchedule[timeSlot] = sessaoExistente;
+        } else {
+          combinedSchedule[timeSlot] = null;
+        }
       }
     }
 
@@ -174,6 +217,84 @@ class SessoesViewModel extends ChangeNotifier {
     _horariosCompletosStreamController.add(combinedSchedule);
     notifyListeners();
   }
+
+  Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
+    _setLoading(true);
+    try {
+      final DateTime blockedDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        int.parse(timeSlot.split(':')[0]),
+        int.parse(timeSlot.split(':')[1]),
+      );
+
+      final blockedSession = Sessao(
+        id: null,
+        treinamentoId: 'bloqueio_manual',
+        pacienteId: 'bloqueio_manual',
+        pacienteNome: 'Horário Bloqueado',
+        dataHora: blockedDateTime,
+        numeroSessao: 0,
+        status: 'Bloqueada',
+        statusPagamento: 'N/A',
+        formaPagamento: 'N/A',
+        agendamentoStartDate: blockedDateTime,
+        totalSessoes: 0,
+        observacoes: 'Bloqueado manualmente',
+      );
+
+      await _sessaoRepository.addSessao(blockedSession);
+
+      if (_currentFocusedMonth != null) {
+        loadSessoesForMonth(_currentFocusedMonth!);
+      }
+      if (_currentSelectedDate != null) {
+        _combineAndEmitSchedule(_currentSelectedDate!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> blockEntireDay(DateTime date) async {
+    _setLoading(true);
+    try {
+      await _sessaoRepository.setDayBlockedStatus(date, true);
+
+      if (_currentFocusedMonth != null) {
+        loadSessoesForMonth(_currentFocusedMonth!);
+      }
+      if (_currentSelectedDate != null) {
+        _combineAndEmitSchedule(_currentSelectedDate!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> unblockEntireDay(DateTime date) async {
+    _setLoading(true);
+    try {
+      await _sessaoRepository.setDayBlockedStatus(date, false);
+
+      if (_currentFocusedMonth != null) {
+        loadSessoesForMonth(_currentFocusedMonth!);
+      }
+      if (_currentSelectedDate != null) {
+        _combineAndEmitSchedule(_currentSelectedDate!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
 
   Future<void> updateSessaoStatus(Sessao sessao, String novoStatus, {bool? desmarcarTodasFuturas}) async {
     _setLoading(true);

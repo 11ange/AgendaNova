@@ -44,14 +44,14 @@ class FirebaseDatasource {
         .snapshots();
   }
 
-  // NOVO MÉTODO: Obtém um stream de documentos de uma coleção por range de IDs (datas)
+  // Obtém um stream de documentos de uma coleção por range de IDs (datas)
   Stream<QuerySnapshot> queryCollectionStreamByDocIdRange(
     String collectionPath, {
     required String startDocId,
     required String endDocId,
   }) {
     return _firebaseService.getCollectionRef(collectionPath)
-        .orderBy(FieldPath.documentId) // Ordena pelo ID do documento
+        .orderBy(FieldPath.documentId)
         .startAt([startDocId])
         .endAt([endDocId])
         .snapshots();
@@ -73,14 +73,15 @@ class FirebaseDatasource {
     return _firebaseService.addDocument(collectionPath, data);
   }
 
+  // Define (cria ou sobrescreve) um documento com um ID específico
+  // CORREÇÃO: Repassa o SetOptions para o FirebaseService
+  Future<void> setDocument(String collectionPath, String docId, Map<String, dynamic> data, [SetOptions? options]) {
+    return _firebaseService.setDocument(collectionPath, docId, data, options);
+  }
+
   // Atualiza campos específicos de um documento
   Future<void> updateDocument(String collectionPath, String docId, Map<String, dynamic> data) {
     return _firebaseService.updateDocument(collectionPath, docId, data);
-  }
-
-  // Define (cria ou sobrescreve) um documento com um ID específico
-  Future<void> setDocument(String collectionPath, String docId, Map<String, dynamic> data) {
-    return _firebaseService.setDocument(collectionPath, docId, data);
   }
 
   // Exclui um documento

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:intl/intl.dart'; // Importado para DateFormat
+import 'package:intl/intl.dart';
 
 // Tela de Sessões
 class SessoesPage extends StatefulWidget {
@@ -20,19 +20,16 @@ class _SessoesPageState extends State<SessoesPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Referência ao ViewModel
-  late SessoesViewModel _viewModel; // Será inicializada no initState
+  late SessoesViewModel _viewModel;
+  bool _isInitialLoadDone = false;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
 
-    // Agendar a inicialização do ViewModel e o carregamento dos dados
-    // para após o primeiro frame, evitando setState() durante o build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel = Provider.of<SessoesViewModel>(context, listen: false);
-      // Carrega sessões para o mês focado e para o dia selecionado
       _viewModel.loadSessoesForMonth(_focusedDay);
       _viewModel.loadSessoesForDay(_selectedDay!);
     });
@@ -40,27 +37,22 @@ class _SessoesPageState extends State<SessoesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // O ViewModel é acessado via Consumer, então não precisamos de Provider.of diretamente aqui.
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Sessões',
         onBackButtonPressed: () => context.go('/home'),
       ),
-      body: Consumer<SessoesViewModel>( // Acessa o ViewModel aqui
-        builder: (context, viewModel, child) { // viewModel é fornecido pelo Consumer
-          // A verificação de isLoading já está dentro do StreamBuilder para os horários
-          // e no TableCalendar para o dailyStatusMapStream.
-          // Não precisamos de um CircularProgressIndicator global aqui, a menos que
-          // o ViewModel tenha um estado de carregamento inicial que impeça a renderização.
+      body: Consumer<SessoesViewModel>(
+        builder: (context, viewModel, child) {
           if (viewModel.isLoading && viewModel.dailyStatusMapStream == null) {
              return const Center(child: CircularProgressIndicator());
           }
 
           return Column(
             children: [
-              StreamBuilder<Map<DateTime, String>>( // StreamBuilder para o status diário
+              StreamBuilder<Map<DateTime, String>>(
                 stream: viewModel.dailyStatusMapStream,
-                initialData: const {}, // Garante que sempre haja um mapa vazio inicial
+                initialData: const {},
                 builder: (context, snapshot) {
                   print('DEBUG UI: snapshot.connectionState (DailyStatus): ${snapshot.connectionState}');
                   print('DEBUG UI: snapshot.hasData (DailyStatus): ${snapshot.hasData}');
@@ -75,18 +67,18 @@ class _SessoesPageState extends State<SessoesPage> {
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     calendarFormat: CalendarFormat.month,
-                    locale: 'pt_BR', // Calendário em português
-                    rowHeight: 42.0, // Diminuir o espaço entre linhas
+                    locale: 'pt_BR',
+                    rowHeight: 42.0,
                     onDaySelected: (selectedDay, focusedDay) {
                       setState(() {
                         _selectedDay = selectedDay;
                         _focusedDay = focusedDay;
                       });
-                      viewModel.loadSessoesForDay(selectedDay); // Carrega horários para o dia selecionado
+                      viewModel.loadSessoesForDay(selectedDay);
                     },
                     onPageChanged: (focusedDay) {
                       _focusedDay = focusedDay;
-                      viewModel.loadSessoesForMonth(focusedDay); // Carrega sessões para o novo mês focado
+                      viewModel.loadSessoesForMonth(focusedDay);
                     },
                     headerStyle: const HeaderStyle(
                       formatButtonVisible: false,
@@ -94,14 +86,6 @@ class _SessoesPageState extends State<SessoesPage> {
                     ),
                     calendarStyle: CalendarStyle(
                       outsideDaysVisible: false,
-                      defaultDecoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.transparent,
-                      ),
-                      weekendDecoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.transparent,
-                      ),
                       todayDecoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.blue.shade100,
@@ -111,7 +95,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         color: Theme.of(context).primaryColor,
                       ),
                       markerDecoration: const BoxDecoration(
-                        color: Colors.transparent, // Marcadores invisíveis, a cor será no dayBuilder
+                        color: Colors.transparent,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -166,7 +150,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         }
 
                         return Container(
-                          margin: const EdgeInsets.all(6.0),
+                          margin: const EdgeInsets.all(2.0),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: color,
@@ -189,11 +173,42 @@ class _SessoesPageState extends State<SessoesPage> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Bloquear dia inteiro em desenvolvimento.')),
-                            );
+                        onPressed: () async { // Adicionado async
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext dialogContext) {
+                              return AlertDialog(
+                                title: const Text('Bloquear Dia Inteiro'),
+                                content: const Text('Tem certeza que deseja bloquear o dia inteiro?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                                    child: const Text('Bloquear'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirm == true) {
+                            try {
+                              await viewModel.blockEntireDay(_selectedDay!);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Dia inteiro bloqueado com sucesso!')),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erro ao bloquear dia: ${e.toString()}')),
+                                );
+                              }
+                            }
                           }
                         },
                         child: const Text('Bloquear Dia'),
@@ -202,11 +217,42 @@ class _SessoesPageState extends State<SessoesPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Desbloquear dia inteiro em desenvolvimento.')),
-                            );
+                        onPressed: () async { // Adicionado async
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext dialogContext) {
+                              return AlertDialog(
+                                title: const Text('Desbloquear Dia Inteiro'),
+                                content: const Text('Tem certeza que deseja desbloquear o dia inteiro?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                                    child: const Text('Desbloquear'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirm == true) {
+                            try {
+                              await viewModel.unblockEntireDay(_selectedDay!);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Dia inteiro desbloqueado com sucesso!')),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erro ao desbloquear dia: ${e.toString()}')),
+                                );
+                              }
+                            }
                           }
                         },
                         child: const Text('Desbloquear Dia'),
@@ -218,7 +264,7 @@ class _SessoesPageState extends State<SessoesPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: Text(
-                  DateFormat('EEEE, dd \'de\' MMMM \'de\' yyyy', 'pt_BR').format(_selectedDay!),
+                  DateFormat('EEEE, dd \'de\' MMMM \'de\' BCE', 'pt_BR').format(_selectedDay!),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -253,6 +299,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         final timeSlot = sortedTimes[index];
                         final sessao = horarios[timeSlot];
                         final isOccupied = sessao != null;
+                        final isBlocked = isOccupied && sessao!.status == 'Bloqueada';
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
@@ -267,14 +314,12 @@ class _SessoesPageState extends State<SessoesPage> {
                                   : 'Horário Disponível',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
-                            trailing: isOccupied
-                                ? IconButton(
+                            trailing: IconButton(
                                     icon: const Icon(Icons.more_vert),
                                     onPressed: () {
-                                      _showSessionActions(context, viewModel, sessao!);
+                                      _showSessionActions(context, viewModel, sessao, timeSlot);
                                     },
-                                  )
-                                : null,
+                                  ),
                             tileColor: _getTileColor(sessao, isOccupied),
                           ),
                         );
@@ -310,86 +355,69 @@ class _SessoesPageState extends State<SessoesPage> {
     }
   }
 
-  void _showSessionActions(BuildContext context, SessoesViewModel viewModel, Sessao sessao) {
+  void _showSessionActions(BuildContext context, SessoesViewModel viewModel, Sessao? sessao, String timeSlot) {
+    final bool isOccupied = sessao != null;
+    final bool isBlocked = isOccupied && sessao!.status == 'Bloqueada';
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext bc) {
         return SafeArea(
           child: Wrap(
             children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.check_circle),
-                title: const Text('Marcar como Realizada'),
-                onTap: () async {
-                  Navigator.pop(bc);
-                  try {
-                    await viewModel.updateSessaoStatus(sessao, 'Realizada');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sessão marcada como Realizada!')),
-                      );
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro: ${e.toString()}')),
-                      );
-                    }
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.close),
-                title: const Text('Marcar como Falta'),
-                onTap: () async {
-                  Navigator.pop(bc);
-                  try {
-                    await viewModel.updateSessaoStatus(sessao, 'Falta');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sessão marcada como Falta!')),
-                      );
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro: ${e.toString()}')),
-                      );
-                    }
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel),
-                title: const Text('Marcar como Cancelada'),
-                onTap: () async {
-                  Navigator.pop(bc);
-                  final bool? desmarcarTodas = await showDialog<bool>(
-                    context: context,
-                    builder: (BuildContext dialogContext) {
-                      return AlertDialog(
-                        title: const Text('Desmarcar Sessão'),
-                        content: const Text('Deseja desmarcar apenas esta sessão ou esta e todas as futuras (encerra o treinamento)?'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.of(dialogContext).pop(false),
-                            child: const Text('Apenas esta'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(dialogContext).pop(true),
-                            child: const Text('Todas as futuras'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (desmarcarTodas != null) {
+              // Ações para horário disponível (não ocupado e não bloqueado)
+              if (!isOccupied)
+                ListTile(
+                  leading: const Icon(Icons.event_available),
+                  title: const Text('Agendar Treinamento'),
+                  onTap: () {
+                    Navigator.pop(bc);
+                    // TODO: Implementar navegação para tela de agendamento de treinamento
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Agendar treinamento para ${DateFormatter.formatDate(_selectedDay!)} às $timeSlot em desenvolvimento.')),
+                    );
+                  },
+                ),
+              // Ação para bloquear horário (disponível ou agendado, mas não bloqueado)
+              if (!isBlocked) // Se não estiver bloqueado, pode bloquear
+                ListTile(
+                  leading: const Icon(Icons.block),
+                  title: const Text('Bloquear Horário'),
+                  onTap: () async {
+                    Navigator.pop(bc);
                     try {
-                      await viewModel.updateSessaoStatus(sessao, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
+                      if (isOccupied) { // Se já tem uma sessão, muda o status dela para Bloqueada
+                        await viewModel.updateSessaoStatus(sessao!, 'Bloqueada');
+                      } else { // Se é um slot livre, cria uma nova sessão bloqueada
+                        await viewModel.blockTimeSlot(timeSlot, _selectedDay!);
+                      }
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Sessão(ões) marcada(s) como Cancelada(s)!')),
+                          SnackBar(content: Text('Horário ${DateFormatter.formatDate(_selectedDay!)} às $timeSlot bloqueado com sucesso!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao bloquear horário: ${e.toString()}')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              
+              // Ações para sessões agendadas (ocupadas e não bloqueadas)
+              if (isOccupied && !isBlocked)
+                ListTile(
+                  leading: const Icon(Icons.check_circle),
+                  title: const Text('Marcar como Realizada'),
+                  onTap: () async {
+                    Navigator.pop(bc);
+                    try {
+                      await viewModel.updateSessaoStatus(sessao!, 'Realizada');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sessão marcada como Realizada!')),
                         );
                       }
                     } catch (e) {
@@ -399,31 +427,106 @@ class _SessoesPageState extends State<SessoesPage> {
                         );
                       }
                     }
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.block),
-                title: const Text('Marcar como Bloqueada'),
-                onTap: () async {
-                  Navigator.pop(bc);
-                  try {
-                    await viewModel.updateSessaoStatus(sessao, 'Bloqueada');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sessão marcada como Bloqueada!')),
-                      );
+                  },
+                ),
+              if (isOccupied && !isBlocked)
+                ListTile(
+                  leading: const Icon(Icons.close),
+                  title: const Text('Marcar como Falta'),
+                  onTap: () async {
+                    Navigator.pop(bc);
+                    try {
+                      await viewModel.updateSessaoStatus(sessao!, 'Falta');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sessão marcada como Falta!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro: ${e.toString()}')),
+                        );
+                      }
                     }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro: ${e.toString()}')),
-                      );
+                  },
+                ),
+              if (isOccupied && !isBlocked)
+                ListTile(
+                  leading: const Icon(Icons.cancel),
+                  title: const Text('Marcar como Cancelada'),
+                  onTap: () async {
+                    Navigator.pop(bc);
+                    final bool? desmarcarTodas = await showDialog<bool>(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Desmarcar Sessão'),
+                          content: const Text('Deseja desmarcar apenas esta sessão ou esta e todas as futuras (encerra o treinamento)?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(false),
+                              child: const Text('Apenas esta'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(true),
+                              child: const Text('Todas as futuras'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (desmarcarTodas != null) {
+                      try {
+                        await viewModel.updateSessaoStatus(sessao!, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Sessão(ões) marcada(s) como Cancelada(s)!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erro: ${e.toString()}')),
+                          );
+                        }
+                      }
                     }
-                  }
-                },
-              ),
-              if (sessao.status != 'Agendada')
+                  },
+                ),
+              
+              // Ação de desbloquear para sessões bloqueadas
+              if (isBlocked)
+                ListTile(
+                  leading: const Icon(Icons.lock_open), // Ícone para desbloquear
+                  title: const Text('Desbloquear Horário'),
+                  onTap: () async {
+                    Navigator.pop(bc);
+                    try {
+                      // Se for um bloqueio de dia inteiro, usa unblockEntireDay
+                      if (sessao!.treinamentoId == 'dia_bloqueado_completo') {
+                        await viewModel.unblockEntireDay(_selectedDay!);
+                      } else { // Caso contrário, reverte a sessão bloqueada individual para Agendada
+                        await viewModel.updateSessaoStatus(sessao, 'Agendada');
+                      }
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Horário ${DateFormatter.formatDate(_selectedDay!)} às $timeSlot desbloqueado com sucesso!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao desbloquear horário: ${e.toString()}')),
+                        );
+                      }
+                    }
+                  },
+                ),
+
+              // Ação de reverter para Agendada (se for ocupado, não bloqueado e não Agendada)
+              if (isOccupied && !isBlocked && sessao!.status != 'Agendada')
                 ListTile(
                   leading: const Icon(Icons.refresh),
                   title: const Text('Reverter para Agendada'),
@@ -445,8 +548,9 @@ class _SessoesPageState extends State<SessoesPage> {
                     }
                   },
                 ),
-              // TODO: Lógica para marcar/desfazer pagamento por sessão
-              if (sessao.statusPagamento == 'Pendente' && sessao.status != 'Realizada')
+
+              // Lógica de pagamento (apenas se for ocupado e não bloqueado)
+              if (isOccupied && !isBlocked && sessao!.statusPagamento == 'Pendente' && sessao.status != 'Realizada')
                 ListTile(
                   leading: const Icon(Icons.payments),
                   title: const Text('Marcar Pagamento como Realizado'),
@@ -468,7 +572,7 @@ class _SessoesPageState extends State<SessoesPage> {
                     }
                   },
                 ),
-              if (sessao.statusPagamento == 'Realizado')
+              if (isOccupied && !isBlocked && sessao!.statusPagamento == 'Realizado')
                 ListTile(
                   leading: const Icon(Icons.undo),
                   title: const Text('Desfazer Pagamento'),

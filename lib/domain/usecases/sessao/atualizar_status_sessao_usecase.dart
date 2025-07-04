@@ -1,7 +1,7 @@
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart'; // Corrigido para .dart
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/core/utils/date_time_helper.dart';
@@ -54,12 +54,18 @@ class AtualizarStatusSessaoUseCase {
           await _sessaoRepository.updateSessao(s.copyWith(status: 'Cancelada'));
         }
       } else {
-        await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
+        // Apenas cria sessão extra se não for um bloqueio de dia inteiro ou manual
+        if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
+          await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
+        }
       }
     }
     // Lógica para reverter para "Agendada" (remove sessão extra e reajusta numeração)
     else if (novoStatus == 'Agendada' && (originalStatus == 'Cancelada' || originalStatus == 'Bloqueada')) {
-      await _removerSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.numeroSessao);
+      // Apenas remove sessão extra se não for um bloqueio de dia inteiro ou manual
+      if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
+        await _removerSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.numeroSessao);
+      }
     }
 
     // Lógica para "Falta" com pagamento diferente de convênio
@@ -67,7 +73,10 @@ class AtualizarStatusSessaoUseCase {
         originalStatus == 'Agendada' &&
         sessao.statusPagamento != 'Convenio') {
       sessaoAtualizada = sessaoAtualizada.copyWith(statusPagamento: 'Pendente', dataPagamento: null);
-      await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
+      // Apenas cria sessão extra se não for um bloqueio de dia inteiro ou manual
+      if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
+        await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
+      }
     }
 
     // Não é permitido marcar uma sessão como "Realizada" sem o pagamento correspondente.
@@ -79,6 +88,11 @@ class AtualizarStatusSessaoUseCase {
   }
 
   Future<void> _gerarSessaoExtraEReajustarNumeracao(String treinamentoId, String pacienteId, int sessaoOriginalNumero) async {
+    // CORREÇÃO: Não tentar obter treinamento se for um ID de bloqueio
+    if (treinamentoId == 'dia_bloqueado_completo' || treinamentoId == 'bloqueio_manual') {
+      return; // Não gera sessão extra para bloqueios
+    }
+
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null) return;
 
@@ -142,6 +156,11 @@ class AtualizarStatusSessaoUseCase {
   }
 
   Future<void> _removerSessaoExtraEReajustarNumeracao(String treinamentoId, int sessaoRevertidaNumero) async {
+    // CORREÇÃO: Não tentar obter treinamento se for um ID de bloqueio
+    if (treinamentoId == 'dia_bloqueado_completo' || treinamentoId == 'bloqueio_manual') {
+      return; // Não remove sessão extra para bloqueios
+    }
+
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null) return;
 

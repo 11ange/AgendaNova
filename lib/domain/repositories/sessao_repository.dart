@@ -11,8 +11,11 @@ abstract class SessaoRepository {
   // Obtém sessões para um dia específico
   Stream<List<Sessao>> getSessoesByDate(DateTime date);
 
-  // NOVO MÉTODO: Obtém sessões para um determinado mês
+  // Obtém sessões para um determinado mês
   Stream<List<Sessao>> getSessoesByMonth(DateTime monthDate);
+
+  // NOVO MÉTODO: Define o status de bloqueio para um dia inteiro
+  Future<void> setDayBlockedStatus(DateTime date, bool isBlocked);
 
   // Adiciona uma nova sessão
   Future<String> addSessao(Sessao sessao);
