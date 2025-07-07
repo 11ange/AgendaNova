@@ -14,10 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
 import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
-import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart'; // Importar SessoesViewModel
+import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 
-
-// Classe para gerenciar as rotas do aplicativo usando GoRouter
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/login',
@@ -70,7 +68,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/sessoes',
-        builder: (context, state) => ChangeNotifierProvider( // Fornece o ViewModel aqui
+        builder: (context, state) => ChangeNotifierProvider(
           create: (_) => SessoesViewModel(),
           child: const SessoesPage(),
         ),
@@ -93,4 +91,3 @@ class AppRouter {
     ],
   );
 }
-

@@ -1,0 +1,170 @@
+import 'package:flutter/material.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:agendanova/core/utils/input_validators.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+class TreinamentoFormDialog extends StatefulWidget {
+  final DateTime selectedDay;
+  final String timeSlot;
+
+  const TreinamentoFormDialog({
+    super.key,
+    required this.selectedDay,
+    required this.timeSlot,
+  });
+
+  @override
+  State<TreinamentoFormDialog> createState() => _TreinamentoFormDialogState();
+}
+
+class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+  Paciente? _selectedPaciente;
+  String? _selectedDiaSemana;
+  String? _selectedHorario;
+  final TextEditingController _numeroSessoesController = TextEditingController();
+  DateTime? _dataInicio;
+  String? _selectedFormaPagamento;
+  String? _selectedTipoParcelamento;
+
+  @override
+  void initState() {
+    super.initState();
+    // Captura os dados da seleção do calendário para usar na lógica
+    _dataInicio = widget.selectedDay;
+    final dayName = DateFormat('EEEE', 'pt_BR').format(widget.selectedDay);
+    // --- CORREÇÃO AQUI ---
+    // Corrigido o erro de digitação de 'day_name' para 'dayName'
+    _selectedDiaSemana = dayName[0].toUpperCase() + dayName.substring(1);
+    _selectedHorario = widget.timeSlot;
+  }
+
+  @override
+  void dispose() {
+    _numeroSessoesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => TreinamentoDialogViewModel(),
+      child: Consumer<TreinamentoDialogViewModel>(
+        builder: (context, viewModel, child) {
+          return AlertDialog(
+            title: const Text('Agendar Novo Treinamento'),
+            content: viewModel.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          DropdownButtonFormField<Paciente>(
+                            value: _selectedPaciente,
+                            decoration: const InputDecoration(labelText: 'Paciente *'),
+                            items: viewModel.pacientes.map((paciente) {
+                              return DropdownMenuItem<Paciente>(
+                                value: paciente,
+                                child: Text(paciente.nome),
+                              );
+                            }).toList(),
+                            onChanged: (paciente) {
+                              setState(() {
+                                _selectedPaciente = paciente;
+                              });
+                            },
+                            validator: (value) => value == null ? 'Selecione um paciente' : null,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _numeroSessoesController,
+                            decoration: const InputDecoration(labelText: 'Número de Sessões *'),
+                            keyboardType: TextInputType.number,
+                            validator: (value) => InputValidators.positiveInteger(value, 'Número de Sessões'),
+                          ),
+                           const SizedBox(height: 16),
+                          DropdownButtonFormField<String>(
+                            value: _selectedFormaPagamento,
+                            decoration: const InputDecoration(labelText: 'Forma de Pagamento *'),
+                            items: ['Dinheiro', 'Pix', 'Convenio']
+                                .map((forma) => DropdownMenuItem(value: forma, child: Text(forma)))
+                                .toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedFormaPagamento = value;
+                                _selectedTipoParcelamento = null;
+                              });
+                            },
+                            validator: (value) => value == null ? 'Selecione uma forma de pagamento' : null,
+                          ),
+                          if (_selectedFormaPagamento == 'Dinheiro' || _selectedFormaPagamento == 'Pix') ...[
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              value: _selectedTipoParcelamento,
+                              decoration: const InputDecoration(labelText: 'Tipo de Parcelamento *'),
+                              items: ['Por sessão', '3x']
+                                  .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedTipoParcelamento = value;
+                                });
+                              },
+                              validator: (value) => value == null ? 'Selecione o tipo de parcelamento' : null,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancelar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              ElevatedButton(
+                child: const Text('Agendar'),
+                onPressed: viewModel.isLoading
+                    ? null
+                    : () async {
+                        if (_formKey.currentState!.validate()) {
+                          try {
+                            await viewModel.criarTreinamento(
+                              pacienteId: _selectedPaciente!.id!,
+                              diaSemana: _selectedDiaSemana!,
+                              horario: _selectedHorario!,
+                              numeroSessoesTotal: int.parse(_numeroSessoesController.text),
+                              dataInicio: _dataInicio!,
+                              formaPagamento: _selectedFormaPagamento!,
+                              tipoParcelamento: _selectedTipoParcelamento,
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Treinamento agendado com sucesso!')),
+                              );
+                              Navigator.of(context).pop(true);
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erro ao agendar: ${e.toString()}')),
+                              );
+                            }
+                          }
+                        }
+                      },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

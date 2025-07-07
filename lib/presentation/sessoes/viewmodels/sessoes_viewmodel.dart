@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/sessao_repository_impl.dart';
-import 'package:agendanova/data/repositories/treinamento_repository_impl.dart';
-import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
@@ -23,25 +18,27 @@ class SessoesViewModel extends ChangeNotifier {
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
   final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase;
 
-  List<Sessao> _sessoesDoMes = [];
-  AgendaDisponibilidade? _agendaDisponibilidade;
-
+  // Stream Controllers
   final _horariosCompletosStreamController = StreamController<Map<String, Sessao?>>.broadcast();
   Stream<Map<String, Sessao?>> get horariosCompletosStream => _horariosCompletosStreamController.stream;
 
   final _dailyStatusMapStreamController = StreamController<Map<DateTime, String>>.broadcast();
   Stream<Map<DateTime, String>> get dailyStatusMapStream => _dailyStatusMapStreamController.stream;
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
+  // State
+  bool _isLoading = true;
+  bool _isInitialized = false;
   DateTime? _currentSelectedDate;
   DateTime? _currentFocusedMonth;
+  AgendaDisponibilidade? _agendaDisponibilidade;
+  List<Sessao> _sessoesDoMes = [];
+  StreamSubscription? _agendaSubscription;
+  StreamSubscription? _sessoesSubscription;
+  bool _agendaDataReceived = false;
+  bool _sessoesDataReceived = false;
 
-  DateTime? get currentSelectedDate => _currentSelectedDate;
-  DateTime? get currentFocusedMonth => _currentFocusedMonth;
-
-  bool _isAgendaListenerActive = false;
+  bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
 
   SessoesViewModel()
       : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
@@ -49,62 +46,64 @@ class SessoesViewModel extends ChangeNotifier {
           GetIt.instance<TreinamentoRepository>(),
           GetIt.instance<AgendaDisponibilidadeRepository>(),
           GetIt.instance<PacienteRepository>(),
-        ) {
-    _horariosCompletosStreamController.add({});
-    _dailyStatusMapStreamController.add({});
-  }
+        );
 
-  void _listenToAgendaDisponibilidade() {
-    if (_isAgendaListenerActive) return;
-    _isAgendaListenerActive = true;
-
-    _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
-      (agenda) {
-        _agendaDisponibilidade = agenda;
-        print('DEBUG: Agenda de disponibilidade carregada: ${_agendaDisponibilidade?.agenda}');
-        if (_currentFocusedMonth != null) {
-          _calculateAndEmitDailyStatus(_currentFocusedMonth!);
-        }
-        if (_currentSelectedDate != null) {
-          _combineAndEmitSchedule(_currentSelectedDate!);
-        }
-      },
-      onError: (error) {
-        print('ERRO: ao carregar agenda de disponibilidade: $error');
-      },
-    );
+  void setInitialSelectedDay(DateTime date) {
+    _currentSelectedDate = date;
   }
 
   void loadSessoesForMonth(DateTime focusedMonth) {
-    _currentFocusedMonth = focusedMonth;
-    _setLoading(true);
-    print('DEBUG: Carregando sessões para o mês: $focusedMonth');
-
-    if (!_isAgendaListenerActive) {
-      _listenToAgendaDisponibilidade();
+    if (_currentFocusedMonth != null &&
+        focusedMonth.year == _currentFocusedMonth!.year &&
+        focusedMonth.month == _currentFocusedMonth!.month) {
+      return;
     }
 
-    _sessaoRepository.getSessoesByMonth(focusedMonth).listen(
+    _currentFocusedMonth = focusedMonth;
+    _setLoading(true);
+    _agendaDataReceived = false;
+    _sessoesDataReceived = false;
+
+    _agendaSubscription?.cancel();
+    _sessoesSubscription?.cancel();
+
+    _agendaSubscription = _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
+      (agenda) {
+        _agendaDisponibilidade = agenda;
+        _agendaDataReceived = true;
+        _processDataAndNotify();
+      },
+      onError: (error) => print('Erro ao carregar agenda: $error'),
+    );
+
+    _sessoesSubscription = _sessaoRepository.getSessoesByMonth(focusedMonth).listen(
       (sessoesList) {
         _sessoesDoMes = sessoesList;
-        print('DEBUG: Sessões do mês carregadas: ${_sessoesDoMes.length} sessões');
-        _calculateAndEmitDailyStatus(focusedMonth);
-        if (_currentSelectedDate != null && _currentSelectedDate!.month == focusedMonth.month) {
-          _combineAndEmitSchedule(_currentSelectedDate!);
-        }
-        _setLoading(false);
+        _sessoesDataReceived = true;
+        _processDataAndNotify();
       },
-      onError: (error) {
-        _dailyStatusMapStreamController.addError(error);
-        _setLoading(false);
-        print('ERRO: ao carregar sessões para o mês: $error');
-      },
+      onError: (error) => print('Erro ao carregar sessões: $error'),
     );
+  }
+
+  void _processDataAndNotify() {
+    if (_agendaDataReceived && _sessoesDataReceived) {
+      if (_currentFocusedMonth != null) {
+        _calculateAndEmitDailyStatus(_currentFocusedMonth!);
+      }
+      if (_currentSelectedDate != null) {
+        _combineAndEmitSchedule(_currentSelectedDate!);
+      }
+      _isInitialized = true;
+      _setLoading(false);
+    }
   }
 
   void loadSessoesForDay(DateTime date) {
     _currentSelectedDate = date;
-    _combineAndEmitSchedule(date);
+    if (_isInitialized) {
+      _combineAndEmitSchedule(date);
+    }
   }
 
   String _capitalizeFirstLetter(String text) {
@@ -131,36 +130,32 @@ class SessoesViewModel extends ChangeNotifier {
       bool isDayBlocked = sessionsForCurrentDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
 
       if (isDayBlocked) {
-        dailyStatus[currentDay] = 'indisponivel';
+        dailyStatus[DateUtils.dateOnly(currentDay)] = 'indisponivel';
       } else if (availableTimesForDay.isEmpty) {
-        dailyStatus[currentDay] = 'indisponivel';
+        dailyStatus[DateUtils.dateOnly(currentDay)] = 'indisponivel';
       } else if (sessionsForCurrentDay.isEmpty) {
-        dailyStatus[currentDay] = 'livre';
+        dailyStatus[DateUtils.dateOnly(currentDay)] = 'livre';
       } else if (sessionsForCurrentDay.length < availableTimesForDay.length) {
-        dailyStatus[currentDay] = 'parcial';
+        dailyStatus[DateUtils.dateOnly(currentDay)] = 'parcial';
       } else {
-        dailyStatus[currentDay] = 'cheio';
+        dailyStatus[DateUtils.dateOnly(currentDay)] = 'cheio';
       }
     }
-    print('DEBUG: Daily status calculated: $dailyStatus');
     _dailyStatusMapStreamController.add(dailyStatus);
   }
 
   void _combineAndEmitSchedule(DateTime date) {
     final Map<String, Sessao?> combinedSchedule = {};
     final String weekdayName = _capitalizeFirstLetter(DateFormat('EEEE', 'pt_BR').format(date));
-    print('DEBUG: Combinando agenda para $weekdayName ($date)');
-
+    
     final List<String> availableTimesFromAgenda = _agendaDisponibilidade?.agenda[weekdayName] ?? [];
-    print('DEBUG: Horários disponíveis da agenda (raw): $availableTimesFromAgenda');
-
+    
     final List<Sessao> sessionsForSelectedDay = _sessoesDoMes
         .where((sessao) =>
             sessao.dataHora.year == date.year &&
             sessao.dataHora.month == date.month &&
             sessao.dataHora.day == date.day)
         .toList();
-    print('DEBUG: Sessions for current day (raw): ${sessionsForSelectedDay.map((s) => DateFormat('HH:mm').format(s.dataHora))}');
 
     bool isDayBlocked = sessionsForSelectedDay.any((s) => s.treinamentoId == 'dia_bloqueado_completo' && s.status == 'Bloqueada');
 
@@ -194,7 +189,6 @@ class SessoesViewModel extends ChangeNotifier {
       }
 
       final List<String> sortedTimesToDisplay = timesToDisplay.toList()..sort();
-      print('DEBUG: Times to display after explicit build and sort: $sortedTimesToDisplay');
 
       for (String timeSlot in sortedTimesToDisplay) {
         final sessaoExistente = sessionsForSelectedDay.firstWhereOrNull(
@@ -208,46 +202,22 @@ class SessoesViewModel extends ChangeNotifier {
         }
       }
     }
-
-    print('DEBUG: Final combinedSchedule being added: $combinedSchedule');
     _horariosCompletosStreamController.add(combinedSchedule);
-    notifyListeners();
   }
 
   Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
     _setLoading(true);
     try {
       final DateTime blockedDateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        int.parse(timeSlot.split(':')[0]),
-        int.parse(timeSlot.split(':')[1]),
+        date.year, date.month, date.day, int.parse(timeSlot.split(':')[0]), int.parse(timeSlot.split(':')[1]),
       );
-
       final blockedSession = Sessao(
-        id: null,
-        treinamentoId: 'bloqueio_manual',
-        pacienteId: 'bloqueio_manual',
-        pacienteNome: 'Horário Bloqueado',
-        dataHora: blockedDateTime,
-        numeroSessao: 0,
-        status: 'Bloqueada',
-        statusPagamento: 'N/A',
-        formaPagamento: 'N/A',
-        agendamentoStartDate: blockedDateTime,
-        totalSessoes: 0,
-        observacoes: 'Bloqueado manualmente',
+        id: null, treinamentoId: 'bloqueio_manual', pacienteId: 'bloqueio_manual',
+        pacienteNome: 'Horário Bloqueado', dataHora: blockedDateTime, numeroSessao: 0, status: 'Bloqueada',
+        statusPagamento: 'N/A', formaPagamento: 'N/A', agendamentoStartDate: blockedDateTime,
+        totalSessoes: 0, observacoes: 'Bloqueado manualmente',
       );
-
       await _sessaoRepository.addSessao(blockedSession);
-
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
     } catch (e) {
       rethrow;
     } finally {
@@ -255,38 +225,21 @@ class SessoesViewModel extends ChangeNotifier {
     }
   }
 
-  // NOVO MÉTODO: Deleta uma sessão de bloqueio individual
   Future<void> deleteBlockedTimeSlot(String sessionId) async {
     _setLoading(true);
     try {
-      await _sessaoRepository.deleteSessao(sessionId); // Usa o deleteSessao existente
-
-      // Recarrega os dados para atualizar a UI
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
+      await _sessaoRepository.deleteSessao(sessionId);
     } catch (e) {
       rethrow;
     } finally {
       _setLoading(false);
     }
   }
-
 
   Future<void> blockEntireDay(DateTime date) async {
     _setLoading(true);
     try {
       await _sessaoRepository.setDayBlockedStatus(date, true);
-
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
     } catch (e) {
       rethrow;
     } finally {
@@ -298,75 +251,19 @@ class SessoesViewModel extends ChangeNotifier {
     _setLoading(true);
     try {
       await _sessaoRepository.setDayBlockedStatus(date, false);
-
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
     } catch (e) {
       rethrow;
     } finally {
       _setLoading(false);
     }
   }
-
 
   Future<void> updateSessaoStatus(Sessao sessao, String novoStatus, {bool? desmarcarTodasFuturas}) async {
     _setLoading(true);
     try {
       await _atualizarStatusSessaoUseCase.call(
-        sessao: sessao,
-        novoStatus: novoStatus,
-        desmarcarTodasFuturas: desmarcarTodasFuturas,
+        sessao: sessao, novoStatus: novoStatus, desmarcarTodasFuturas: desmarcarTodasFuturas,
       );
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<void> markPaymentAsRealizado(String sessaoId) async {
-    _setLoading(true);
-    try {
-      final sessao = _sessoesDoMes.firstWhere((s) => s.id == sessaoId);
-      await _sessaoRepository.updateSessao(
-        sessao.copyWith(statusPagamento: 'Realizado', dataPagamento: DateTime.now()),
-      );
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<void> undoPayment(String sessaoId) async {
-    _setLoading(true);
-    try {
-      final sessao = _sessoesDoMes.firstWhere((s) => s.id == sessaoId);
-      await _sessaoRepository.updateSessao(
-        sessao.copyWith(statusPagamento: 'Pendente', dataPagamento: null),
-      );
-      if (_currentFocusedMonth != null) {
-        loadSessoesForMonth(_currentFocusedMonth!);
-      }
-      if (_currentSelectedDate != null) {
-        _combineAndEmitSchedule(_currentSelectedDate!);
-      }
     } catch (e) {
       rethrow;
     } finally {
@@ -381,6 +278,8 @@ class SessoesViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _agendaSubscription?.cancel();
+    _sessoesSubscription?.cancel();
     _horariosCompletosStreamController.close();
     _dailyStatusMapStreamController.close();
     super.dispose();

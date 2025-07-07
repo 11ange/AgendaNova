@@ -38,9 +38,9 @@ import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_
 import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
 import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
+import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
 
-
-final GetIt sl = GetIt.instance; // sl = Service Locator
+final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
   // Core
@@ -56,38 +56,22 @@ Future<void> init() async {
   sl.registerLazySingleton<PagamentoRepository>(() => PagamentoRepositoryImpl(sl()));
   sl.registerLazySingleton<RelatorioRepository>(() => RelatorioRepositoryImpl(sl()));
 
-
   // Use Cases
-  // Pacientes
   sl.registerLazySingleton(() => CadastrarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => EditarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => InativarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => ReativarPacienteUseCase(sl()));
-
-  // Lista de Espera
   sl.registerLazySingleton(() => AdicionarListaEsperaUseCase(sl()));
   sl.registerLazySingleton(() => RemoverListaEsperaUseCase(sl()));
-
-  // Agenda
   sl.registerLazySingleton(() => DefinirAgendaUseCase(sl()));
-
-  // Treinamento
   sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
-
-  // Sessão
-  // CORREÇÃO: Passando todos os 4 repositórios necessários
   sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl(), sl()));
-
-  // Pagamento
   sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => ReverterPagamentoUseCase(sl(), sl(), sl()));
-
-  // Relatórios
   sl.registerLazySingleton(() => GerarRelatorioMensalGlobalUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => GerarRelatorioIndividualPacienteUseCase(sl(), sl(), sl()));
 
-
-  // ViewModels (Factories para que uma nova instância seja criada quando solicitada)
+  // ViewModels
   sl.registerFactory(() => LoginViewModel());
   sl.registerFactory(() => AgendaViewModel());
   sl.registerFactory(() => ListaEsperaViewModel());
@@ -98,5 +82,5 @@ Future<void> init() async {
   sl.registerFactory(() => PagamentosViewModel());
   sl.registerFactory(() => RelatoriosViewModel());
   sl.registerFactory(() => SessoesViewModel());
+  sl.registerFactory(() => TreinamentoDialogViewModel());
 }
-
