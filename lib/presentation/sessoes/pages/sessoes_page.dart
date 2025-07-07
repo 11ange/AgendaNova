@@ -29,10 +29,7 @@ class _SessoesPageState extends State<SessoesPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel = Provider.of<SessoesViewModel>(context, listen: false);
-      if (_selectedDay != null) {
-        _viewModel.setInitialSelectedDay(_selectedDay!);
-      }
-      _viewModel.loadSessoesForMonth(_focusedDay);
+      _viewModel.initialize(_focusedDay);
     });
   }
 
@@ -45,7 +42,7 @@ class _SessoesPageState extends State<SessoesPage> {
       ),
       body: Consumer<SessoesViewModel>(
         builder: (context, viewModel, child) {
-          if (viewModel.isLoading && !viewModel.isInitialized) {
+          if (!viewModel.isInitialized) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -53,7 +50,7 @@ class _SessoesPageState extends State<SessoesPage> {
             children: [
               StreamBuilder<Map<DateTime, String>>(
                 stream: viewModel.dailyStatusMapStream,
-                initialData: const {},
+                initialData: viewModel.dailyStatus,
                 builder: (context, snapshot) {
                   final dailyStatus = snapshot.data ?? {};
                   return TableCalendar(
@@ -63,24 +60,17 @@ class _SessoesPageState extends State<SessoesPage> {
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     calendarFormat: CalendarFormat.month,
                     locale: 'pt_BR',
-                    rowHeight: 42.0,
-                    onDaySelected: (selectedDay, focusedDay) {
-                      setState(() {
-                        _selectedDay = selectedDay;
-                        _focusedDay = focusedDay;
-                      });
-                      viewModel.loadSessoesForDay(selectedDay);
-                    },
-                    onPageChanged: (focusedDay) {
-                      setState(() {
-                        _selectedDay = null;
-                        _focusedDay = focusedDay;
-                      });
-                      viewModel.loadSessoesForMonth(focusedDay);
-                    },
+                    // --- AJUSTE: Diminui a altura das linhas do calendário ---
+                    rowHeight: 38.0, 
+                    daysOfWeekHeight: 16, // Diminui a altura da linha dos dias da semana
                     headerStyle: const HeaderStyle(
                       formatButtonVisible: false,
                       titleCentered: true,
+                      // --- AJUSTE: Diminui os espaços no cabeçalho ---
+                      headerPadding: EdgeInsets.symmetric(vertical: 4.0),
+                      leftChevronPadding: EdgeInsets.all(4.0),
+                      rightChevronPadding: EdgeInsets.all(4.0),
+                      titleTextStyle: TextStyle(fontSize: 17.0),
                     ),
                     calendarStyle: CalendarStyle(
                       outsideDaysVisible: false,
@@ -116,7 +106,7 @@ class _SessoesPageState extends State<SessoesPage> {
 
                         if (isSameDay(day, _selectedDay)) {
                           return Container(
-                            margin: const EdgeInsets.all(6.0),
+                            margin: const EdgeInsets.all(4.0), // Diminuído
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
@@ -127,7 +117,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         }
                         if (isSameDay(day, DateTime.now())) {
                           return Container(
-                            margin: const EdgeInsets.all(6.0),
+                            margin: const EdgeInsets.all(4.0), // Diminuído
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: Colors.blue.shade100,
@@ -145,11 +135,26 @@ class _SessoesPageState extends State<SessoesPage> {
                         );
                       },
                     ),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      setState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
+                      });
+                      viewModel.loadSessoesForDay(selectedDay);
+                    },
+                    onPageChanged: (focusedDay) {
+                      setState(() {
+                        _selectedDay = null;
+                        _focusedDay = focusedDay;
+                      });
+                      viewModel.onPageChanged(focusedDay);
+                    },
                   );
                 },
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                // --- AJUSTE: Diminui o espaçamento vertical ---
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -183,9 +188,11 @@ class _SessoesPageState extends State<SessoesPage> {
               ),
               if (_selectedDay != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  // --- AJUSTE: Diminui o espaçamento vertical ---
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
                   child: Text(
-                    DateFormat('EEEE, dd \'de\' MMMM \'de\' BBBB', 'pt_BR').format(_selectedDay!),
+                    // --- CORREÇÃO: Formato do ano de 'BBBB' para 'yyyy' ---
+                    DateFormat('EEEE, dd \'de\' MMMM \'de\' yyyy', 'pt_BR').format(_selectedDay!),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -194,10 +201,13 @@ class _SessoesPageState extends State<SessoesPage> {
                     ? const Center(child: Text('Selecione um dia no calendário.'))
                     : StreamBuilder<Map<String, Sessao?>>(
                         stream: viewModel.horariosCompletosStream,
-                        initialData: const {},
+                        initialData: viewModel.horariosCompletos,
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData || snapshot.data == null) {
+                          if (viewModel.isLoading) {
                             return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data == null) {
+                            return const Center(child: Text("Carregando horários..."));
                           }
                           if (snapshot.hasError) {
                             return Center(child: Text('Erro ao carregar horários: ${snapshot.error}'));
@@ -210,6 +220,8 @@ class _SessoesPageState extends State<SessoesPage> {
                           final List<String> sortedTimes = horarios.keys.toList()..sort();
 
                           return ListView.builder(
+                            // --- AJUSTE: Remove o padding padrão do ListView ---
+                            padding: EdgeInsets.zero,
                             itemCount: sortedTimes.length,
                             itemBuilder: (context, index) {
                               final timeSlot = sortedTimes[index];
@@ -217,8 +229,12 @@ class _SessoesPageState extends State<SessoesPage> {
                               final isOccupied = sessao != null;
 
                               return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
+                                // --- AJUSTE: Diminui a margem do card ---
+                                margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 12.0),
                                 child: ListTile(
+                                  // --- AJUSTE: Torna o ListTile mais denso ---
+                                  dense: true,
+                                  visualDensity: VisualDensity.compact,
                                   title: Text(timeSlot, style: Theme.of(context).textTheme.titleMedium),
                                   subtitle: Text(
                                     isOccupied ? 'Paciente: ${sessao!.pacienteNome} | Status: ${sessao.status}' : 'Horário Disponível',
@@ -296,7 +312,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         },
                       );
                       if (result == true) {
-                        viewModel.loadSessoesForMonth(_focusedDay);
+                        viewModel.onPageChanged(_focusedDay);
                       }
                     }
                   },
