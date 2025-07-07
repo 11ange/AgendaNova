@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart'; // Será criado em breve
 import 'package:provider/provider.dart';
+import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/paciente.dart';
 
-// Tela de Histórico do Paciente
 class HistoricoPacientePage extends StatefulWidget {
   final String pacienteId;
 
@@ -16,151 +20,80 @@ class HistoricoPacientePage extends StatefulWidget {
 }
 
 class _HistoricoPacientePageState extends State<HistoricoPacientePage> {
+  // O ViewModel é instanciado mas não é usado diretamente aqui no State
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<HistoricoPacienteViewModel>(
-        context,
-        listen: false,
-      ).loadPacienteAndTreinamentos(widget.pacienteId);
-    });
+    // A inicialização dos dados será feita através do Provider no `create`.
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HistoricoPacienteViewModel(),
+    // --- CORREÇÃO PRINCIPAL AQUI ---
+    // O ChangeNotifierProvider agora envolve toda a tela.
+    // Usamos `create` para que o Provider gerencie o ciclo de vida do ViewModel.
+    // O ViewModel é criado e os dados são carregados uma única vez.
+    return ChangeNotifierProvider<HistoricoPacienteViewModel>(
+      create: (_) => GetIt.instance<HistoricoPacienteViewModel>()..loadHistorico(widget.pacienteId),
       child: Consumer<HistoricoPacienteViewModel>(
         builder: (context, viewModel, child) {
+          // O título da AppBar agora é acessado de forma segura dentro do Consumer.
+          final pacienteNome = viewModel.paciente?.nome;
+
           return Scaffold(
             appBar: CustomAppBar(
-              title: 'Histórico de ${viewModel.paciente?.nome ?? 'Paciente'}',
-              onBackButtonPressed: () =>
-                  context.pop(), // Volta para a tela anterior
+              title: 'Histórico de ${pacienteNome ?? '...'}',
+              onBackButtonPressed: () => context.canPop() ? context.pop() : context.go('/pacientes-ativos'),
             ),
-            body: viewModel.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : viewModel.paciente == null
-                ? const Center(child: Text('Paciente não encontrado.'))
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
+            body: Builder(
+              builder: (context) {
+                if (viewModel.isLoading && viewModel.paciente == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (viewModel.errorMessage != null) {
+                  return Center(child: Text(viewModel.errorMessage!));
+                }
+
+                if (viewModel.paciente == null) {
+                  return const Center(child: Text('Paciente não encontrado.'));
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(16.0),
+                  children: [
+                    if (viewModel.treinamentos.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16.0),
+                        child: Center(child: Text('Nenhum treinamento encontrado para este paciente.')),
+                      )
+                    else
+                      ...viewModel.treinamentos.map((treinamento) {
+                        final sessoes = viewModel.sessoesPorTreinamento[treinamento.id] ?? [];
+                        final sessoesRealizadas = sessoes.where((s) => s.status == 'Realizada').length;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
                           elevation: 2,
-                          margin: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          child: ExpansionTile(
+                            title: Text('Início: ${DateFormatter.formatDate(treinamento.dataInicio)} às ${treinamento.horario}'),
+                            subtitle: Text('${treinamento.status.toUpperCase()} | ${sessoesRealizadas} de ${treinamento.numeroSessoesTotal} sessões realizadas'),
+                            children: sessoes.isEmpty
+                                ? [const ListTile(title: Text('Nenhuma sessão encontrada para este treinamento.'))]
+                                : sessoes.map((sessao) {
+                                    return ListTile(
+                                      title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)} às ${DateFormat.Hm().format(sessao.dataHora)}'),
+                                      subtitle: Text('Status: ${sessao.status} | Pagamento: ${sessao.statusPagamento}'),
+                                      dense: true,
+                                    );
+                                  }).toList(),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Dados do Paciente:',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text('Nome: ${viewModel.paciente!.nome}'),
-                                Text(
-                                  'Responsável: ${viewModel.paciente!.nomeResponsavel}',
-                                ),
-                                Text(
-                                  'Idade: ${viewModel.paciente!.idade} anos',
-                                ),
-                                Text(
-                                  'Telefone: ${viewModel.paciente!.telefoneResponsavel ?? 'N/A'}',
-                                ),
-                                Text(
-                                  'Email: ${viewModel.paciente!.emailResponsavel ?? 'N/A'}',
-                                ),
-                                Text(
-                                  'Status: ${viewModel.paciente!.status == 'ativo' ? 'Ativo' : 'Inativo'}',
-                                ),
-                                if (viewModel.paciente!.observacoes != null &&
-                                    viewModel.paciente!.observacoes!.isNotEmpty)
-                                  Text(
-                                    'Observações: ${viewModel.paciente!.observacoes}',
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Histórico de Treinamentos:',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 10),
-                        // TODO: Adicionar lógica para exibir treinamentos e sessões
-                        if (viewModel.treinamentos.isEmpty)
-                          const Text(
-                            'Nenhum treinamento encontrado para este paciente.',
-                          )
-                        else
-                          ...viewModel.treinamentos.map((treinamento) {
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8.0),
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ExpansionTile(
-                                title: Text(
-                                  'Treinamento: ${treinamento.id ?? 'N/A'}',
-                                ), // Substituir pelo nome do treinamento
-                                subtitle: Text(
-                                  'Início: ${treinamento.dataInicio} - Fim: ${treinamento.dataFim}',
-                                ), // Exemplo
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Sessões:',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall,
-                                        ),
-                                        // TODO: Listar sessões do treinamento aqui
-                                        const Text(
-                                          'Sessões serão listadas aqui.',
-                                        ), // Placeholder
-                                        // Exemplo de como adicionar observações para sessões ativas
-                                        if (treinamento.status ==
-                                            'ativo') // Assumindo que 'ativo' é um status de treinamento
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 10.0,
-                                            ),
-                                            child: TextFormField(
-                                              decoration: const InputDecoration(
-                                                labelText:
-                                                    'Adicionar Observações para a Sessão Ativa',
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              maxLines: 2,
-                                              // TODO: Lógica para salvar observações da sessão
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                      ],
-                    ),
-                  ),
+                        );
+                      }).toList(),
+                  ],
+                );
+              },
+            ),
           );
         },
       ),

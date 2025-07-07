@@ -1,60 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart'; // Importar GetIt
+import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart'; // Importar TreinamentoRepository
-// Importe o repositório de agendamento quando ele for criado
-// import 'package:agendanova/data/repositories/agendamento_repository_impl.dart';
-// import 'package:agendanova/domain/repositories/agendamento_repository.dart';
-// import 'package:agendanova/domain/entities/treinamento.dart'; // Entidade de Treinamento
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'dart:async';
 
-// ViewModel para a tela de Histórico do Paciente
 class HistoricoPacienteViewModel extends ChangeNotifier {
-  // Obtenha as instâncias via GetIt
-  final PacienteRepository _pacienteRepository =
-      GetIt.instance<PacienteRepository>();
-  final TreinamentoRepository _treinamentoRepository =
-      GetIt.instance<TreinamentoRepository>();
-  // final AgendamentoRepository _agendamentoRepository; // Descomentar quando AgendamentoRepository for criado
+  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
+  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
+  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
 
-  bool _isLoading = false;
+  // State
   Paciente? _paciente;
-  List<dynamic> _treinamentos =
-      []; // Mudar para List<Treinamento> quando a entidade for criada
+  List<Treinamento> _treinamentos = [];
+  Map<String, List<Sessao>> _sessoesPorTreinamento = {};
+  bool _isLoading = false;
+  String? _errorMessage;
+  StreamSubscription? _treinamentosSubscription;
 
-  bool get isLoading => _isLoading;
+  // Getters
   Paciente? get paciente => _paciente;
-  List<dynamic> get treinamentos => _treinamentos;
+  List<Treinamento> get treinamentos => _treinamentos;
+  Map<String, List<Sessao>> get sessoesPorTreinamento => _sessoesPorTreinamento;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  HistoricoPacienteViewModel(); // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
-
-  Future<void> loadPacienteAndTreinamentos(String pacienteId) async {
+  Future<void> loadHistorico(String pacienteId) async {
     _setLoading(true);
+    await _treinamentosSubscription?.cancel(); // Cancela listener anterior
+
     try {
+      // Carrega os detalhes do paciente uma vez
       _paciente = await _pacienteRepository.getPacienteById(pacienteId);
       if (_paciente == null) {
-        throw Exception('Paciente não encontrado.');
+        throw Exception('Paciente não encontrado');
       }
-      // TODO: Carregar treinamentos do paciente quando o AgendamentoRepository estiver pronto
-      // _treinamentos = await _agendamentoRepository.getTreinamentosByPacienteId(pacienteId);
-      // Simulando dados de treinamento por enquanto
-      _treinamentos = [
-        {
-          'id': 'T001',
-          'dataInicio': '01/01/2024',
-          'dataFim': '10/03/2024',
-          'status': 'concluido',
-        },
-        {
-          'id': 'T002',
-          'dataInicio': '15/03/2024',
-          'dataFim': '20/05/2024',
-          'status': 'ativo',
-        },
-      ];
+      
+      // Ouve as alterações nos treinamentos em tempo real
+      _treinamentosSubscription = _treinamentoRepository.getTreinamentosByPacienteId(pacienteId).listen((treinamentos) async {
+        _treinamentos = treinamentos;
+        _treinamentos.sort((a, b) => b.dataInicio.compareTo(a.dataInicio)); // Ordena
+        
+        // Para cada treinamento, busca as sessões
+        Map<String, List<Sessao>> sessoesMap = {};
+        for (var treinamento in _treinamentos) {
+          if (treinamento.id != null) {
+            final sessoes = await _sessaoRepository.getSessoesByTreinamentoId(treinamento.id!).first;
+            sessoes.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+            sessoesMap[treinamento.id!] = sessoes;
+          }
+        }
+        _sessoesPorTreinamento = sessoesMap;
+        _setLoading(false); // Notifica a UI para reconstruir com os novos dados
+      });
+
     } catch (e) {
-      rethrow;
-    } finally {
+      print('Erro ao carregar histórico: $e');
+      _errorMessage = 'Falha ao carregar histórico do paciente.';
       _setLoading(false);
     }
   }
@@ -62,5 +67,11 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _treinamentosSubscription?.cancel();
+    super.dispose();
   }
 }

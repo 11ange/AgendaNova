@@ -14,6 +14,7 @@ class TreinamentoModel extends Treinamento {
     required String status,
     required String formaPagamento,
     String? tipoParcelamento,
+    String? nomeConvenio, // --- NOVO CAMPO ---
     required DateTime dataCadastro,
   }) : super(
          id: id,
@@ -26,6 +27,7 @@ class TreinamentoModel extends Treinamento {
          status: status,
          formaPagamento: formaPagamento,
          tipoParcelamento: tipoParcelamento,
+         nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
          dataCadastro: dataCadastro,
        );
 
@@ -43,6 +45,7 @@ class TreinamentoModel extends Treinamento {
       status: data['status'] as String,
       formaPagamento: data['formaPagamento'] as String,
       tipoParcelamento: data['tipoParcelamento'] as String?,
+      nomeConvenio: data['nomeConvenio'] as String?, // --- NOVO CAMPO ---
       dataCadastro: (data['dataCadastro'] as Timestamp).toDate(),
     );
   }
@@ -59,6 +62,7 @@ class TreinamentoModel extends Treinamento {
       'status': status,
       'formaPagamento': formaPagamento,
       'tipoParcelamento': tipoParcelamento,
+      'nomeConvenio': nomeConvenio, // --- NOVO CAMPO ---
       'dataCadastro': Timestamp.fromDate(dataCadastro),
     };
   }
@@ -76,6 +80,7 @@ class TreinamentoModel extends Treinamento {
       status: treinamento.status,
       formaPagamento: treinamento.formaPagamento,
       tipoParcelamento: treinamento.tipoParcelamento,
+      nomeConvenio: treinamento.nomeConvenio, // --- NOVO CAMPO ---
       dataCadastro: treinamento.dataCadastro,
     );
   }

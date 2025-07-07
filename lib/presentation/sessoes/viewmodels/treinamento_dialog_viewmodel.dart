@@ -6,6 +6,7 @@ import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/usecases/treinamento/criar_treinamento_usecase.dart';
+import 'dart:async';
 
 class TreinamentoDialogViewModel extends ChangeNotifier {
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
@@ -14,11 +15,13 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
   final CriarTreinamentoUseCase _criarTreinamentoUseCase = GetIt.instance<CriarTreinamentoUseCase>();
 
   bool _isLoading = false;
-  List<Paciente> _pacientes = [];
+  List<Paciente> _pacientesDisponiveis = [];
   Map<String, List<String>> _horariosDisponiveisPorDia = {};
+  StreamSubscription? _treinamentosSubscription;
+  List<Paciente> _todosPacientesAtivos = [];
 
   bool get isLoading => _isLoading;
-  List<Paciente> get pacientes => _pacientes;
+  List<Paciente> get pacientes => _pacientesDisponiveis;
   List<String> horariosParaDia(String? dia) => _horariosDisponiveisPorDia[dia] ?? [];
 
   TreinamentoDialogViewModel() {
@@ -27,28 +30,30 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
 
   Future<void> loadInitialData() async {
     _setLoading(true);
+    await _treinamentosSubscription?.cancel();
+
     try {
-      // Carrega todos os treinamentos para saber quais pacientes já estão ativos
-      final List<Treinamento> todosTreinamentos = await _treinamentoRepository.getTreinamentos().first;
-      final List<String> pacientesComTreinamentoAtivo = todosTreinamentos
-          .where((t) => t.status == 'ativo')
-          .map((t) => t.pacienteId)
-          .toList();
-
-      // Carrega os pacientes ativos e depois filtra
-      final List<Paciente> pacientesAtivos = await _pacienteRepository.getPacientesAtivos().first;
-      _pacientes = pacientesAtivos
-          .where((p) => !pacientesComTreinamentoAtivo.contains(p.id))
-          .toList();
-
-      // Carrega a agenda de disponibilidade
+      _todosPacientesAtivos = await _pacienteRepository.getPacientesAtivos().first;
       final agenda = await _agendaDisponibilidadeRepository.getAgendaDisponibilidade().first;
       if (agenda != null) {
         _horariosDisponiveisPorDia = agenda.agenda;
       }
+
+      _treinamentosSubscription = _treinamentoRepository.getTreinamentos().listen((treinamentos) {
+        final pacientesComTreinamentoAtivo = treinamentos
+            .where((t) => t.status == 'ativo')
+            .map((t) => t.pacienteId)
+            .toSet();
+
+        _pacientesDisponiveis = _todosPacientesAtivos
+            .where((p) => !pacientesComTreinamentoAtivo.contains(p.id))
+            .toList();
+            
+        notifyListeners();
+      });
+
     } catch (e) {
       print('Erro ao carregar dados iniciais do diálogo: $e');
-      _pacientes = []; // Garante que a lista esteja vazia em caso de erro
     } finally {
       _setLoading(false);
     }
@@ -62,6 +67,7 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
     required DateTime dataInicio,
     required String formaPagamento,
     String? tipoParcelamento,
+    String? nomeConvenio, // --- NOVO CAMPO ---
   }) async {
     _setLoading(true);
     try {
@@ -73,6 +79,7 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
         dataInicio: dataInicio,
         formaPagamento: formaPagamento,
         tipoParcelamento: tipoParcelamento,
+        nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
       );
     } catch (e) {
       rethrow;
@@ -82,7 +89,15 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
   }
 
   void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
+    if (_isLoading != value) {
+      _isLoading = value;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _treinamentosSubscription?.cancel();
+    super.dispose();
   }
 }

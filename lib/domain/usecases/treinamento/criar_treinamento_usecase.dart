@@ -28,6 +28,7 @@ class CriarTreinamentoUseCase {
     required DateTime dataInicio,
     required String formaPagamento,
     String? tipoParcelamento,
+    String? nomeConvenio, // --- NOVO CAMPO ---
   }) async {
     // 1. Regra de Negócio: Um paciente só pode ter um treinamento em andamento.
     final hasActive = await _treinamentoRepository.hasActiveTreinamento(pacienteId);
@@ -73,33 +74,28 @@ class CriarTreinamentoUseCase {
         int.parse(horario.split(':')[1]),
       );
 
-      // TODO: Regra de Negócio: Pular eventuais dias com mesmo horário bloqueado.
-      // Isso exigiria um mecanismo para verificar bloqueios de horários específicos.
-      // Por enquanto, vamos assumir que o horário é sempre disponível se a agenda permitir.
-
       sessoes.add(Sessao(
-        treinamentoId: '', // Será preenchido após criar o treinamento
+        treinamentoId: '',
         pacienteId: pacienteId,
-        pacienteNome: paciente.nome, // Passando pacienteNome
+        pacienteNome: paciente.nome,
         dataHora: sessionDateTime,
         numeroSessao: sessionNumber,
         status: 'Agendada',
         statusPagamento: 'Pendente',
         dataPagamento: null,
         observacoes: null,
-        formaPagamento: formaPagamento, // Passando forma de pagamento
-        agendamentoStartDate: dataInicio, // Passando data de início do agendamento
-        parcelamento: tipoParcelamento, // Passando tipo de parcelamento
-        pagamentosParcelados: null, // Não aplicável na criação inicial
-        reagendada: false, // Não é reagendada na criação
-        totalSessoes: numeroSessoesTotal, // Passando total de sessões
+        formaPagamento: formaPagamento,
+        agendamentoStartDate: dataInicio,
+        parcelamento: tipoParcelamento,
+        pagamentosParcelados: null,
+        reagendada: false,
+        totalSessoes: numeroSessoesTotal,
       ));
       sessionsCreated++;
       sessionNumber++;
-      currentSessionDate = currentSessionDate.add(const Duration(days: 7)); // Próxima semana
+      currentSessionDate = currentSessionDate.add(const Duration(days: 7));
     }
 
-    // Calcular dataFimPrevista (última sessão gerada)
     final dataFimPrevista = sessoes.last.dataHora;
 
     // Criar o treinamento
@@ -113,12 +109,12 @@ class CriarTreinamentoUseCase {
       status: 'ativo',
       formaPagamento: formaPagamento,
       tipoParcelamento: tipoParcelamento,
+      nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
       dataCadastro: DateTime.now(),
     );
 
     final treinamentoId = await _treinamentoRepository.addTreinamento(novoTreinamento);
 
-    // Atualizar o treinamentoId nas sessões e adicionar as sessões
     final sessoesComTreinamentoId = sessoes.map((s) => s.copyWith(treinamentoId: treinamentoId)).toList();
     await _sessaoRepository.addMultipleSessoes(sessoesComTreinamentoId);
   }

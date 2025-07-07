@@ -26,6 +26,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   String? _selectedDiaSemana;
   String? _selectedHorario;
   final TextEditingController _numeroSessoesController = TextEditingController();
+  final TextEditingController _nomeConvenioController = TextEditingController(); // --- NOVO CONTROLLER ---
   DateTime? _dataInicio;
   String? _selectedFormaPagamento;
   String? _selectedTipoParcelamento;
@@ -33,11 +34,8 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   @override
   void initState() {
     super.initState();
-    // Captura os dados da seleção do calendário para usar na lógica
     _dataInicio = widget.selectedDay;
     final dayName = DateFormat('EEEE', 'pt_BR').format(widget.selectedDay);
-    // --- CORREÇÃO AQUI ---
-    // Corrigido o erro de digitação de 'day_name' para 'dayName'
     _selectedDiaSemana = dayName[0].toUpperCase() + dayName.substring(1);
     _selectedHorario = widget.timeSlot;
   }
@@ -45,6 +43,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   @override
   void dispose() {
     _numeroSessoesController.dispose();
+    _nomeConvenioController.dispose(); // --- DISPOSE DO NOVO CONTROLLER ---
     super.dispose();
   }
 
@@ -63,6 +62,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           DropdownButtonFormField<Paciente>(
                             value: _selectedPaciente,
@@ -102,6 +102,15 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                             },
                             validator: (value) => value == null ? 'Selecione uma forma de pagamento' : null,
                           ),
+                          // --- NOVO CAMPO CONDICIONAL ---
+                          if (_selectedFormaPagamento == 'Convenio') ...[
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _nomeConvenioController,
+                              decoration: const InputDecoration(labelText: 'Nome do Convênio *'),
+                              validator: (value) => InputValidators.requiredField(value, 'Nome do Convênio'),
+                            ),
+                          ],
                           if (_selectedFormaPagamento == 'Dinheiro' || _selectedFormaPagamento == 'Pix') ...[
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
@@ -144,6 +153,8 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                               dataInicio: _dataInicio!,
                               formaPagamento: _selectedFormaPagamento!,
                               tipoParcelamento: _selectedTipoParcelamento,
+                              // --- NOVO CAMPO ---
+                              nomeConvenio: _selectedFormaPagamento == 'Convenio' ? _nomeConvenioController.text : null,
                             );
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

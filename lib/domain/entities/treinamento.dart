@@ -12,6 +12,7 @@ class Treinamento {
   final String status; // Ex: "ativo", "concluido", "cancelado"
   final String formaPagamento; // "Dinheiro", "Pix", "Convenio"
   final String? tipoParcelamento; // "Por sessão", "3x" (para Dinheiro/Pix)
+  final String? nomeConvenio; // --- NOVO CAMPO ---
   final DateTime dataCadastro;
 
   Treinamento({
@@ -25,6 +26,7 @@ class Treinamento {
     required this.status,
     required this.formaPagamento,
     this.tipoParcelamento,
+    this.nomeConvenio, // --- NOVO CAMPO ---
     required this.dataCadastro,
   });
 
@@ -40,6 +42,7 @@ class Treinamento {
     String? status,
     String? formaPagamento,
     String? tipoParcelamento,
+    String? nomeConvenio, // --- NOVO CAMPO ---
     DateTime? dataCadastro,
   }) {
     return Treinamento(
@@ -53,8 +56,8 @@ class Treinamento {
       status: status ?? this.status,
       formaPagamento: formaPagamento ?? this.formaPagamento,
       tipoParcelamento: tipoParcelamento ?? this.tipoParcelamento,
+      nomeConvenio: nomeConvenio ?? this.nomeConvenio, // --- NOVO CAMPO ---
       dataCadastro: dataCadastro ?? this.dataCadastro,
     );
   }
 }
-
