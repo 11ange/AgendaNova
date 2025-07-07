@@ -80,9 +80,9 @@ class AtualizarStatusSessaoUseCase {
     }
 
     // Não é permitido marcar uma sessão como "Realizada" sem o pagamento correspondente.
-    if (novoStatus == 'Realizada' && sessao.statusPagamento == 'Pendente') {
-      throw Exception('Não é possível marcar a sessão como "Realizada" sem o pagamento correspondente.');
-    }
+    //if (novoStatus == 'Realizada' && sessao.statusPagamento == 'Pendente') {
+    //  throw Exception('Não é possível marcar a sessão como "Realizada" sem o pagamento correspondente.');
+    //}
 
     await _sessaoRepository.updateSessao(sessaoAtualizada);
   }
