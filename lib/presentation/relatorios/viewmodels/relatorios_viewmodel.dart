@@ -70,8 +70,7 @@ class RelatoriosViewModel extends ChangeNotifier {
            );
 
   final SessaoRepository _sessaoRepository; // Adicionado para o construtor
-  final TreinamentoRepository
-  _treinamentoRepository; // Adicionado para o construtor
+  final TreinamentoRepository _treinamentoRepository; // Adicionado para o construtor
 
   // Carrega a lista de pacientes para o dropdown de relatório individual
   void loadPacientes() {

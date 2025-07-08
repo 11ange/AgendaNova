@@ -237,7 +237,7 @@ class _SessoesPageState extends State<SessoesPage> {
                                   visualDensity: VisualDensity.compact,
                                   title: Text(timeSlot, style: Theme.of(context).textTheme.titleMedium),
                                   subtitle: Text(
-                                    isOccupied ? 'Paciente: ${sessao!.pacienteNome} | Status: ${sessao.status}' : 'Horário Disponível',
+                                    isOccupied ? 'Paciente: ${sessao.pacienteNome} | Status: ${sessao.status}' : 'Horário Disponível',
                                     style: Theme.of(context).textTheme.bodyMedium,
                                   ),
                                   trailing: IconButton(
@@ -289,7 +289,7 @@ class _SessoesPageState extends State<SessoesPage> {
 
   void _showSessionActions(BuildContext context, SessoesViewModel viewModel, Sessao? sessao, String timeSlot) {
     final bool isOccupied = sessao != null;
-    final bool isBlocked = isOccupied && sessao!.status == 'Bloqueada';
+    final bool isBlocked = isOccupied && sessao.status == 'Bloqueada';
 
     showModalBottomSheet(
       context: context,

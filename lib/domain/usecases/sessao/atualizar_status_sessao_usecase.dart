@@ -1,5 +1,4 @@
 import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
