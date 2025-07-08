@@ -176,7 +176,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
   Future<String> addSessao(Sessao sessao) async {
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
     // --- CORREÇÃO AQUI ---
-    // Removido o .replaceAll(':', '') para manter o formato HH:mm
+    // Garantindo que a chave seja sempre no formato HH:mm
     final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
     final sessaoModel = SessaoModel.fromEntity(sessao);
     await _firebaseDatasource.setDocument(
@@ -238,7 +238,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final parts = sessao.id!.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
     // --- CORREÇÃO AQUI ---
-    final horarioKey = parts.length > 3 ? parts.sublist(3).join('-') : '';
+    // A chave do horário é reconstruída corretamente, lidando com o ":"
+    final horarioKey = parts.sublist(3).join(':');
 
     final sessaoModel = SessaoModel.fromEntity(sessao);
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
@@ -250,7 +251,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final parts = sessaoId.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
     // --- CORREÇÃO AQUI ---
-    final horarioKey = parts.length > 3 ? parts.sublist(3).join('-') : '';
+    final horarioKey = parts.sublist(3).join(':');
 
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
     batch.update(docRef, {horarioKey: FieldValue.delete()});
