@@ -24,7 +24,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
                try {
                 sessoes.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
               } catch (e) {
-                print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+                // Ignore parsing errors for fields like 'isDayBlocked'
               }
             }
           });
@@ -48,7 +48,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
               try {
                 sessoes.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
               } catch (e) {
-                print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+                // Silently ignore parsing errors
               }
             }
           });
@@ -98,7 +98,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
             try {
               sessoesDoDia.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
             } catch (e) {
-              print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+              // Silently ignore
             }
           }
         });
@@ -150,7 +150,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
               try {
                 sessoesDoMes.add(SessaoModel.fromMap(docId, sessaoMap, horarioKey));
               } catch (e) {
-                print('Erro ao parsear sessão para $horarioKey em $docId: $e');
+                 // Silently ignore
               }
             }
           });
@@ -175,7 +175,9 @@ class SessaoRepositoryImpl implements SessaoRepository {
   @override
   Future<String> addSessao(Sessao sessao) async {
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
-    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora).replaceAll(':', '');
+    // --- CORREÇÃO AQUI ---
+    // Removido o .replaceAll(':', '') para manter o formato HH:mm
+    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
     final sessaoModel = SessaoModel.fromEntity(sessao);
     await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
@@ -223,7 +225,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
   @override
   void addSessaoInBatch(WriteBatch batch, Sessao sessao) {
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
-    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora).replaceAll(':', '');
+    // --- CORREÇÃO AQUI ---
+    final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
     final sessaoModel = SessaoModel.fromEntity(sessao);
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
     batch.set(docRef, {horarioKey: sessaoModel.toFirestore()}, SetOptions(merge: true));
@@ -234,7 +237,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
     if (sessao.id == null) return;
     final parts = sessao.id!.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final horarioKey = parts.length > 3 ? parts.sublist(3).join('').replaceAll(':', '') : '';
+    // --- CORREÇÃO AQUI ---
+    final horarioKey = parts.length > 3 ? parts.sublist(3).join('-') : '';
 
     final sessaoModel = SessaoModel.fromEntity(sessao);
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
@@ -245,7 +249,8 @@ class SessaoRepositoryImpl implements SessaoRepository {
   void deleteSessaoInBatch(WriteBatch batch, String sessaoId) {
     final parts = sessaoId.split('-');
     final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    final horarioKey = parts.length > 3 ? parts.sublist(3).join('').replaceAll(':', '') : '';
+    // --- CORREÇÃO AQUI ---
+    final horarioKey = parts.length > 3 ? parts.sublist(3).join('-') : '';
 
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
     batch.update(docRef, {horarioKey: FieldValue.delete()});
