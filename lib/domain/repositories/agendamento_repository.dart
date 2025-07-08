@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/treinamento.dart'; // Agendamento pode se referir a Treinamento
+//import 'package:agendanova/domain/entities/treinamento.dart'; // Agendamento pode se referir a Treinamento
 
 // Contrato (interface) para o repositório de Agendamentos
 abstract class AgendamentoRepository {

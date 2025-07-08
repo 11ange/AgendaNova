@@ -1,5 +1,5 @@
 import 'package:agendanova/domain/entities/relatorio.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
+//import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';

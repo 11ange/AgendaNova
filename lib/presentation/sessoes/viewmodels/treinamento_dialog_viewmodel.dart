@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
+//import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';

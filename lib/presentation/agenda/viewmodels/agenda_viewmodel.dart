@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart'; // Importar GetIt
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
+//import 'package:agendanova/core/services/firebase_service.dart';
+//import 'package:agendanova/data/datasources/firebase_datasource.dart';
+//import 'package:agendanova/data/repositories/agenda_disponibilidade_repository_impl.dart';
 import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agendanova/domain/usecases/agenda/definir_agenda_usecase.dart';

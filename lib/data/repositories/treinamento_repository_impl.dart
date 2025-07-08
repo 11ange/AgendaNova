@@ -3,7 +3,7 @@ import 'package:agendanova/data/datasources/firebase_datasource.dart';
 import 'package:agendanova/data/models/treinamento_model.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp
+//import 'package:cloud_firestore/cloud_firestore.dart'; // Para usar Timestamp
 
 // Implementação concreta do TreinamentoRepository que usa o FirebaseDatasource
 class TreinamentoRepositoryImpl implements TreinamentoRepository {

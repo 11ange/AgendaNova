@@ -6,7 +6,7 @@ import 'package:agendanova/presentation/sessoes/widgets/treinamento_form_dialog.
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
+//import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 
 class SessoesPage extends StatefulWidget {

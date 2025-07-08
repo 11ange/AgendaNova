@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
+//import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
