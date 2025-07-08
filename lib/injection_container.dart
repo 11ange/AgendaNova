@@ -39,6 +39,7 @@ import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmod
 import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
+import 'package:agendanova/presentation/home/viewmodels/home_viewmodel.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -83,4 +84,5 @@ Future<void> init() async {
   sl.registerFactory(() => RelatoriosViewModel());
   sl.registerFactory(() => SessoesViewModel());
   sl.registerFactory(() => TreinamentoDialogViewModel());
+  sl.registerFactory(() => HomeViewModel());
 }
