@@ -6,7 +6,6 @@ import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
 import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-// Esta página exibe a lista de pacientes ativos
 class PacientesAtivosPage extends StatefulWidget {
   const PacientesAtivosPage({super.key});
 
@@ -16,22 +15,15 @@ class PacientesAtivosPage extends StatefulWidget {
 
 class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
   final TextEditingController _searchController = TextEditingController();
-  // A variável _filteredPacientes não é mais necessária como estado,
-  // a filtragem ocorrerá diretamente nos dados do stream.
 
   @override
   void initState() {
     super.initState();
-    // Carrega os pacientes quando a página é inicializada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PacientesAtivosViewModel>(context, listen: false).loadPacientesAtivos();
     });
-
-    // Precisamos acionar uma reconstrução quando a consulta de busca muda
     _searchController.addListener(() {
-      setState(() {
-        // Aciona uma reconstrução para re-aplicar o filtro nos dados do stream
-      });
+      setState(() {});
     });
   }
 
@@ -48,7 +40,7 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Pacientes Ativos',
-          onBackButtonPressed: () => context.go('/home'), // Volta para a tela inicial
+          onBackButtonPressed: () => context.go('/home'),
         ),
         body: Column(
           children: [
@@ -64,39 +56,41 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                style: Theme.of(context).textTheme.bodyLarge, // Ajustado para bodyLarge (14.0)
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Reduzido o padding vertical
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround, // Distribui o espaço igualmente
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Expanded( // Para que o botão ocupe o espaço disponível
+                  Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => context.go('/pacientes-ativos/novo'), // Navega para a tela de novo paciente
+                      onPressed: () => context.go('/pacientes-ativos/novo'),
                       icon: const Icon(Icons.add),
                       label: const Text(
                         'Novo Paciente',
-                        style: TextStyle(fontSize: 12), // Mantido 12 para caber
                         textAlign: TextAlign.center,
                       ),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10), // Ajuste de padding
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10), // Espaçamento entre os botões
-                  Expanded( // Para que o botão ocupe o espaço disponível
-                    child: TextButton(
-                      onPressed: () => context.go('/pacientes-inativos'), // Navega para pacientes inativos
+                  const SizedBox(width: 10),
+                  Expanded(
+                    // --- AJUSTE: Alterado para ElevatedButton para ter cor de fundo ---
+                    child: ElevatedButton(
+                      onPressed: () => context.go('/pacientes-inativos'),
+                      style: ElevatedButton.styleFrom(
+                        // Define a cor de fundo cinza claro e a cor do texto
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      ),
                       child: const Text(
                         'Ver Pacientes Inativos',
-                        style: TextStyle(fontSize: 12), // Mantido 12 para caber
                         textAlign: TextAlign.center,
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10), // Ajuste de padding
                       ),
                     ),
                   ),
@@ -119,7 +113,6 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                         return Center(child: Text('Nenhum paciente ativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
                       }
 
-                      // Aplica filtro e ordena diretamente nos dados do stream
                       List<Paciente> currentPacientes = snapshot.data!;
                       final String query = _searchController.text.toLowerCase();
 
@@ -132,15 +125,11 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                             .toList();
                       }
 
-                      // Ordena a lista filtrada
                       currentPacientes.sort((a, b) => a.nome.compareTo(b.nome));
 
-                      if (currentPacientes.isEmpty && query.isNotEmpty) {
+                      if (currentPacientes.isEmpty) {
                         return Center(child: Text('Nenhum paciente encontrado com os critérios de busca.', style: Theme.of(context).textTheme.bodyMedium));
-                      } else if (currentPacientes.isEmpty) {
-                         return Center(child: Text('Nenhum paciente ativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
                       }
-
 
                       return ListView.builder(
                         itemCount: currentPacientes.length,
@@ -149,7 +138,7 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                           return PacienteCard(
                             paciente: paciente,
                             onEdit: () {
-                              context.push('/pacientes-ativos/editar/${paciente.id}'); // ALTERADO DE .go PARA .push
+                              context.push('/pacientes-ativos/editar/${paciente.id}');
                             },
                             onAction: () async {
                               final confirm = await _showConfirmationDialog(context,

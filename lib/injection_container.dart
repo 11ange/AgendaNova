@@ -41,6 +41,7 @@ import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dar
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
 import 'package:agendanova/presentation/home/viewmodels/home_viewmodel.dart';
 
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -57,20 +58,26 @@ Future<void> init() async {
   sl.registerLazySingleton<PagamentoRepository>(() => PagamentoRepositoryImpl(sl()));
   sl.registerLazySingleton<RelatorioRepository>(() => RelatorioRepositoryImpl(sl()));
 
+
   // Use Cases
   sl.registerLazySingleton(() => CadastrarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => EditarPacienteUseCase(sl()));
-  sl.registerLazySingleton(() => InativarPacienteUseCase(sl()));
+  sl.registerLazySingleton(() => InativarPacienteUseCase(sl(), sl()));
   sl.registerLazySingleton(() => ReativarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => AdicionarListaEsperaUseCase(sl()));
   sl.registerLazySingleton(() => RemoverListaEsperaUseCase(sl()));
   sl.registerLazySingleton(() => DefinirAgendaUseCase(sl()));
   sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
+
+  // --- CORREÇÃO AQUI ---
+  // Adicionado o 4º argumento que estava em falta.
   sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl(), sl()));
+
   sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => ReverterPagamentoUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => GerarRelatorioMensalGlobalUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => GerarRelatorioIndividualPacienteUseCase(sl(), sl(), sl()));
+
 
   // ViewModels
   sl.registerFactory(() => LoginViewModel());
