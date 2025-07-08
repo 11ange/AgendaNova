@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
-//import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -22,11 +21,14 @@ class TreinamentoFormDialog extends StatefulWidget {
 
 class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  Paciente? _selectedPaciente;
+  
+  // --- CORREÇÃO AQUI: Armazenar apenas o ID do paciente ---
+  String? _selectedPacienteId; 
+  
   String? _selectedDiaSemana;
   String? _selectedHorario;
   final TextEditingController _numeroSessoesController = TextEditingController();
-  final TextEditingController _nomeConvenioController = TextEditingController(); // --- NOVO CONTROLLER ---
+  final TextEditingController _nomeConvenioController = TextEditingController();
   DateTime? _dataInicio;
   String? _selectedFormaPagamento;
   String? _selectedTipoParcelamento;
@@ -43,7 +45,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   @override
   void dispose() {
     _numeroSessoesController.dispose();
-    _nomeConvenioController.dispose(); // --- DISPOSE DO NOVO CONTROLLER ---
+    _nomeConvenioController.dispose();
     super.dispose();
   }
 
@@ -53,6 +55,18 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
       create: (_) => TreinamentoDialogViewModel(),
       child: Consumer<TreinamentoDialogViewModel>(
         builder: (context, viewModel, child) {
+          // --- LÓGICA DE SINCRONIZAÇÃO PARA EVITAR O ERRO ---
+          // Garante que o valor selecionado ainda existe na lista de pacientes.
+          // Se não existir (por exemplo, após uma atualização), ele é limpo.
+          final availablePatientIds = viewModel.pacientes.map((p) => p.id).toSet();
+          if (_selectedPacienteId != null && !availablePatientIds.contains(_selectedPacienteId)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _selectedPacienteId = null;
+              });
+            });
+          }
+
           return AlertDialog(
             title: const Text('Agendar Novo Treinamento'),
             content: viewModel.isLoading
@@ -64,18 +78,19 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          DropdownButtonFormField<Paciente>(
-                            value: _selectedPaciente,
+                          // --- O Dropdown agora é mais robusto ---
+                          DropdownButtonFormField<String>(
+                            value: _selectedPacienteId,
                             decoration: const InputDecoration(labelText: 'Paciente *'),
                             items: viewModel.pacientes.map((paciente) {
-                              return DropdownMenuItem<Paciente>(
-                                value: paciente,
+                              return DropdownMenuItem<String>(
+                                value: paciente.id,
                                 child: Text(paciente.nome),
                               );
                             }).toList(),
-                            onChanged: (paciente) {
+                            onChanged: (pacienteId) {
                               setState(() {
-                                _selectedPaciente = paciente;
+                                _selectedPacienteId = pacienteId;
                               });
                             },
                             validator: (value) => value == null ? 'Selecione um paciente' : null,
@@ -102,7 +117,6 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                             },
                             validator: (value) => value == null ? 'Selecione uma forma de pagamento' : null,
                           ),
-                          // --- NOVO CAMPO CONDICIONAL ---
                           if (_selectedFormaPagamento == 'Convenio') ...[
                             const SizedBox(height: 16),
                             TextFormField(
@@ -146,14 +160,13 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                         if (_formKey.currentState!.validate()) {
                           try {
                             await viewModel.criarTreinamento(
-                              pacienteId: _selectedPaciente!.id!,
+                              pacienteId: _selectedPacienteId!,
                               diaSemana: _selectedDiaSemana!,
                               horario: _selectedHorario!,
                               numeroSessoesTotal: int.parse(_numeroSessoesController.text),
                               dataInicio: _dataInicio!,
                               formaPagamento: _selectedFormaPagamento!,
                               tipoParcelamento: _selectedTipoParcelamento,
-                              // --- NOVO CAMPO ---
                               nomeConvenio: _selectedFormaPagamento == 'Convenio' ? _nomeConvenioController.text : null,
                             );
                             if (mounted) {

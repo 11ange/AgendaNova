@@ -8,8 +8,8 @@ class Pagamento {
   final String status; // "Pendente", "Realizado"
   final DateTime dataPagamento;
   final String? observacoes;
-  final String? guiaConvenio; // Número da guia para convênio
-  final DateTime? dataEnvioGuia; // Data de envio da guia para convênio
+  final String? guiaConvenio; // --- NOVO CAMPO ---
+  final DateTime? dataEnvioGuia; // --- NOVO CAMPO ---
 
   Pagamento({
     this.id,
@@ -51,4 +51,3 @@ class Pagamento {
     );
   }
 }
-

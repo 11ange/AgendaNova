@@ -1,253 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart'; // Será criado em breve
-import 'package:agendanova/presentation/pagamentos/widgets/pagamento_card.dart'; // Será criado em breve
-import 'package:agendanova/domain/entities/treinamento.dart';
-//import 'package:agendanova/domain/entities/pagamento.dart';
-//import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
+import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
 
-// Tela de Controle de Pagamentos
-class PagamentosPage extends StatefulWidget {
+class PagamentosPage extends StatelessWidget {
   const PagamentosPage({super.key});
-
-  @override
-  State<PagamentosPage> createState() => _PagamentosPageState();
-}
-
-class _PagamentosPageState extends State<PagamentosPage> {
-  final TextEditingController _guiaConvenioController = TextEditingController();
-  DateTime? _dataEnvioGuia;
-  String? _selectedFormaPagamento;
-  String? _selectedTipoParcelamento;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PagamentosViewModel>(
-        context,
-        listen: false,
-      ).loadTreinamentos();
-    });
-  }
-
-  @override
-  void dispose() {
-    _guiaConvenioController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dataEnvioGuia ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null && picked != _dataEnvioGuia) {
-      setState(() {
-        _dataEnvioGuia = picked;
-      });
-    }
-  }
-
-  Future<void> _showRegisterPaymentDialog(
-    BuildContext context,
-    PagamentosViewModel viewModel,
-    Treinamento treinamento,
-  ) async {
-    _guiaConvenioController.clear();
-    _dataEnvioGuia = null;
-    _selectedFormaPagamento = null;
-    _selectedTipoParcelamento = null;
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Registrar Pagamento'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    DropdownButtonFormField<String>(
-                      value: _selectedFormaPagamento,
-                      decoration: const InputDecoration(
-                        labelText: 'Forma de Pagamento *',
-                      ),
-                      items: <String>['Dinheiro', 'Pix', 'Convenio']
-                          .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          })
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedFormaPagamento = newValue;
-                          _selectedTipoParcelamento =
-                              null; // Reseta o parcelamento
-                          _guiaConvenioController.clear();
-                          _dataEnvioGuia = null;
-                        });
-                      },
-                      validator: (value) => value == null
-                          ? 'Selecione a forma de pagamento'
-                          : null,
-                    ),
-                    if (_selectedFormaPagamento == 'Dinheiro' ||
-                        _selectedFormaPagamento == 'Pix')
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedTipoParcelamento,
-                          decoration: const InputDecoration(
-                            labelText: 'Tipo de Parcelamento *',
-                          ),
-                          items: <String>['Por sessão', '3x']
-                              .map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              })
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedTipoParcelamento = newValue;
-                            });
-                          },
-                          validator: (value) => value == null
-                              ? 'Selecione o tipo de parcelamento'
-                              : null,
-                        ),
-                      ),
-                    if (_selectedFormaPagamento == 'Convenio')
-                      Column(
-                        children: [
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _guiaConvenioController,
-                            decoration: const InputDecoration(
-                              labelText: 'Número da Guia *',
-                            ),
-                            validator: (value) => value == null || value.isEmpty
-                                ? 'Campo obrigatório'
-                                : null,
-                          ),
-                          const SizedBox(height: 10),
-                          GestureDetector(
-                            onTap: () => _selectDate(context).then(
-                              (_) => setState(() {}),
-                            ), // Atualiza o estado do dialog
-                            child: AbsorbPointer(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  labelText: 'Data de Envio da Guia *',
-                                  suffixIcon: const Icon(Icons.calendar_today),
-                                  hintText: _dataEnvioGuia == null
-                                      ? 'Selecione a data'
-                                      : DateFormatter.formatDate(
-                                          _dataEnvioGuia!,
-                                        ),
-                                ),
-                                validator: (value) {
-                                  if (_dataEnvioGuia == null) {
-                                    return 'Por favor, selecione a data de envio';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Cancelar'),
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                ),
-                ElevatedButton(
-                  child: const Text('Registrar'),
-                  onPressed: () async {
-                    // TODO: Adicionar validação do formulário
-                    try {
-                      await viewModel.registrarPagamento(
-                        treinamentoId: treinamento.id!,
-                        pacienteId: treinamento.pacienteId,
-                        formaPagamento: _selectedFormaPagamento!,
-                        tipoParcelamento: _selectedTipoParcelamento,
-                        guiaConvenio: _guiaConvenioController.text.isEmpty
-                            ? null
-                            : _guiaConvenioController.text,
-                        dataEnvioGuia: _dataEnvioGuia,
-                      );
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Pagamento registrado com sucesso!'),
-                          ),
-                        );
-                        Navigator.of(dialogContext).pop();
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Erro ao registrar pagamento: ${e.toString()}',
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Future<bool?> _showConfirmationDialog(
-    BuildContext context,
-    String title,
-    String content,
-  ) async {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -255,7 +18,7 @@ class _PagamentosPageState extends State<PagamentosPage> {
       create: (_) => PagamentosViewModel(),
       child: Scaffold(
         appBar: CustomAppBar(
-          title: 'Pagamentos',
+          title: 'Controle de Pagamentos',
           onBackButtonPressed: () => context.go('/home'),
         ),
         body: Consumer<PagamentosViewModel>(
@@ -263,133 +26,43 @@ class _PagamentosPageState extends State<PagamentosPage> {
             if (viewModel.isLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (viewModel.treinamentosComPagamentos.isEmpty) {
-              return const Center(
-                child: Text('Nenhum treinamento com pagamentos para exibir.'),
-              );
+
+            if (viewModel.treinamentosAtivos.isEmpty) {
+              return const Center(child: Text('Nenhum treinamento ativo encontrado.'));
             }
 
             return ListView.builder(
-              itemCount: viewModel.treinamentosComPagamentos.length,
+              itemCount: viewModel.treinamentosAtivos.length,
               itemBuilder: (context, index) {
-                final treinamento = viewModel.treinamentosComPagamentos[index];
-                final paciente = viewModel.pacientes.firstWhere(
-                  (p) => p.id == treinamento.pacienteId,
-                );
+                final treinamento = viewModel.treinamentosAtivos[index];
+                final paciente = viewModel.getPacienteById(treinamento.pacienteId);
+                final pagamentos = viewModel.pagamentosPorTreinamento[treinamento.id] ?? [];
+                
+                // Lógica para determinar o status geral do pagamento
+                final bool isPago = pagamentos.any((p) => p.status == 'Realizado');
+                final String statusGeral = isPago ? 'Concluído' : 'Pendente';
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 8.0,
-                    horizontal: 16.0,
-                  ),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
                   child: ExpansionTile(
-                    title: Text(paciente.nome),
-                    subtitle: Text(
-                      'Período: ${DateFormatter.formatDate(treinamento.dataInicio)} - ${DateFormatter.formatDate(treinamento.dataFimPrevista)}\n'
-                      'Horário: ${treinamento.diaSemana} ${treinamento.horario}\n'
-                      'Forma de Pagamento: ${treinamento.formaPagamento} ${treinamento.tipoParcelamento != null ? '(${treinamento.tipoParcelamento})' : ''}',
+                    title: Text(paciente?.nome ?? 'Paciente não encontrado'),
+                    // --- AJUSTE 1: Subtítulo agora é a forma de pagamento ---
+                    subtitle: Text('Pagamento: ${treinamento.formaPagamento}'),
+                    // --- AJUSTE 2: Trailing adicionado para exibir o status ---
+                    trailing: Chip(
+                      label: Text(
+                        statusGeral,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      backgroundColor: isPago ? Colors.green : Colors.orange,
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     ),
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Histórico de Pagamentos:',
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                            const SizedBox(height: 10),
-                            // Exibir pagamentos específicos do treinamento
-                            if (viewModel
-                                    .pagamentosPorTreinamento[treinamento.id]
-                                    ?.isEmpty ??
-                                true)
-                              const Text(
-                                'Nenhum pagamento registrado para este treinamento.',
-                              )
-                            else
-                              ...viewModel.pagamentosPorTreinamento[treinamento.id]!.map((
-                                pagamento,
-                              ) {
-                                return PagamentoCard(
-                                  pagamento: pagamento,
-                                  onRevert: () async {
-                                    final confirm = await _showConfirmationDialog(
-                                      context,
-                                      'Confirmar Reversão',
-                                      'Tem certeza que deseja reverter este pagamento?',
-                                    );
-                                    if (confirm == true) {
-                                      try {
-                                        await viewModel.reverterPagamento(
-                                          pagamento.id!,
-                                        );
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Pagamento revertido com sucesso!',
-                                            ),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Erro ao reverter pagamento: $e',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                );
-                              }).toList(),
-                            const SizedBox(height: 20),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _showRegisterPaymentDialog(
-                                  context,
-                                  viewModel,
-                                  treinamento,
-                                ),
-                                icon: const Icon(Icons.add_card),
-                                label: const Text('Registrar Novo Pagamento'),
-                              ),
-                            ),
-                            // Lógica para pagamentos por sessão (se aplicável)
-                            if (treinamento.formaPagamento != 'Convenio' &&
-                                treinamento.tipoParcelamento == 'Por sessão')
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    'Status de Pagamento por Sessão:',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  // TODO: Exibir status de pagamento de cada sessão individualmente
-                                  // Isso exigiria buscar as sessões do treinamento e exibir seus status de pagamento.
-                                  const Text(
-                                    'Status de pagamento por sessão será exibido aqui.',
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
+                        child: _buildPagamentoDetails(context, viewModel, treinamento, pagamentos),
+                      )
                     ],
                   ),
                 );
@@ -398,6 +71,94 @@ class _PagamentosPageState extends State<PagamentosPage> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildPagamentoDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, List<Pagamento> pagamentos) {
+    if (treinamento.formaPagamento == 'Convenio') {
+      return _buildConvenioDetails(context, viewModel, treinamento, pagamentos.firstOrNull);
+    } else if (treinamento.tipoParcelamento == '3x') {
+      return _buildParceladoDetails(context, viewModel, treinamento, pagamentos);
+    } else if (treinamento.tipoParcelamento == 'Por sessão') {
+      final sessoes = viewModel.sessoesPorTreinamento[treinamento.id] ?? [];
+      return _buildPorSessaoDetails(context, viewModel, treinamento, sessoes);
+    }
+    return const Text('Forma de pagamento não especificada.');
+  }
+
+  // --- WIDGETS PARA CADA TIPO DE PAGAMENTO ---
+
+  Widget _buildConvenioDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) {
+    final bool pago = pagamento?.status == 'Realizado';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Detalhes do Convênio: ${treinamento.nomeConvenio ?? ''}', style: Theme.of(context).textTheme.titleMedium),
+        const Divider(height: 20),
+        if (pagamento != null) ...[
+          Text('Guia: ${pagamento.guiaConvenio ?? 'Não informada'}'),
+          Text('Data de Envio: ${pagamento.dataEnvioGuia != null ? DateFormatter.formatDate(pagamento.dataEnvioGuia!) : 'Não informada'}'),
+          const SizedBox(height: 8),
+          Text(
+            'Status do Pagamento: ${pagamento.status}',
+            style: TextStyle(fontWeight: FontWeight.bold, color: pago ? Colors.green : Colors.orange),
+          ),
+          if (pago) Text('Confirmado em: ${DateFormatter.formatDate(pagamento.dataPagamento)}')
+        ] else ...[
+          const Text('Nenhum registro de pagamento de convênio encontrado.'),
+        ],
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () { /* Lógica do Pop-up para confirmar/editar dados do convênio */ },
+            icon: Icon(pago ? Icons.check_circle : Icons.payment),
+            label: Text(pago ? 'Pagamento Confirmado' : 'Confirmar Pagamento'),
+            style: ElevatedButton.styleFrom(backgroundColor: pago ? Colors.green : Theme.of(context).primaryColor),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParceladoDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, List<Pagamento> pagamentos) {
+     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Pagamento Parcelado em 3x', style: Theme.of(context).textTheme.titleMedium),
+        const Divider(height: 20),
+        // Lógica para exibir as 3 parcelas aqui
+        const Text('Visualização de parcelas em desenvolvimento.'),
+        // TODO: Implementar a lista de parcelas com botões de confirmação
+      ],
+    );
+  }
+
+  Widget _buildPorSessaoDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, List<Sessao> sessoes) {
+    if (sessoes.isEmpty) return const Center(child: Text('Nenhuma sessão encontrada.'));
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Pagamento por Sessão', style: Theme.of(context).textTheme.titleMedium),
+        const Divider(height: 20),
+        ...sessoes.map((sessao) {
+          final bool pago = sessao.statusPagamento == 'Realizado';
+          return Card(
+            elevation: 1,
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: ListTile(
+              title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)}'),
+              subtitle: Text(sessao.status),
+              trailing: Text(
+                sessao.statusPagamento,
+                style: TextStyle(color: pago ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
+              ),
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 }

@@ -61,4 +61,14 @@ class Paciente {
       status: status ?? this.status,
     );
   }
+
+  // --- CORREÇÃO AQUI: Implementação de igualdade e hashCode ---
+  // Isto ensina o Dart a considerar dois pacientes como iguais se os seus IDs forem iguais.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Paciente && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

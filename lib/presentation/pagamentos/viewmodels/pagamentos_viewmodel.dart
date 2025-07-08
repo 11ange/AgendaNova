@@ -1,183 +1,85 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/pagamento_repository_impl.dart';
-import 'package:agendanova/data/repositories/treinamento_repository_impl.dart';
-import 'package:agendanova/data/repositories/sessao_repository_impl.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart'; // Para obter dados do paciente
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/repositories/pagamento_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agendanova/domain/repositories/pagamento_repository.dart';
+import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/usecases/pagamento/registrar_pagamento_usecase.dart';
 import 'package:agendanova/domain/usecases/pagamento/reverter_pagamento_usecase.dart';
-import 'dart:async';
+import 'package:agendanova/data/models/paciente_model.dart'; // Import necessário
 
-// ViewModel para a tela de Pagamentos
 class PagamentosViewModel extends ChangeNotifier {
-  final PagamentoRepository _pagamentoRepository;
-  final TreinamentoRepository _treinamentoRepository;
-  final SessaoRepository _sessaoRepository;
-  final PacienteRepository _pacienteRepository;
-  final RegistrarPagamentoUseCase _registrarPagamentoUseCase;
-  final ReverterPagamentoUseCase _reverterPagamentoUseCase;
+  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
+  final PagamentoRepository _pagamentoRepository = GetIt.instance<PagamentoRepository>();
+  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
+  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
+  final RegistrarPagamentoUseCase _registrarPagamentoUseCase = GetIt.instance<RegistrarPagamentoUseCase>();
+  final ReverterPagamentoUseCase _reverterPagamentoUseCase = GetIt.instance<ReverterPagamentoUseCase>();
 
-  bool _isLoading = false;
-  List<Treinamento> _treinamentosComPagamentos = []; // Treinamentos ativos
-  List<Paciente> _pacientes = []; // Para exibir o nome do paciente
-  Map<String, List<Pagamento>> _pagamentosPorTreinamento =
-      {}; // Pagamentos agrupados por treinamento
+  List<Paciente> _pacientes = [];
+  List<Treinamento> _treinamentosAtivos = [];
+  Map<String, List<Pagamento>> _pagamentosPorTreinamento = {};
+  Map<String, List<Sessao>> _sessoesPorTreinamento = {};
 
+  bool _isLoading = true;
   bool get isLoading => _isLoading;
-  List<Treinamento> get treinamentosComPagamentos => _treinamentosComPagamentos;
-  List<Paciente> get pacientes => _pacientes;
-  Map<String, List<Pagamento>> get pagamentosPorTreinamento =>
-      _pagamentosPorTreinamento;
+  List<Treinamento> get treinamentosAtivos => _treinamentosAtivos;
+  Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento;
+  Map<String, List<Sessao>> get sessoesPorTreinamento => _sessoesPorTreinamento;
 
-  PagamentosViewModel({
-    PagamentoRepository? pagamentoRepository,
-    TreinamentoRepository? treinamentoRepository,
-    SessaoRepository? sessaoRepository,
-    PacienteRepository? pacienteRepository,
-  }) : _pagamentoRepository =
-           pagamentoRepository ??
-           PagamentoRepositoryImpl(
-             FirebaseDatasource(FirebaseService.instance),
-           ),
-       _treinamentoRepository =
-           treinamentoRepository ??
-           TreinamentoRepositoryImpl(
-             FirebaseDatasource(FirebaseService.instance),
-           ),
-       _sessaoRepository =
-           sessaoRepository ??
-           SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-       _pacienteRepository =
-           pacienteRepository ??
-           PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-       _registrarPagamentoUseCase = RegistrarPagamentoUseCase(
-         pagamentoRepository ??
-             PagamentoRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-         treinamentoRepository ??
-             TreinamentoRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-         sessaoRepository ??
-             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-       ),
-       _reverterPagamentoUseCase = ReverterPagamentoUseCase(
-         pagamentoRepository ??
-             PagamentoRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-         sessaoRepository ??
-             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-         treinamentoRepository ??
-             TreinamentoRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-       ) {
-    _listenToDataChanges();
+  // --- CORREÇÃO AQUI ---
+  // O orElse agora retorna um PacienteModel para corresponder ao tipo da lista,
+  // que vem do repositório como uma lista de PacienteModel.
+  Paciente? getPacienteById(String id) => _pacientes.firstWhere((p) => p.id == id, orElse: () => PacienteModel(id: '', nome: 'Desconhecido', dataNascimento: DateTime.now(), nomeResponsavel: '', dataCadastro: DateTime.now(), status: 'inativo'));
+
+  PagamentosViewModel() {
+    loadData();
   }
 
-  void _listenToDataChanges() {
-    // Escuta mudanças nos treinamentos
-    _treinamentoRepository.getTreinamentos().listen(
-      (treinamentosList) async {
-        _treinamentosComPagamentos = treinamentosList
-            .where((t) => t.status == 'ativo')
-            .toList(); // Apenas treinamentos ativos
-        await _loadRelatedData(); // Recarrega pacientes e pagamentos
-        notifyListeners();
-      },
-      onError: (error) {
-        print('Erro ao carregar treinamentos: $error');
-      },
-    );
-
-    // Escuta mudanças nos pagamentos
-    _pagamentoRepository.getPagamentos().listen(
-      (pagamentosList) {
-        _pagamentosPorTreinamento = _groupPagamentosByTreinamento(
-          pagamentosList,
-        );
-        notifyListeners();
-      },
-      onError: (error) {
-        print('Erro ao carregar pagamentos: $error');
-      },
-    );
-
-    // Escuta mudanças nos pacientes
-    _pacienteRepository.getPacientes().listen(
-      (pacientesList) {
-        _pacientes = pacientesList;
-        notifyListeners();
-      },
-      onError: (error) {
-        print('Erro ao carregar pacientes: $error');
-      },
-    );
-  }
-
-  Future<void> _loadRelatedData() async {
+  Future<void> loadData() async {
     _setLoading(true);
     try {
-      // Garante que pacientes e pagamentos sejam carregados e agrupados
-      final allPagamentos = await _pagamentoRepository.getPagamentos().first;
-      _pagamentosPorTreinamento = _groupPagamentosByTreinamento(allPagamentos);
+      _pacientes = await _pacienteRepository.getPacientes().first;
+      _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => list.where((t) => t.status == 'ativo').toList());
+      
+      _pagamentosPorTreinamento = {};
+      final todosPagamentos = await _pagamentoRepository.getPagamentos().first;
+      for (var pagamento in todosPagamentos) {
+        _pagamentosPorTreinamento.putIfAbsent(pagamento.treinamentoId, () => []).add(pagamento);
+      }
+      
+      _sessoesPorTreinamento = {};
+      for (var treinamento in _treinamentosAtivos) {
+        if (treinamento.tipoParcelamento == 'Por sessão') {
+          final sessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamento.id!);
+          _sessoesPorTreinamento[treinamento.id!] = sessoes;
+        }
+      }
 
-      final allPacientes = await _pacienteRepository.getPacientes().first;
-      _pacientes = allPacientes;
     } catch (e) {
-      print('Erro ao carregar dados relacionados: $e');
+      print('Erro ao carregar dados de pagamentos: $e');
     } finally {
       _setLoading(false);
     }
   }
 
-  Map<String, List<Pagamento>> _groupPagamentosByTreinamento(
-    List<Pagamento> pagamentos,
-  ) {
-    final Map<String, List<Pagamento>> grouped = {};
-    for (var p in pagamentos) {
-      if (!grouped.containsKey(p.treinamentoId)) {
-        grouped[p.treinamentoId] = [];
-      }
-      grouped[p.treinamentoId]!.add(p);
-    }
-    return grouped;
-  }
-
-  // Carrega treinamentos (chamado na inicialização da tela)
-  void loadTreinamentos() {
-    // A escuta já é iniciada no construtor, então os dados serão carregados automaticamente.
-  }
-
-  // Registra um novo pagamento
-  Future<void> registrarPagamento({
-    required String treinamentoId,
-    required String pacienteId,
-    required String formaPagamento,
-    String? tipoParcelamento,
-    String? guiaConvenio,
-    DateTime? dataEnvioGuia,
-  }) async {
+  Future<void> registrarPagamento(Pagamento pagamento) async {
     _setLoading(true);
     try {
       await _registrarPagamentoUseCase.call(
-        treinamentoId: treinamentoId,
-        pacienteId: pacienteId,
-        formaPagamento: formaPagamento,
-        tipoParcelamento: tipoParcelamento,
-        guiaConvenio: guiaConvenio,
-        dataEnvioGuia: dataEnvioGuia,
+        treinamentoId: pagamento.treinamentoId,
+        pacienteId: pagamento.pacienteId,
+        formaPagamento: pagamento.formaPagamento,
+        tipoParcelamento: pagamento.tipoParcelamento,
+        guiaConvenio: pagamento.guiaConvenio,
+        dataEnvioGuia: pagamento.dataEnvioGuia,
       );
+      await loadData();
     } catch (e) {
       rethrow;
     } finally {
@@ -185,11 +87,11 @@ class PagamentosViewModel extends ChangeNotifier {
     }
   }
 
-  // Reverte um pagamento
   Future<void> reverterPagamento(String pagamentoId) async {
     _setLoading(true);
     try {
       await _reverterPagamentoUseCase.call(pagamentoId);
+      await loadData();
     } catch (e) {
       rethrow;
     } finally {
@@ -198,15 +100,9 @@ class PagamentosViewModel extends ChangeNotifier {
   }
 
   void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _pagamentosPorTreinamento.clear(); // Limpa o mapa
-    _treinamentosComPagamentos.clear(); // Limpa a lista
-    _pacientes.clear(); // Limpa a lista
-    super.dispose();
+    if (_isLoading != value) {
+      _isLoading = value;
+      notifyListeners();
+    }
   }
 }
