@@ -5,6 +5,8 @@ import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/core/services/firebase_service.dart';
 import 'package:agendanova/presentation/home/viewmodels/home_viewmodel.dart';
 import 'package:intl/intl.dart';
+import 'package:get_it/get_it.dart'; // Import necessário
+import 'package:agendanova/injection_container.dart' as di; // Import necessário
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -22,7 +24,16 @@ class HomePage extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () async {
+                // --- CORREÇÃO AQUI: Lógica de logout atualizada ---
+                
+                // 1. Desautenticar o utilizador no Firebase
                 await FirebaseService.instance.signOut();
+
+                // 2. Reiniciar o contêiner de injeção de dependência
+                await GetIt.instance.reset(); // Limpa todas as instâncias antigas
+                await di.init();  // Reinicializa com instâncias novas para a próxima sessão
+
+                // 3. Navegar para a tela de login
                 if (context.mounted) {
                   context.go('/login');
                 }
@@ -46,7 +57,6 @@ class HomePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Card de Próximos Horários Disponíveis
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -81,9 +91,7 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // --- AJUSTE: Espaçamento vertical entre os cards reduzido ---
                   const SizedBox(height: 12),
-                  // Card de Próximos Agendamentos
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -119,13 +127,11 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Botões de Navegação
                   Expanded(
                     child: GridView.count(
                       crossAxisCount: 2,
                       crossAxisSpacing: 16.0,
                       mainAxisSpacing: 16.0,
-                      // --- AJUSTE: Proporção do botão alterada para diminuir a altura ---
                       childAspectRatio: 1.3,
                       children: [
                         _buildModuleButton(context, 'Pacientes', Icons.people, '/pacientes-ativos'),
@@ -161,7 +167,6 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // --- AJUSTE: Ícone um pouco menor para se adequar ao novo tamanho do botão ---
             Icon(icon, size: 45, color: Theme.of(context).primaryColor),
             const SizedBox(height: 8),
             Text(
