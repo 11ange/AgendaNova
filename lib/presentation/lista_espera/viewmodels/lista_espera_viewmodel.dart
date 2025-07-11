@@ -7,6 +7,7 @@ import 'package:agendanova/domain/repositories/lista_espera_repository.dart';
 import 'package:agendanova/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
 import 'package:agendanova/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'dart:async';
+import 'package:agendanova/core/utils/logger.dart'; // Importa o logger
 
 // ViewModel para a tela de Lista de Espera
 class ListaEsperaViewModel extends ChangeNotifier {
@@ -55,9 +56,10 @@ class ListaEsperaViewModel extends ChangeNotifier {
         _listaEsperaStreamController.add(_listaEspera);
         notifyListeners();
       },
-      onError: (error) {
+      onError: (error, stackTrace) { // Captura o erro e o stack trace
         _listaEsperaStreamController.addError(error);
-        print('Erro ao carregar lista de espera: $error');
+        // CORREÇÃO: Usa o logger para registrar o erro
+        logger.e('Erro ao carregar lista de espera', error: error, stackTrace: stackTrace);
       },
     );
   }

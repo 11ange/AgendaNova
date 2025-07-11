@@ -12,6 +12,7 @@ import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/usecases/pagamento/registrar_pagamento_usecase.dart';
 import 'package:agendanova/domain/usecases/pagamento/reverter_pagamento_usecase.dart';
 import 'package:agendanova/data/models/paciente_model.dart'; // Import necessário
+import 'package:agendanova/core/utils/logger.dart';
 
 class PagamentosViewModel extends ChangeNotifier {
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
@@ -61,8 +62,8 @@ class PagamentosViewModel extends ChangeNotifier {
         }
       }
 
-    } catch (e) {
-      print('Erro ao carregar dados de pagamentos: $e');
+    } catch (e, stackTrace) {
+      logger.e('Erro ao carregar dados de pagamentos', error: e, stackTrace: stackTrace);
     } finally {
       _setLoading(false);
     }

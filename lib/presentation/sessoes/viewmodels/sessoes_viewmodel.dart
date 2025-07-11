@@ -31,7 +31,7 @@ class SessoesViewModel extends ChangeNotifier {
   DateTime? _currentFocusedMonth;
   AgendaDisponibilidade? _agendaDisponibilidade;
   List<Sessao> _sessoesDoMes = [];
-  Map<String, List<Treinamento>> _treinamentosPorPaciente = {};
+  final Map<String, List<Treinamento>> _treinamentosPorPaciente = {};
   List<Treinamento> _treinamentosDoPacienteSelecionado = [];
 
   // State properties for initial data

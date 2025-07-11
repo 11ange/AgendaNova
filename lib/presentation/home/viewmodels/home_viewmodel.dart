@@ -6,6 +6,7 @@ import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:agendanova/core/utils/logger.dart'; // Importa o logger
 
 class HomeViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
@@ -44,9 +45,10 @@ class HomeViewModel extends ChangeNotifier {
         _processarProximosHorarios(allSessoes, agenda);
       }
 
-    } catch (e) {
+    } catch (e, stackTrace) { // Captura o erro e o stack trace
       _errorMessage = "Erro ao carregar dados da tela inicial.";
-      print(e);
+      // CORREÇÃO: Usa o logger para registrar o erro
+      logger.e("Erro em HomeViewModel", error: e, stackTrace: stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -77,8 +79,6 @@ class HomeViewModel extends ChangeNotifier {
     for (int i = 0; i < 30 && vagas.length < 3; i++) {
       DateTime diaParaVerificar = DateUtils.addDaysToDate(diaAtual, i);
       
-      // --- CORREÇÃO AQUI ---
-      // Garante que a primeira letra do dia da semana seja maiúscula
       final diaDaSemana = _capitalize(DateFormat('EEEE', 'pt_BR').format(diaParaVerificar));
       final horariosDoDia = agenda.agenda[diaDaSemana];
 

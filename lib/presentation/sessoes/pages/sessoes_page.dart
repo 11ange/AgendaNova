@@ -314,7 +314,7 @@ class _SessoesPageState extends State<SessoesPage> {
             break;
           case AcaoSessao.bloquear:
              if (isOccupied) {
-               await viewModel.updateSessaoStatus(sessao!, 'Bloqueada');
+               await viewModel.updateSessaoStatus(sessao, 'Bloqueada');
              } else {
                await viewModel.blockTimeSlot(timeSlot, _selectedDay!);
              }
@@ -349,7 +349,7 @@ class _SessoesPageState extends State<SessoesPage> {
       },
       itemBuilder: (BuildContext context) {
         if (isOccupied) {
-          final sessaoNaoNula = sessao!;
+          final sessaoNaoNula = sessao;
           // Sessão de paciente que foi bloqueada
           if (sessaoNaoNula.status == 'Bloqueada') {
             if (sessaoNaoNula.treinamentoId == 'bloqueio_manual') {
@@ -436,7 +436,7 @@ class _SessoesPageState extends State<SessoesPage> {
     }
 
     // A partir daqui, sabemos que a sessão não é nula.
-    final sessaoNaoNula = sessao!;
+    final sessaoNaoNula = sessao;
     final isPatientSessionBlocked = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId != 'bloqueio_manual';
     final isManualBlock = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId == 'bloqueio_manual';
 
