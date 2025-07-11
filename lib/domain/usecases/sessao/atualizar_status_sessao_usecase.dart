@@ -55,11 +55,12 @@ class AtualizarStatusSessaoUseCase {
       }
     }
 
-    if (novoStatus == 'Falta' && originalStatus == 'Agendada' && sessao.statusPagamento != 'Convenio') {
+    // Lógica para "Falta" com pagamento diferente de convênio
+    if (novoStatus == 'Falta' &&
+        originalStatus == 'Agendada' &&
+        sessao.statusPagamento != 'Convenio') {
       sessaoAtualizada = sessaoAtualizada.copyWith(statusPagamento: 'Pendente', dataPagamento: null);
-      if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
-        await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
-      }
+      // Sessão extra não é mais criada para 'Falta', conforme regra de negócio.
     }
 
     await _sessaoRepository.updateSessao(sessaoAtualizada);

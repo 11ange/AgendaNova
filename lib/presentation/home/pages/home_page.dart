@@ -24,8 +24,6 @@ class HomePage extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () async {
-                // --- CORREÇÃO AQUI: Lógica de logout atualizada ---
-                
                 // 1. Desautenticar o utilizador no Firebase
                 await FirebaseService.instance.signOut();
 
@@ -82,7 +80,7 @@ class HomePage extends StatelessWidget {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '• ${DateFormat.EEEE('pt_BR').format(horario)}, ${DateFormat.yMd('pt_BR').format(horario)} às ${DateFormat.Hm('pt_BR').format(horario)}',
+                                  '• ${DateFormat.EEEE('pt_BR').format(horario)}, ${DateFormat('d/MMM', 'pt_BR').format(horario)} às ${DateFormat.Hm('pt_BR').format(horario)}',
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               );
@@ -117,7 +115,7 @@ class HomePage extends StatelessWidget {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '• ${sessao.pacienteNome} - ${DateFormat.yMd('pt_BR').format(sessao.dataHora)} às ${DateFormat.Hm('pt_BR').format(sessao.dataHora)}',
+                                  '• ${sessao.pacienteNome} - ${DateFormat('d/MMM', 'pt_BR').format(sessao.dataHora)} às ${DateFormat.Hm('pt_BR').format(sessao.dataHora)}',
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               );

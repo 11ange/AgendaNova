@@ -453,26 +453,33 @@ class _SessoesPageState extends State<SessoesPage> {
       color: isPatientSessionBlocked ? Colors.grey.shade700 : null,
     );
     
-    // Define o widget de status de pagamento
-    Widget? paymentStatusWidget;
-    if (!isPatientSessionBlocked && sessaoNaoNula.parcelamento == 'Por sessão') {
+    // Define o widget de status da sessão e pagamento
+    Widget? statusIndicatorWidget;
+    if (isPatientSessionBlocked) {
+      statusIndicatorWidget = Text(
+        'BLOQUEADO',
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade800),
+      );
+    } else if (sessaoNaoNula.status == 'Falta') {
+      statusIndicatorWidget = Text(
+        'FALTA',
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade800),
+      );
+    } else if (sessaoNaoNula.status == 'Cancelada') {
+      statusIndicatorWidget = Text(
+        'CANCELADA',
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
+      );
+    } else if (sessaoNaoNula.parcelamento == 'Por sessão') {
       if (sessaoNaoNula.statusPagamento == 'Pendente') {
-        paymentStatusWidget = Text(
+        statusIndicatorWidget = Text(
           'PENDENTE',
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Colors.orange.shade800,
-          ),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade800),
         );
       } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
-        paymentStatusWidget = Text(
+        statusIndicatorWidget = Text(
           'PAGO',
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Colors.green.shade800,
-          ),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green.shade800),
         );
       }
     }
@@ -493,20 +500,11 @@ class _SessoesPageState extends State<SessoesPage> {
             ),
           ],
         ),
-        // Texto de status sobreposto (BLOQUEADO ou PAGO/PENDENTE)
+        // Texto de status sobreposto
         Positioned.fill(
           child: Align(
             alignment: Alignment.bottomRight,
-            child: isPatientSessionBlocked
-                ? Text(
-                    'BLOQUEADO',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red.shade800,
-                    ),
-                  )
-                : paymentStatusWidget,
+            child: statusIndicatorWidget,
           ),
         ),
       ],
