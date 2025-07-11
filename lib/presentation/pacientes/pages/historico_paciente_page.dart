@@ -66,7 +66,6 @@ class HistoricoPacientePage extends StatelessWidget {
                       elevation: 2,
                       child: ExpansionTile(
                         title: Text('Início: ${DateFormatter.formatDate(treinamento.dataInicio)} às ${treinamento.horario}'),
-                        // --- AJUSTE AQUI: O subtítulo agora é uma Coluna ---
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -85,9 +84,16 @@ class HistoricoPacientePage extends StatelessWidget {
                         children: sessoes.isEmpty
                             ? [const ListTile(title: Text('Nenhuma sessão encontrada para este treinamento.'))]
                             : sessoes.map((sessao) {
+                                String pagamentoInfo;
+                                if (sessao.statusPagamento == 'Realizado' && sessao.dataPagamento != null) {
+                                  pagamentoInfo = 'Pagamento em ${DateFormatter.formatDate(sessao.dataPagamento!)}';
+                                } else {
+                                  pagamentoInfo = 'Pagamento: ${sessao.statusPagamento}';
+                                }
+
                                 return ListTile(
                                   title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)} às ${DateFormat.Hm().format(sessao.dataHora)}'),
-                                  subtitle: Text('Status: ${sessao.status} | Pagamento: ${sessao.statusPagamento}'),
+                                  subtitle: Text('Status: ${sessao.status} | $pagamentoInfo'),
                                   dense: true,
                                 );
                               }).toList(),

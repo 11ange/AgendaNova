@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
-//import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
@@ -40,20 +39,20 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
       }
 
       _treinamentosSubscription = _treinamentoRepository.getTreinamentos().listen((treinamentos) {
-        final pacientesComTreinamentoAtivo = treinamentos
-            .where((t) => t.status == 'ativo')
+        final pacientesOcupados = treinamentos
+            .where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento')
             .map((t) => t.pacienteId)
             .toSet();
 
         _pacientesDisponiveis = _todosPacientesAtivos
-            .where((p) => !pacientesComTreinamentoAtivo.contains(p.id))
+            .where((p) => !pacientesOcupados.contains(p.id))
             .toList();
             
         notifyListeners();
       });
 
     } catch (e) {
-      print('Erro ao carregar dados iniciais do diálogo: $e');
+      // Handle error, maybe show a message to the user
     } finally {
       _setLoading(false);
     }
@@ -67,7 +66,7 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
     required DateTime dataInicio,
     required String formaPagamento,
     String? tipoParcelamento,
-    String? nomeConvenio, // --- NOVO CAMPO ---
+    String? nomeConvenio,
   }) async {
     _setLoading(true);
     try {
@@ -79,7 +78,7 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
         dataInicio: dataInicio,
         formaPagamento: formaPagamento,
         tipoParcelamento: tipoParcelamento,
-        nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
+        nomeConvenio: nomeConvenio,
       );
     } catch (e) {
       rethrow;

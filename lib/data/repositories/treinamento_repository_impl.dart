@@ -65,8 +65,11 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
       field: 'pacienteId',
       isEqualTo: pacienteId,
     );
-    // Verifica se existe algum treinamento para o paciente com status "ativo"
-    return querySnapshot.docs.any((doc) => (doc.data() as Map<String, dynamic>)['status'] == 'ativo');
+    // Verifica se existe algum treinamento para o paciente com status "ativo" ou "Pendente Pagamento"
+    return querySnapshot.docs.any((doc) {
+      final status = (doc.data() as Map<String, dynamic>)['status'] as String?;
+      return status == 'ativo' || status == 'Pendente Pagamento';
+    });
   }
 
   @override
@@ -94,4 +97,3 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
     });
   }
 }
-

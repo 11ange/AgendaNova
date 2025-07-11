@@ -6,6 +6,8 @@ import 'package:agendanova/presentation/sessoes/widgets/treinamento_form_dialog.
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 
 // Enum para tornar as ações do menu mais seguras e legíveis
@@ -17,6 +19,8 @@ enum AcaoSessao {
   faltar,
   cancelar,
   reverter, // Para reverter status (incluindo desbloqueio de sessão de paciente)
+  confirmarPagamento,
+  reverterPagamento,
 }
 
 class SessoesPage extends StatefulWidget {
@@ -189,9 +193,9 @@ class _SessoesPageState extends State<SessoesPage> {
                         onPressed: () async {
                           if (_selectedDay == null) return;
                            final confirm = await _showConfirmationDialog(context, 'Desbloquear Dia Inteiro', 'Tem certeza que deseja desbloquear o dia inteiro?');
-                          if (confirm == true) {
+                           if (confirm == true) {
                             await viewModel.unblockEntireDay(_selectedDay!);
-                          }
+                           }
                         },
                         child: const Text('Desbloquear Dia'),
                       ),
@@ -273,6 +277,26 @@ class _SessoesPageState extends State<SessoesPage> {
   Widget _buildPopupMenuButton(BuildContext context, SessoesViewModel viewModel, Sessao? sessao, String timeSlot) {
     final bool isOccupied = sessao != null;
 
+    // Lógica de bloqueio para treinamentos passados
+    bool isEditable = true;
+    if (sessao != null && sessao.treinamentoId != 'bloqueio_manual') {
+      final treinamentosDoPaciente = viewModel.treinamentosDoPacienteSelecionado;
+      Treinamento? parentTraining;
+      try {
+        parentTraining = treinamentosDoPaciente.firstWhere((t) => t.id == sessao.treinamentoId);
+      } catch (e) {
+        parentTraining = null;
+      }
+
+      if (parentTraining != null && parentTraining.status != 'ativo') {
+        isEditable = false;
+      }
+    }
+
+    if (!isEditable) {
+      return Container(); // Oculta o menu se não for editável
+    }
+
     return PopupMenuButton<AcaoSessao>(
       icon: const Icon(Icons.more_vert),
       onSelected: (AcaoSessao action) async {
@@ -315,15 +339,20 @@ class _SessoesPageState extends State<SessoesPage> {
           case AcaoSessao.reverter: // Para reverter qualquer status para 'Agendada'
             await viewModel.updateSessaoStatus(sessao!, 'Agendada');
             break;
+          case AcaoSessao.confirmarPagamento:
+            await _showConfirmPaymentDialog(context, viewModel, sessao!);
+            break;
+          case AcaoSessao.reverterPagamento:
+            await viewModel.reverterPagamentoSessao(sessao!);
+            break;
         }
       },
       itemBuilder: (BuildContext context) {
-        // Lógica para construir o menu de acordo com o estado da sessão
         if (isOccupied) {
-          // O horário está ocupado por uma sessão
-          if (sessao!.status == 'Bloqueada') {
-            if (sessao.treinamentoId == 'bloqueio_manual') {
-              // É um bloqueio manual em um horário vago
+          final sessaoNaoNula = sessao!;
+          // Sessão de paciente que foi bloqueada
+          if (sessaoNaoNula.status == 'Bloqueada') {
+            if (sessaoNaoNula.treinamentoId == 'bloqueio_manual') {
               return [
                 const PopupMenuItem<AcaoSessao>(
                   value: AcaoSessao.desbloquear,
@@ -331,7 +360,6 @@ class _SessoesPageState extends State<SessoesPage> {
                 ),
               ];
             } else {
-              // É uma sessão de paciente que foi bloqueada
               return [
                 const PopupMenuItem<AcaoSessao>(
                   value: AcaoSessao.reverter,
@@ -339,46 +367,57 @@ class _SessoesPageState extends State<SessoesPage> {
                 ),
               ];
             }
-          } else if (sessao.status == 'Agendada') {
-             // É uma sessão de paciente agendada
-            return [
-              const PopupMenuItem<AcaoSessao>(
-                value: AcaoSessao.bloquear,
-                child: Text('Bloquear Horário'),
-              ),
-              const PopupMenuItem<AcaoSessao>(
-                value: AcaoSessao.realizar,
-                child: Text('Marcar como Realizada'),
-              ),
-              const PopupMenuItem<AcaoSessao>(
-                value: AcaoSessao.faltar,
-                child: Text('Marcar como Falta'),
-              ),
-              const PopupMenuItem<AcaoSessao>(
-                value: AcaoSessao.cancelar,
-                child: Text('Marcar como Cancelada'),
-              ),
-            ];
-          } else {
-            // É uma sessão com outro status (Realizada, Falta, Cancelada)
-            return [
-              const PopupMenuItem<AcaoSessao>(
-                value: AcaoSessao.reverter,
-                child: Text('Reverter para Agendada'),
-              ),
-            ];
           }
+
+          List<PopupMenuEntry<AcaoSessao>> items = [];
+
+          // Ações para sessão Agendada
+          if (sessaoNaoNula.status == 'Agendada') {
+            items.addAll([
+              const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.bloquear, child: Text('Bloquear Horário')),
+              const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.realizar, child: Text('Marcar como Realizada')),
+              const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.faltar, child: Text('Marcar como Falta')),
+              const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.cancelar, child: Text('Marcar como Cancelada')),
+            ]);
+          }
+
+          // Ação para reverter status (qualquer um que não seja 'Agendada' ou 'Bloqueada')
+          if (sessaoNaoNula.status == 'Realizada' || sessaoNaoNula.status == 'Falta' || sessaoNaoNula.status == 'Cancelada') {
+            items.add(const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.reverter, child: Text('Reverter para Agendada')));
+          }
+
+          // Ações de Pagamento
+          if (sessaoNaoNula.parcelamento == 'Por sessão') {
+            bool needsDivider = items.isNotEmpty;
+            if (sessaoNaoNula.statusPagamento == 'Pendente' && (sessaoNaoNula.status == 'Agendada' || sessaoNaoNula.status == 'Realizada')) {
+              if (needsDivider) items.add(const PopupMenuDivider());
+              items.add(const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.confirmarPagamento,
+                child: Text('Confirmar Pagamento'),
+              ));
+            } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
+              if (needsDivider) items.add(const PopupMenuDivider());
+              items.add(const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.reverterPagamento,
+                child: Text('Reverter Pagamento'),
+              ));
+            }
+          }
+          
+          return items;
+
         } else {
-          // O horário está vago
+          // Horário vago
           return [
             const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.agendar,
-              child: Text('Agendar Treinamento'),
-            ),
+                value: AcaoSessao.agendar, child: Text('Agendar Treinamento')),
             const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.bloquear,
-              child: Text('Bloquear Horário'),
-            ),
+                value: AcaoSessao.bloquear, child: Text('Bloquear Horário')),
           ];
         }
       },
@@ -408,14 +447,38 @@ class _SessoesPageState extends State<SessoesPage> {
     // É uma sessão de paciente (agendada, realizada, falta, cancelada ou bloqueada)
     final patientNameStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
       fontWeight: FontWeight.w500,
-      decoration: isPatientSessionBlocked ? TextDecoration.lineThrough : null, // Aplica o tachado se estiver bloqueada
+      decoration: isPatientSessionBlocked ? TextDecoration.lineThrough : null,
       decorationColor: isPatientSessionBlocked ? Colors.red.shade700 : null,
       decorationThickness: isPatientSessionBlocked ? 2.0 : null,
       color: isPatientSessionBlocked ? Colors.grey.shade700 : null,
     );
+    
+    // Define o widget de status de pagamento
+    Widget? paymentStatusWidget;
+    if (!isPatientSessionBlocked && sessaoNaoNula.parcelamento == 'Por sessão') {
+      if (sessaoNaoNula.statusPagamento == 'Pendente') {
+        paymentStatusWidget = Text(
+          'PENDENTE',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.orange.shade800,
+          ),
+        );
+      } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
+        paymentStatusWidget = Text(
+          'PAGO',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: Colors.green.shade800,
+          ),
+        );
+      }
+    }
 
     return Stack(
-      clipBehavior: Clip.none, // Permite que o texto "BLOQUEADO" saia um pouco dos limites se necessário
+      clipBehavior: Clip.none,
       children: [
         // Conteúdo principal (nome e número da sessão)
         Column(
@@ -430,21 +493,22 @@ class _SessoesPageState extends State<SessoesPage> {
             ),
           ],
         ),
-        // Texto "BLOQUEADO" sobreposto
-        if (isPatientSessionBlocked)
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                'BLOQUEADO',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade800,
-                ),
-              ),
-            ),
+        // Texto de status sobreposto (BLOQUEADO ou PAGO/PENDENTE)
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: isPatientSessionBlocked
+                ? Text(
+                    'BLOQUEADO',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade800,
+                    ),
+                  )
+                : paymentStatusWidget,
           ),
+        ),
       ],
     );
   }
@@ -461,6 +525,92 @@ class _SessoesPageState extends State<SessoesPage> {
       case 'Bloqueada': return Colors.orange.shade50;
       default: return Colors.grey.shade50;
     }
+  }
+
+  Future<void> _showConfirmPaymentDialog(
+    BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
+    final formKey = GlobalKey<FormState>();
+    final dataPagamentoController = TextEditingController();
+    DateTime? dataPagamentoSelecionada = DateTime.now(); // Initialize
+    dataPagamentoController.text = DateFormatter.formatDate(dataPagamentoSelecionada);
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Confirmar Pagamento'),
+              content: Form(
+                key: formKey,
+                child: GestureDetector(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: dataPagamentoSelecionada ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        dataPagamentoSelecionada = picked;
+                        dataPagamentoController.text = DateFormatter.formatDate(picked);
+                      });
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: dataPagamentoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Data do Pagamento *',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Selecione uma data';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                ),
+                ElevatedButton(
+                  child: const Text('Confirmar'),
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
+                      final navigator = Navigator.of(dialogContext);
+                      try {
+                        await viewModel.confirmarPagamentoSessao(
+                            sessao, dataPagamentoSelecionada!);
+                        scaffoldMessenger.showSnackBar(
+                          const SnackBar(
+                              content: Text('Pagamento confirmado com sucesso!')),
+                        );
+                        navigator.pop();
+                      } catch (e) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Erro ao confirmar pagamento: $e')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {

@@ -5,7 +5,7 @@ import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/core/utils/date_time_helper.dart';
 
-// Use case para atualizar o status de uma sessão
+// Use case para atualizar o status de uma sessão e o treinamento relacionado
 class AtualizarStatusSessaoUseCase {
   final SessaoRepository _sessaoRepository;
   final TreinamentoRepository _treinamentoRepository;
@@ -24,14 +24,11 @@ class AtualizarStatusSessaoUseCase {
     required String novoStatus,
     bool? desmarcarTodasFuturas,
   }) async {
-    // Regra de Negócio: Qualquer sessão com status de "Agendada" pode ser marcada como "Realizada", "Falta", "Cancelada" ou "Bloqueada".
     if (sessao.status == 'Agendada') {
       if (!['Realizada', 'Falta', 'Cancelada', 'Bloqueada'].contains(novoStatus)) {
         throw Exception('Status inválido para sessão agendada.');
       }
-    }
-    // Regra de Negócio: Qualquer sessão com status de "Realizada", "Falta", "Cancelada" ou "Bloqueada" somente pode ser revertida para "Agendada".
-    else {
+    } else {
       if (novoStatus != 'Agendada') {
         throw Exception('Sessão só pode ser revertida para "Agendada" a partir do status atual.');
       }
@@ -40,56 +37,59 @@ class AtualizarStatusSessaoUseCase {
     final originalStatus = sessao.status;
     Sessao sessaoAtualizada = sessao.copyWith(status: novoStatus);
 
-    // Lógica para "Cancelada" ou "Bloqueada" (cria sessão extra)
     if ((novoStatus == 'Cancelada' || novoStatus == 'Bloqueada') && originalStatus == 'Agendada') {
-      // Se desmarcarTodasFuturas for true, encerra o treinamento
       if (novoStatus == 'Cancelada' && desmarcarTodasFuturas == true) {
         final allSessions = await _sessaoRepository.getSessoesByTreinamentoId(sessao.treinamentoId).first;
-        final sessionsToCancel = allSessions
-            .where((s) => s.numeroSessao >= sessao.numeroSessao && s.status == 'Agendada')
-            .toList();
-
+        final sessionsToCancel = allSessions.where((s) => s.numeroSessao >= sessao.numeroSessao && s.status == 'Agendada').toList();
         for (var s in sessionsToCancel) {
           await _sessaoRepository.updateSessao(s.copyWith(status: 'Cancelada'));
         }
       } else {
-        // Apenas cria sessão extra se não for um bloqueio de dia inteiro ou manual
         if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
           await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
         }
       }
-    }
-    // Lógica para reverter para "Agendada" (remove sessão extra e reajusta numeração)
-    else if (novoStatus == 'Agendada' && (originalStatus == 'Cancelada' || originalStatus == 'Bloqueada')) {
-      // Apenas remove sessão extra se não for um bloqueio de dia inteiro ou manual
+    } else if (novoStatus == 'Agendada' && (originalStatus == 'Cancelada' || originalStatus == 'Bloqueada')) {
       if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
         await _removerSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.numeroSessao);
       }
     }
 
-    // Lógica para "Falta" com pagamento diferente de convênio
-    if (novoStatus == 'Falta' &&
-        originalStatus == 'Agendada' &&
-        sessao.statusPagamento != 'Convenio') {
+    if (novoStatus == 'Falta' && originalStatus == 'Agendada' && sessao.statusPagamento != 'Convenio') {
       sessaoAtualizada = sessaoAtualizada.copyWith(statusPagamento: 'Pendente', dataPagamento: null);
-      // Apenas cria sessão extra se não for um bloqueio de dia inteiro ou manual
       if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
         await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
       }
     }
 
-    // Não é permitido marcar uma sessão como "Realizada" sem o pagamento correspondente.
-    //if (novoStatus == 'Realizada' && sessao.statusPagamento == 'Pendente') {
-    //  throw Exception('Não é possível marcar a sessão como "Realizada" sem o pagamento correspondente.');
-    //}
-
     await _sessaoRepository.updateSessao(sessaoAtualizada);
+    await verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+  }
+
+  Future<void> verificarEAtualizarStatusTreinamento(String treinamentoId) async {
+    final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
+    if (treinamento == null || treinamento.status == 'cancelado') return;
+
+    final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamentoId);
+    final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
+
+    if (sessoesConcluidas >= treinamento.numeroSessoesTotal) {
+      final pagamentosPendentes = todasSessoes.any((s) => s.statusPagamento == 'Pendente' && s.status != 'Cancelada');
+      if (pagamentosPendentes) {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Pendente Pagamento'));
+      } else {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+      }
+    } else {
+      if (treinamento.status == 'Finalizado' || treinamento.status == 'Pendente Pagamento') {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'ativo'));
+      }
+    }
   }
 
   Future<void> _gerarSessaoExtraEReajustarNumeracao(String treinamentoId, String pacienteId, int sessaoOriginalNumero) async {
-    // CORREÇÃO: Não tentar obter treinamento se for um ID de bloqueio
     if (treinamentoId == 'dia_bloqueado_completo' || treinamentoId == 'bloqueio_manual') {
-      return; // Não gera sessão extra para bloqueios
+      return; 
     }
 
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
@@ -155,9 +155,8 @@ class AtualizarStatusSessaoUseCase {
   }
 
   Future<void> _removerSessaoExtraEReajustarNumeracao(String treinamentoId, int sessaoRevertidaNumero) async {
-    // CORREÇÃO: Não tentar obter treinamento se for um ID de bloqueio
     if (treinamentoId == 'dia_bloqueado_completo' || treinamentoId == 'bloqueio_manual') {
-      return; // Não remove sessão extra para bloqueios
+      return; 
     }
 
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);

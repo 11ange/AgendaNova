@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
+import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
@@ -13,6 +14,7 @@ import 'dart:async';
 class SessoesViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
   final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
+  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
   final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase;
 
   // Stream Controllers
@@ -29,6 +31,8 @@ class SessoesViewModel extends ChangeNotifier {
   DateTime? _currentFocusedMonth;
   AgendaDisponibilidade? _agendaDisponibilidade;
   List<Sessao> _sessoesDoMes = [];
+  Map<String, List<Treinamento>> _treinamentosPorPaciente = {};
+  List<Treinamento> _treinamentosDoPacienteSelecionado = [];
 
   // State properties for initial data
   Map<DateTime, String> dailyStatus = {};
@@ -36,6 +40,7 @@ class SessoesViewModel extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
+  List<Treinamento> get treinamentosDoPacienteSelecionado => _treinamentosDoPacienteSelecionado;
 
   SessoesViewModel()
       : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
@@ -51,19 +56,25 @@ class SessoesViewModel extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      // Usar Future.wait para carregar dados em paralelo
       final results = await Future.wait([
         _agendaDisponibilidadeRepository.getAgendaDisponibilidade().first,
         _sessaoRepository.getSessoesByMonth(focusedDay).first,
+        _treinamentoRepository.getTreinamentos().first,
       ]);
 
       _agendaDisponibilidade = results[0] as AgendaDisponibilidade?;
       _sessoesDoMes = results[1] as List<Sessao>;
+      final allTrainings = results[2] as List<Treinamento>;
+
+      _treinamentosPorPaciente.clear();
+      for (var treinamento in allTrainings) {
+        _treinamentosPorPaciente.putIfAbsent(treinamento.pacienteId, () => []).add(treinamento);
+      }
 
       _isInitialized = true;
       _processDataAndNotify();
     } catch (e) {
-      // Erros podem ser tratados por um sistema de logging ou exibidos ao usuário.
+      // Handle error
     } finally {
       _setLoading(false);
     }
@@ -94,7 +105,7 @@ class SessoesViewModel extends ChangeNotifier {
        _sessoesDoMes = await _sessaoRepository.getSessoesByMonth(focusedMonth).first;
        _processDataAndNotify();
     } catch(e) {
-       // Erros podem ser tratados por um sistema de logging ou exibidos ao usuário.
+       // Handle error
     } finally {
        _setLoading(false);
     }
@@ -175,7 +186,17 @@ class SessoesViewModel extends ChangeNotifier {
       }
     }
     horariosCompletos = scheduleMap;
+    
+    // Atualiza a lista de treinamentos para o paciente do dia selecionado
+    if (sessionsForSelectedDay.isNotEmpty) {
+      final pacienteId = sessionsForSelectedDay.first.pacienteId;
+      _treinamentosDoPacienteSelecionado = _treinamentosPorPaciente[pacienteId] ?? [];
+    } else {
+      _treinamentosDoPacienteSelecionado = [];
+    }
+    
     _horariosCompletosStreamController.add(scheduleMap);
+    notifyListeners();
   }
 
   Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
@@ -222,6 +243,44 @@ class SessoesViewModel extends ChangeNotifier {
     );
     if(_currentFocusedMonth != null) {
       await onPageChanged(_currentFocusedMonth!);
+    }
+  }
+
+  Future<void> confirmarPagamentoSessao(Sessao sessao, DateTime dataPagamento) async {
+    _setLoading(true);
+    try {
+      final sessaoAtualizada = sessao.copyWith(
+        statusPagamento: 'Realizado',
+        dataPagamento: dataPagamento,
+      );
+      await _sessaoRepository.updateSessao(sessaoAtualizada);
+      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+      if (_currentFocusedMonth != null) {
+        await onPageChanged(_currentFocusedMonth!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> reverterPagamentoSessao(Sessao sessao) async {
+    _setLoading(true);
+    try {
+      final sessaoAtualizada = sessao.copyWith(
+        statusPagamento: 'Pendente',
+        dataPagamento: null,
+      );
+      await _sessaoRepository.updateSessao(sessaoAtualizada);
+      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+      if (_currentFocusedMonth != null) {
+        await onPageChanged(_currentFocusedMonth!);
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
