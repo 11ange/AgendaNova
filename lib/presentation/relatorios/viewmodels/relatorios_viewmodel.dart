@@ -17,7 +17,7 @@ import 'dart:async';
 class RelatoriosViewModel extends ChangeNotifier {
   final GerarRelatorioMensalGlobalUseCase _gerarRelatorioMensalGlobalUseCase;
   final GerarRelatorioIndividualPacienteUseCase
-  _gerarRelatorioIndividualPacienteUseCase;
+      _gerarRelatorioIndividualPacienteUseCase;
   final PacienteRepository _pacienteRepository;
 
   bool _isLoading = false;
@@ -30,61 +30,48 @@ class RelatoriosViewModel extends ChangeNotifier {
     SessaoRepository? sessaoRepository,
     TreinamentoRepository? treinamentoRepository,
     PacienteRepository? pacienteRepository,
-  }) : _sessaoRepository =
-           sessaoRepository ??
-           SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-       _treinamentoRepository =
-           treinamentoRepository ??
-           TreinamentoRepositoryImpl(
-             FirebaseDatasource(FirebaseService.instance),
-           ),
-       _pacienteRepository =
-           pacienteRepository ??
-           PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-       _gerarRelatorioMensalGlobalUseCase = GerarRelatorioMensalGlobalUseCase(
-         sessaoRepository ??
-             SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
-         treinamentoRepository ??
-             TreinamentoRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-         pacienteRepository ??
-             PacienteRepositoryImpl(
-               FirebaseDatasource(FirebaseService.instance),
-             ),
-       ),
-       _gerarRelatorioIndividualPacienteUseCase =
-           GerarRelatorioIndividualPacienteUseCase(
-             sessaoRepository ??
-                 SessaoRepositoryImpl(
-                   FirebaseDatasource(FirebaseService.instance),
-                 ),
-             treinamentoRepository ??
-                 TreinamentoRepositoryImpl(
-                   FirebaseDatasource(FirebaseService.instance),
-                 ),
-             pacienteRepository ??
-                 PacienteRepositoryImpl(
-                   FirebaseDatasource(FirebaseService.instance),
-                 ),
-           );
-
-  final SessaoRepository _sessaoRepository; // Adicionado para o construtor
-  final TreinamentoRepository _treinamentoRepository; // Adicionado para o construtor
+  })  : _pacienteRepository = pacienteRepository ??
+            PacienteRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+        _gerarRelatorioMensalGlobalUseCase = GerarRelatorioMensalGlobalUseCase(
+          sessaoRepository ??
+              SessaoRepositoryImpl(FirebaseDatasource(FirebaseService.instance)),
+          treinamentoRepository ??
+              TreinamentoRepositoryImpl(
+                FirebaseDatasource(FirebaseService.instance),
+              ),
+          pacienteRepository ??
+              PacienteRepositoryImpl(
+                FirebaseDatasource(FirebaseService.instance),
+              ),
+        ),
+        _gerarRelatorioIndividualPacienteUseCase =
+            GerarRelatorioIndividualPacienteUseCase(
+          sessaoRepository ??
+              SessaoRepositoryImpl(
+                FirebaseDatasource(FirebaseService.instance),
+              ),
+          treinamentoRepository ??
+              TreinamentoRepositoryImpl(
+                FirebaseDatasource(FirebaseService.instance),
+              ),
+          pacienteRepository ??
+              PacienteRepositoryImpl(
+                FirebaseDatasource(FirebaseService.instance),
+              ),
+        );
 
   // Carrega a lista de pacientes para o dropdown de relatório individual
   void loadPacientes() {
     _setLoading(true);
     _pacienteRepository.getPacientes().listen(
       (pacientesList) {
-        _pacientes = pacientesList
-            .where((p) => p.status == 'ativo')
-            .toList(); // Apenas pacientes ativos
+        _pacientes =
+            pacientesList.where((p) => p.status == 'ativo').toList(); // Apenas pacientes ativos
         notifyListeners();
         _setLoading(false);
       },
       onError: (error) {
-        print('Erro ao carregar pacientes para relatório: $error');
+        // Em um app de produção, use um sistema de logging aqui.
         _setLoading(false);
       },
     );
@@ -101,7 +88,8 @@ class RelatoriosViewModel extends ChangeNotifier {
     }
   }
 
-  Future<Relatorio> gerarRelatorioIndividualPaciente(String pacienteId) async {
+  Future<Relatorio> gerarRelatorioIndividualPaciente(
+      String pacienteId) async {
     _setLoading(true);
     try {
       return await _gerarRelatorioIndividualPacienteUseCase.call(pacienteId);

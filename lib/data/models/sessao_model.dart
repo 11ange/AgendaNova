@@ -5,40 +5,23 @@ import 'package:intl/intl.dart';
 // Modelo de dados para a entidade Sessão, com métodos para serialização/desserialização do Firestore
 class SessaoModel extends Sessao {
   SessaoModel({
-    String? id,
-    required String treinamentoId,
-    required String pacienteId,
-    required String pacienteNome,
-    required DateTime dataHora,
-    required int numeroSessao,
-    required String status,
-    required String statusPagamento,
-    DateTime? dataPagamento,
-    String? observacoes,
-    required String formaPagamento,
-    required DateTime agendamentoStartDate,
-    String? parcelamento,
-    Map<String, dynamic>? pagamentosParcelados,
-    bool? reagendada,
-    required int totalSessoes,
-  }) : super(
-          id: id,
-          treinamentoId: treinamentoId,
-          pacienteId: pacienteId,
-          pacienteNome: pacienteNome,
-          dataHora: dataHora,
-          numeroSessao: numeroSessao,
-          status: status,
-          statusPagamento: statusPagamento,
-          dataPagamento: dataPagamento,
-          observacoes: observacoes,
-          formaPagamento: formaPagamento,
-          agendamentoStartDate: agendamentoStartDate,
-          parcelamento: parcelamento,
-          pagamentosParcelados: pagamentosParcelados,
-          reagendada: reagendada,
-          totalSessoes: totalSessoes,
-        );
+    super.id,
+    required super.treinamentoId,
+    required super.pacienteId,
+    required super.pacienteNome,
+    required super.dataHora,
+    required super.numeroSessao,
+    required super.status,
+    required super.statusPagamento,
+    super.dataPagamento,
+    super.observacoes,
+    required super.formaPagamento,
+    required super.agendamentoStartDate,
+    super.parcelamento,
+    super.pagamentosParcelados,
+    super.reagendada,
+    required super.totalSessoes,
+  });
 
   // Construtor: para criar SessaoModel a partir de um mapa de dados de uma sub-sessão
   factory SessaoModel.fromMap(String docId, Map<String, dynamic> map, String horarioKey) {
@@ -49,7 +32,7 @@ class SessaoModel extends Sessao {
     // Verifique se é uma sessão de bloqueio manual simplificada
     if (map['treinamentoId'] == 'bloqueio_manual' && map['status'] == 'Bloqueada') {
       return SessaoModel(
-        id: '${docId}-${horarioKey.replaceAll(':', '')}',
+        id: '$docId-$horarioKey',
         treinamentoId: 'bloqueio_manual',
         pacienteId: 'bloqueio_manual',
         pacienteNome: 'Horário Bloqueado',
@@ -69,7 +52,7 @@ class SessaoModel extends Sessao {
     }
 
     return SessaoModel(
-      id: '${docId}-${horarioKey.replaceAll(':', '')}',
+      id: '$docId-$horarioKey',
       treinamentoId: map['agendamentoId'] as String? ?? '',
       pacienteId: map['pacienteId'] as String? ?? '',
       pacienteNome: map['pacienteNome'] as String? ?? 'Desconhecido',
@@ -89,7 +72,6 @@ class SessaoModel extends Sessao {
   }
 
   // Converte o SessaoModel para um mapa de dados compatível com o Firestore
-  @override
   Map<String, dynamic> toFirestore() {
     // Se for uma sessão de bloqueio manual, retorna a representação simplificada
     if (treinamentoId == 'bloqueio_manual' && status == 'Bloqueada') {

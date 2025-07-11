@@ -6,18 +6,17 @@ import 'package:agendanova/presentation/sessoes/widgets/treinamento_form_dialog.
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 
 // Enum para tornar as ações do menu mais seguras e legíveis
 enum AcaoSessao {
   agendar,
   bloquear,
-  desbloquear,
+  desbloquear, // Para bloqueios manuais
   realizar,
   faltar,
   cancelar,
-  reverter,
+  reverter, // Para reverter status (incluindo desbloqueio de sessão de paciente)
 }
 
 class SessoesPage extends StatefulWidget {
@@ -66,8 +65,7 @@ class _SessoesPageState extends State<SessoesPage> {
                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                 calendarFormat: CalendarFormat.month,
                 locale: 'pt_BR',
-                // --- AJUSTE: Altura das linhas do calendário diminuída ---
-                rowHeight: 30.0, 
+                rowHeight: 30.0,
                 daysOfWeekHeight: 15,
                 headerStyle: const HeaderStyle(
                   formatButtonVisible: false,
@@ -103,7 +101,6 @@ class _SessoesPageState extends State<SessoesPage> {
                         color = Colors.red.shade200;
                         break;
                       case 'indisponivel':
-                        //color = Colors.grey.shade200;
                         color = Colors.transparent;
                         break;
                       default:
@@ -275,7 +272,6 @@ class _SessoesPageState extends State<SessoesPage> {
 
   Widget _buildPopupMenuButton(BuildContext context, SessoesViewModel viewModel, Sessao? sessao, String timeSlot) {
     final bool isOccupied = sessao != null;
-    final bool isBlocked = isOccupied && sessao!.status == 'Bloqueada';
 
     return PopupMenuButton<AcaoSessao>(
       icon: const Icon(Icons.more_vert),
@@ -299,7 +295,7 @@ class _SessoesPageState extends State<SessoesPage> {
                await viewModel.blockTimeSlot(timeSlot, _selectedDay!);
              }
              break;
-          case AcaoSessao.desbloquear:
+          case AcaoSessao.desbloquear: // Apenas para bloqueios manuais
             if (sessao?.id != null) {
               await viewModel.deleteBlockedTimeSlot(sessao!.id!);
             }
@@ -311,54 +307,69 @@ class _SessoesPageState extends State<SessoesPage> {
             await viewModel.updateSessaoStatus(sessao!, 'Falta');
             break;
           case AcaoSessao.cancelar:
-            final bool? desmarcarTodas = await _showConfirmationDialog(
-              context, 'Desmarcar Sessão', 'Deseja desmarcar apenas esta sessão ou esta e todas as futuras (encerra o treinamento)?'
-            );
+            final bool? desmarcarTodas = await _showCancellationDialog(context);
             if (desmarcarTodas != null && context.mounted) {
               await viewModel.updateSessaoStatus(sessao!, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
             }
             break;
-          case AcaoSessao.reverter:
+          case AcaoSessao.reverter: // Para reverter qualquer status para 'Agendada'
             await viewModel.updateSessaoStatus(sessao!, 'Agendada');
             break;
         }
       },
       itemBuilder: (BuildContext context) {
-        if (isBlocked) {
-          return [
-            const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.desbloquear,
-              child: Text('Desbloquear Horário'),
-            ),
-          ];
-        } else if (isOccupied) {
-          List<PopupMenuEntry<AcaoSessao>> items = [
-            const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.bloquear,
-              child: Text('Bloquear Horário'),
-            ),
-            const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.realizar,
-              child: Text('Marcar como Realizada'),
-            ),
-            const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.faltar,
-              child: Text('Marcar como Falta'),
-            ),
-             const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.cancelar,
-              child: Text('Marcar como Cancelada'),
-            ),
-          ];
-          if (sessao!.status != 'Agendada') {
-            items.add(const PopupMenuDivider());
-            items.add(const PopupMenuItem<AcaoSessao>(
-              value: AcaoSessao.reverter,
-              child: Text('Reverter para Agendada'),
-            ));
+        // Lógica para construir o menu de acordo com o estado da sessão
+        if (isOccupied) {
+          // O horário está ocupado por uma sessão
+          if (sessao!.status == 'Bloqueada') {
+            if (sessao.treinamentoId == 'bloqueio_manual') {
+              // É um bloqueio manual em um horário vago
+              return [
+                const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.desbloquear,
+                  child: Text('Desbloquear Horário'),
+                ),
+              ];
+            } else {
+              // É uma sessão de paciente que foi bloqueada
+              return [
+                const PopupMenuItem<AcaoSessao>(
+                  value: AcaoSessao.reverter,
+                  child: Text('Desbloquear Sessão'),
+                ),
+              ];
+            }
+          } else if (sessao.status == 'Agendada') {
+             // É uma sessão de paciente agendada
+            return [
+              const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.bloquear,
+                child: Text('Bloquear Horário'),
+              ),
+              const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.realizar,
+                child: Text('Marcar como Realizada'),
+              ),
+              const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.faltar,
+                child: Text('Marcar como Falta'),
+              ),
+              const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.cancelar,
+                child: Text('Marcar como Cancelada'),
+              ),
+            ];
+          } else {
+            // É uma sessão com outro status (Realizada, Falta, Cancelada)
+            return [
+              const PopupMenuItem<AcaoSessao>(
+                value: AcaoSessao.reverter,
+                child: Text('Reverter para Agendada'),
+              ),
+            ];
           }
-          return items;
         } else {
+          // O horário está vago
           return [
             const PopupMenuItem<AcaoSessao>(
               value: AcaoSessao.agendar,
@@ -376,29 +387,66 @@ class _SessoesPageState extends State<SessoesPage> {
 
   Widget _buildSessionInfo(BuildContext context, Sessao? sessao, bool isDailyBlocked) {
     final isOccupied = sessao != null;
-    final isBlockedSlot = isOccupied && sessao!.status == 'Bloqueada';
 
     if (isDailyBlocked) {
       return Text('Dia bloqueado', style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold));
     }
-    if (isBlockedSlot) {
+
+    if (!isOccupied) {
+      return Text('Horário Disponível', style: TextStyle(color: Colors.green.shade800));
+    }
+
+    // A partir daqui, sabemos que a sessão não é nula.
+    final sessaoNaoNula = sessao!;
+    final isPatientSessionBlocked = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId != 'bloqueio_manual';
+    final isManualBlock = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId == 'bloqueio_manual';
+
+    if (isManualBlock) {
       return Text('Horário bloqueado', style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold));
     }
-    if (isOccupied) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(sessao!.pacienteNome, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 2),
-          Text(
-            'Sessão ${sessao.numeroSessao} de ${sessao.totalSessoes}',
-            style: Theme.of(context).textTheme.bodyMedium,
+
+    // É uma sessão de paciente (agendada, realizada, falta, cancelada ou bloqueada)
+    final patientNameStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
+      fontWeight: FontWeight.w500,
+      decoration: isPatientSessionBlocked ? TextDecoration.lineThrough : null, // Aplica o tachado se estiver bloqueada
+      decorationColor: isPatientSessionBlocked ? Colors.red.shade700 : null,
+      decorationThickness: isPatientSessionBlocked ? 2.0 : null,
+      color: isPatientSessionBlocked ? Colors.grey.shade700 : null,
+    );
+
+    return Stack(
+      clipBehavior: Clip.none, // Permite que o texto "BLOQUEADO" saia um pouco dos limites se necessário
+      children: [
+        // Conteúdo principal (nome e número da sessão)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(sessaoNaoNula.pacienteNome, style: patientNameStyle),
+            const SizedBox(height: 2),
+            Text(
+              'Sessão ${sessaoNaoNula.numeroSessao} de ${sessaoNaoNula.totalSessoes}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        // Texto "BLOQUEADO" sobreposto
+        if (isPatientSessionBlocked)
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                'BLOQUEADO',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red.shade800,
+                ),
+              ),
+            ),
           ),
-        ],
-      );
-    }
-    return Text('Horário Disponível', style: TextStyle(color: Colors.green.shade800));
+      ],
+    );
   }
 
   Color _getCardBackgroundColor(Sessao? sessao, bool isDailyBlocked) {
@@ -425,6 +473,33 @@ class _SessoesPageState extends State<SessoesPage> {
           actions: <Widget>[
             TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
             ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Confirmar')),
+          ],
+        );
+      },
+    );
+  }
+
+   Future<bool?> _showCancellationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Cancelamento'),
+          content: const Text('Deseja cancelar apenas esta sessão ou esta e todas as futuras (encerrando o treinamento)?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(null), // Cancelar a ação
+              child: const Text('Voltar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false), // Apenas esta
+              child: const Text('Apenas esta'),
+            ),
+             ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true), // Todas as futuras
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Todas as futuras'),
+            ),
           ],
         );
       },

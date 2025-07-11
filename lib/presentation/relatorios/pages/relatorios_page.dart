@@ -68,7 +68,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                   value: month,
                                   child: Text(DateFormat.MMMM('pt_BR').format(DateTime(2024, month))),
                                 );
-                              }).toList(), // Adicionado .toList()
+                              }).toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedMonth = value!;
@@ -87,7 +87,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                   value: year,
                                   child: Text(year.toString()),
                                 );
-                              }).toList(), // Adicionado .toList()
+                              }).toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedYear = value!;
@@ -108,15 +108,13 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                   : () async {
                                       try {
                                         final relatorio = await viewModel.gerarRelatorioMensalGlobal(_selectedYear, _selectedMonth);
-                                        if (mounted) {
-                                          _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
-                                        }
+                                        if (!context.mounted) return;
+                                        _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
                                       } catch (e) {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
-                                          );
-                                        }
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
+                                        );
                                       }
                                     },
                               icon: const Icon(Icons.analytics),
@@ -175,15 +173,13 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                                   : () async {
                                       try {
                                         final relatorio = await viewModel.gerarRelatorioIndividualPaciente(_selectedPaciente!.id!);
-                                        if (mounted) {
-                                          _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
-                                        }
+                                        if (!context.mounted) return;
+                                        _showRelatorioDialog(context, relatorio.tipoRelatorio, relatorio.dados);
                                       } catch (e) {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
-                                          );
-                                        }
+                                        if (!context.mounted) return;
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Erro ao gerar relatório: ${e.toString()}')),
+                                        );
                                       }
                                     },
                               icon: const Icon(Icons.person_search),
@@ -196,7 +192,6 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                   ),
                 ),
               ),
-              // TODO: Adicionar o relatório de vagas disponíveis e resumo de ocupação
               const SizedBox(height: 20),
               Card(
                 elevation: 4,

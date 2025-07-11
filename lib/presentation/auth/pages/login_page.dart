@@ -52,8 +52,8 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         'Bem-vindo!',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                        ),
+                              color: Theme.of(context).primaryColor,
+                            ),
                       ),
                       const SizedBox(height: 24.0),
                       TextFormField(
@@ -97,34 +97,29 @@ class _LoginPageState extends State<LoginPage> {
 
                                       // Se ambos os campos estiverem vazios, avança sem autenticar
                                       if (email.isEmpty && password.isEmpty) {
-                                        if (mounted) {
-                                          context.go('/home');
-                                        }
+                                        context.go('/home');
                                       } else {
                                         // Se os campos não estiverem vazios, tenta autenticar
                                         if (_formKey.currentState!.validate()) {
+                                          // Captura os objetos dependentes do contexto ANTES do 'await'
+                                          final navigator = GoRouter.of(context);
+                                          final scaffoldMessenger = ScaffoldMessenger.of(context);
                                           try {
                                             await viewModel.signIn(
                                               email,
                                               password,
                                             );
                                             // Se o login for bem-sucedido, navega para a tela inicial
-                                            if (mounted) {
-                                              context.go('/home');
-                                            }
+                                            navigator.go('/home');
                                           } catch (e) {
                                             // Exibe mensagem de erro
-                                            if (mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Erro de login: ${e.toString()}',
-                                                  ),
+                                            scaffoldMessenger.showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Erro de login: ${e.toString()}',
                                                 ),
-                                              );
-                                            }
+                                              ),
+                                            );
                                           }
                                         }
                                       }
@@ -137,7 +132,6 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 16.0),
                       TextButton(
                         onPressed: () {
-                          // TODO: Implementar funcionalidade de "Esqueceu a senha?"
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(

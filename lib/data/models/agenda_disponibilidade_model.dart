@@ -1,15 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart'; // Importação corrigida
+import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
 
 // Modelo de dados para a entidade AgendaDisponibilidade, com métodos para serialização/desserialização do Firestore
 class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
   AgendaDisponibilidadeModel({
-    String? id,
-    required Map<String, List<String>> agenda,
-  }) : super(
-          id: id,
-          agenda: agenda,
-        );
+    super.id,
+    required super.agenda,
+  });
 
   // Construtor para criar um AgendaDisponibilidadeModel a partir de um DocumentSnapshot do Firestore
   factory AgendaDisponibilidadeModel.fromFirestore(DocumentSnapshot doc) {
@@ -30,7 +27,6 @@ class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
   }
 
   // Converte o AgendaDisponibilidadeModel para um mapa de dados compatível com o Firestore
-  @override
   Map<String, dynamic> toFirestore() {
     // Salva o mapa da agenda diretamente na raiz do documento
     return agenda;
@@ -44,4 +40,3 @@ class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
     );
   }
 }
-

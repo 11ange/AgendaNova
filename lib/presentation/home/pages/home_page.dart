@@ -82,11 +82,11 @@ class HomePage extends StatelessWidget {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '• ${DateFormat.EEEE().format(horario)}, ${DateFormat.yMd().format(horario)} às ${DateFormat.Hm().format(horario)}',
+                                  '• ${DateFormat.EEEE('pt_BR').format(horario)}, ${DateFormat.yMd('pt_BR').format(horario)} às ${DateFormat.Hm('pt_BR').format(horario)}',
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               );
-                            }).toList(),
+                            }),
                         ],
                       ),
                     ),
@@ -117,11 +117,11 @@ class HomePage extends StatelessWidget {
                               return Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '• ${sessao.pacienteNome} - ${DateFormat.yMd().format(sessao.dataHora)} às ${DateFormat.Hm().format(sessao.dataHora)}',
+                                  '• ${sessao.pacienteNome} - ${DateFormat.yMd('pt_BR').format(sessao.dataHora)} às ${DateFormat.Hm('pt_BR').format(sessao.dataHora)}',
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                               );
-                            }).toList(),
+                            }),
                         ],
                       ),
                     ),

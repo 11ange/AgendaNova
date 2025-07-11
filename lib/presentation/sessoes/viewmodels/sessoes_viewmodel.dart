@@ -12,9 +12,7 @@ import 'dart:async';
 
 class SessoesViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
-  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
   final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
-  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
   final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase;
 
   // Stream Controllers
@@ -65,7 +63,7 @@ class SessoesViewModel extends ChangeNotifier {
       _isInitialized = true;
       _processDataAndNotify();
     } catch (e) {
-      print("Erro na inicialização: $e");
+      // Erros podem ser tratados por um sistema de logging ou exibidos ao usuário.
     } finally {
       _setLoading(false);
     }
@@ -96,7 +94,7 @@ class SessoesViewModel extends ChangeNotifier {
        _sessoesDoMes = await _sessaoRepository.getSessoesByMonth(focusedMonth).first;
        _processDataAndNotify();
     } catch(e) {
-       print("Erro ao mudar de página: $e");
+       // Erros podem ser tratados por um sistema de logging ou exibidos ao usuário.
     } finally {
        _setLoading(false);
     }

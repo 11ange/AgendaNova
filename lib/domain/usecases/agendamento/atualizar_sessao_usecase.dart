@@ -1,8 +1,8 @@
 import 'package:agendanova/domain/entities/sessao.dart';
-//import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart'; // Para verificar bloqueios
+import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/core/utils/date_time_helper.dart';
 
 // Use case para atualizar o status de uma sessão
@@ -10,11 +10,13 @@ class AtualizarStatusSessaoUseCase {
   final SessaoRepository _sessaoRepository;
   final TreinamentoRepository _treinamentoRepository;
   final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
+  final PacienteRepository _pacienteRepository;
 
   AtualizarStatusSessaoUseCase(
     this._sessaoRepository,
     this._treinamentoRepository,
     this._agendaDisponibilidadeRepository,
+    this._pacienteRepository,
   );
 
   Future<void> call({
@@ -52,8 +54,6 @@ class AtualizarStatusSessaoUseCase {
         for (var s in sessionsToCancel) {
           await _sessaoRepository.updateSessao(s.copyWith(status: 'Cancelada'));
         }
-        // TODO: Marcar treinamento como "cancelado" ou "encerrado" se todas as sessões foram canceladas
-        // Isso exigiria um use case de "EncerrarTreinamento" ou lógica no TreinamentoRepository.
       } else {
         // Cria uma sessão extra ao final do ciclo e ajusta numeração
         await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
@@ -86,6 +86,11 @@ class AtualizarStatusSessaoUseCase {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null) return;
 
+    final paciente = await _pacienteRepository.getPacienteById(pacienteId);
+    if (paciente == null) {
+      throw Exception('Paciente não encontrado para gerar sessão extra.');
+    }
+
     final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoId(treinamentoId).first;
     final ultimaSessao = todasSessoes.reduce((a, b) => a.numeroSessao > b.numeroSessao ? a : b);
 
@@ -111,16 +116,11 @@ class AtualizarStatusSessaoUseCase {
         int.parse(treinamento.horario.split(':')[1]),
       );
 
-      // TODO: Verificar se o horário não está bloqueado para a data potencial
-      // Isso exigiria uma coleção de "Bloqueios" ou um campo em "Disponibilidade" para datas específicas.
-      // Por enquanto, assumimos que se o horário está na agenda, ele está disponível.
-
-      // Verifica se já existe uma sessão agendada para este horário (evitar sobreposição)
       final sessoesNoDia = await _sessaoRepository.getSessoesByDate(potentialDate).first;
       final isOverlapping = sessoesNoDia.any((s) =>
           s.dataHora.hour == potentialDateTime.hour &&
           s.dataHora.minute == potentialDateTime.minute &&
-          s.status != 'Cancelada' && s.status != 'Bloqueada'); // Não considera sessões canceladas/bloqueadas como sobreposição
+          s.status != 'Cancelada' && s.status != 'Bloqueada');
 
       if (!isOverlapping && horariosDisponiveisNoDia.contains(treinamento.horario)) {
         nextDate = potentialDateTime;
@@ -132,12 +132,19 @@ class AtualizarStatusSessaoUseCase {
     final novaSessaoExtra = Sessao(
       treinamentoId: treinamentoId,
       pacienteId: pacienteId,
+      pacienteNome: paciente.nome,
       dataHora: nextDate,
-      numeroSessao: treinamento.numeroSessoesTotal, // Recebe o número total de sessões
+      numeroSessao: treinamento.numeroSessoesTotal,
       status: 'Agendada',
-      statusPagamento: 'Pendente', // Por padrão, pagamento pendente
+      statusPagamento: 'Pendente',
       dataPagamento: null,
       observacoes: null,
+      formaPagamento: treinamento.formaPagamento,
+      agendamentoStartDate: treinamento.dataInicio,
+      totalSessoes: treinamento.numeroSessoesTotal,
+      parcelamento: treinamento.tipoParcelamento,
+      pagamentosParcelados: null,
+      reagendada: true,
     );
     await _sessaoRepository.addSessao(novaSessaoExtra);
   }

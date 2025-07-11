@@ -28,6 +28,7 @@ class CriarTreinamentoUseCase {
     required DateTime dataInicio,
     required String formaPagamento,
     String? tipoParcelamento,
+    String? nomeConvenio,
   }) async {
     // 1. Regra de Negócio: Um paciente só pode ter um treinamento em andamento.
     final hasActive = await _treinamentoRepository.hasActiveTreinamento(pacienteId);
@@ -46,6 +47,12 @@ class CriarTreinamentoUseCase {
     final horariosDisponiveisNoDia = agendaDisponibilidade?.agenda[diaSemana] ?? [];
     if (!horariosDisponiveisNoDia.contains(horario)) {
       throw Exception('O horário selecionado ($horario) não está disponível para $diaSemana.');
+    }
+
+    // Obter nome do paciente para a sessão
+    final paciente = await _pacienteRepository.getPacienteById(pacienteId);
+    if (paciente == null) {
+      throw Exception('Paciente não encontrado.');
     }
 
     // 4. Gerar automaticamente as sessões futuras
@@ -67,19 +74,22 @@ class CriarTreinamentoUseCase {
         int.parse(horario.split(':')[1]),
       );
 
-      // TODO: Regra de Negócio: Pular eventuais dias com mesmo horário bloqueado.
-      // Isso exigiria um mecanismo para verificar bloqueios de horários específicos.
-      // Por enquanto, vamos assumir que o horário é sempre disponível se a agenda permitir.
-
       sessoes.add(Sessao(
         treinamentoId: '', // Será preenchido após criar o treinamento
         pacienteId: pacienteId,
+        pacienteNome: paciente.nome, // Argumento obrigatório adicionado
         dataHora: sessionDateTime,
         numeroSessao: sessionNumber,
         status: 'Agendada',
         statusPagamento: 'Pendente',
         dataPagamento: null,
         observacoes: null,
+        formaPagamento: formaPagamento, // Argumento obrigatório adicionado
+        agendamentoStartDate: dataInicio, // Argumento obrigatório adicionado
+        totalSessoes: numeroSessoesTotal, // Argumento obrigatório adicionado
+        parcelamento: tipoParcelamento,
+        pagamentosParcelados: null,
+        reagendada: false,
       ));
       sessionsCreated++;
       sessionNumber++;
@@ -100,6 +110,7 @@ class CriarTreinamentoUseCase {
       status: 'ativo',
       formaPagamento: formaPagamento,
       tipoParcelamento: tipoParcelamento,
+      nomeConvenio: nomeConvenio,
       dataCadastro: DateTime.now(),
     );
 

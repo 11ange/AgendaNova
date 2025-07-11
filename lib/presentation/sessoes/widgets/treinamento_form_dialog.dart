@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +21,6 @@ class TreinamentoFormDialog extends StatefulWidget {
 class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   final _formKey = GlobalKey<FormState>();
   
-  // --- CORREÇÃO AQUI: Armazenar apenas o ID do paciente ---
   String? _selectedPacienteId; 
   
   String? _selectedDiaSemana;
@@ -55,9 +53,6 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
       create: (_) => TreinamentoDialogViewModel(),
       child: Consumer<TreinamentoDialogViewModel>(
         builder: (context, viewModel, child) {
-          // --- LÓGICA DE SINCRONIZAÇÃO PARA EVITAR O ERRO ---
-          // Garante que o valor selecionado ainda existe na lista de pacientes.
-          // Se não existir (por exemplo, após uma atualização), ele é limpo.
           final availablePatientIds = viewModel.pacientes.map((p) => p.id).toSet();
           if (_selectedPacienteId != null && !availablePatientIds.contains(_selectedPacienteId)) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -78,7 +73,6 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          // --- O Dropdown agora é mais robusto ---
                           DropdownButtonFormField<String>(
                             value: _selectedPacienteId,
                             decoration: const InputDecoration(labelText: 'Paciente *'),
@@ -147,13 +141,12 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                   ),
             actions: <Widget>[
               TextButton(
-                child: const Text('Cancelar'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
+                child: const Text('Cancelar'),
               ),
               ElevatedButton(
-                child: const Text('Agendar'),
                 onPressed: viewModel.isLoading
                     ? null
                     : () async {
@@ -169,21 +162,24 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                               tipoParcelamento: _selectedTipoParcelamento,
                               nomeConvenio: _selectedFormaPagamento == 'Convenio' ? _nomeConvenioController.text : null,
                             );
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Treinamento agendado com sucesso!')),
-                              );
-                              Navigator.of(context).pop(true);
-                            }
+
+                            if (!context.mounted) return;
+                            
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Treinamento agendado com sucesso!')),
+                            );
+                            Navigator.of(context).pop(true);
                           } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Erro ao agendar: ${e.toString()}')),
-                              );
-                            }
+
+                            if (!context.mounted) return;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Erro ao agendar: ${e.toString()}')),
+                            );
                           }
                         }
                       },
+                child: const Text('Agendar'),
               ),
             ],
           );

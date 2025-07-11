@@ -4,20 +4,13 @@ import 'package:agendanova/domain/entities/agendamento.dart'; // Importação da
 // Modelo de dados para a entidade Agendamento, com métodos para serialização/desserialização do Firestore
 class AgendamentoModel extends Agendamento {
   AgendamentoModel({
-    String? id,
-    required String pacienteId,
-    required DateTime dataHora,
-    required String tipo,
-    required String status,
-    String? observacoes,
-  }) : super(
-          id: id,
-          pacienteId: pacienteId,
-          dataHora: dataHora,
-          tipo: tipo,
-          status: status,
-          observacoes: observacoes,
-        );
+    super.id,
+    required super.pacienteId,
+    required super.dataHora,
+    required super.tipo,
+    required super.status,
+    super.observacoes,
+  });
 
   // Construtor para criar um AgendamentoModel a partir de um DocumentSnapshot do Firestore
   factory AgendamentoModel.fromFirestore(DocumentSnapshot doc) {
@@ -55,4 +48,3 @@ class AgendamentoModel extends Agendamento {
     );
   }
 }
-

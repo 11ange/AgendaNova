@@ -86,7 +86,7 @@ class GerarRelatorioMensalGlobalUseCase {
     };
 
     return Relatorio(
-      id: 'mensal_global_${year}_${month}',
+      id: 'mensal_global_${year}_$month',
       tipoRelatorio: 'Mensal Global',
       dataGeracao: DateTime.now(),
       dados: dadosRelatorio,

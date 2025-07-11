@@ -4,28 +4,17 @@ import 'package:agendanova/domain/entities/pagamento.dart';
 // Modelo de dados para a entidade Pagamento, com métodos para serialização/desserialização do Firestore
 class PagamentoModel extends Pagamento {
   PagamentoModel({
-    String? id,
-    required String treinamentoId,
-    required String pacienteId,
-    required String formaPagamento,
-    String? tipoParcelamento,
-    required String status,
-    required DateTime dataPagamento,
-    String? observacoes,
-    String? guiaConvenio,
-    DateTime? dataEnvioGuia,
-  }) : super(
-         id: id,
-         treinamentoId: treinamentoId,
-         pacienteId: pacienteId,
-         formaPagamento: formaPagamento,
-         tipoParcelamento: tipoParcelamento,
-         status: status,
-         dataPagamento: dataPagamento,
-         observacoes: observacoes,
-         guiaConvenio: guiaConvenio,
-         dataEnvioGuia: dataEnvioGuia,
-       );
+    super.id,
+    required super.treinamentoId,
+    required super.pacienteId,
+    required super.formaPagamento,
+    super.tipoParcelamento,
+    required super.status,
+    required super.dataPagamento,
+    super.observacoes,
+    super.guiaConvenio,
+    super.dataEnvioGuia,
+  });
 
   // Construtor para criar um PagamentoModel a partir de um DocumentSnapshot do Firestore
   factory PagamentoModel.fromFirestore(DocumentSnapshot doc) {

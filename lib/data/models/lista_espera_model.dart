@@ -4,18 +4,12 @@ import 'package:agendanova/domain/entities/lista_espera.dart';
 // Modelo de dados para a entidade ListaEspera, com métodos para serialização/desserialização do Firestore
 class ListaEsperaModel extends ListaEspera {
   ListaEsperaModel({
-    String? id,
-    required String nome,
-    String? telefone,
-    String? observacoes,
-    required DateTime dataCadastro,
-  }) : super(
-          id: id,
-          nome: nome,
-          telefone: telefone,
-          observacoes: observacoes,
-          dataCadastro: dataCadastro,
-        );
+    super.id,
+    required super.nome,
+    super.telefone,
+    super.observacoes,
+    required super.dataCadastro,
+  });
 
   // Construtor para criar um ListaEsperaModel a partir de um DocumentSnapshot do Firestore
   factory ListaEsperaModel.fromFirestore(DocumentSnapshot doc) {
@@ -32,7 +26,6 @@ class ListaEsperaModel extends ListaEspera {
   }
 
   // Converte o ListaEsperaModel para um mapa de dados compatível com o Firestore
-  @override
   Map<String, dynamic> toFirestore() {
     return {
       'nome': nome,

@@ -4,32 +4,19 @@ import 'package:agendanova/domain/entities/treinamento.dart';
 // Modelo de dados para a entidade Treinamento, com métodos para serialização/desserialização do Firestore
 class TreinamentoModel extends Treinamento {
   TreinamentoModel({
-    String? id,
-    required String pacienteId,
-    required String diaSemana,
-    required String horario,
-    required int numeroSessoesTotal,
-    required DateTime dataInicio,
-    required DateTime dataFimPrevista,
-    required String status,
-    required String formaPagamento,
-    String? tipoParcelamento,
-    String? nomeConvenio, // --- NOVO CAMPO ---
-    required DateTime dataCadastro,
-  }) : super(
-         id: id,
-         pacienteId: pacienteId,
-         diaSemana: diaSemana,
-         horario: horario,
-         numeroSessoesTotal: numeroSessoesTotal,
-         dataInicio: dataInicio,
-         dataFimPrevista: dataFimPrevista,
-         status: status,
-         formaPagamento: formaPagamento,
-         tipoParcelamento: tipoParcelamento,
-         nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
-         dataCadastro: dataCadastro,
-       );
+    super.id,
+    required super.pacienteId,
+    required super.diaSemana,
+    required super.horario,
+    required super.numeroSessoesTotal,
+    required super.dataInicio,
+    required super.dataFimPrevista,
+    required super.status,
+    required super.formaPagamento,
+    super.tipoParcelamento,
+    super.nomeConvenio,
+    required super.dataCadastro,
+  });
 
   // Construtor para criar um TreinamentoModel a partir de um DocumentSnapshot do Firestore
   factory TreinamentoModel.fromFirestore(DocumentSnapshot doc) {

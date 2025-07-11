@@ -98,19 +98,17 @@ class _AgendaPageState extends State<AgendaPage> {
                                       );
 
                                       if (confirm == true) {
+                                        // Captura o ScaffoldMessenger ANTES do 'await'
+                                        final scaffoldMessenger = ScaffoldMessenger.of(context);
                                         try {
                                           await viewModel.clearDayAgenda(day); // Chama o método do ViewModel
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Horários de $day limpos com sucesso!')),
-                                            );
-                                          }
+                                          scaffoldMessenger.showSnackBar(
+                                            SnackBar(content: Text('Horários de $day limpos com sucesso!')),
+                                          );
                                         } catch (e) {
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Erro ao limpar horários: ${e.toString()}')),
-                                            );
-                                          }
+                                          scaffoldMessenger.showSnackBar(
+                                            SnackBar(content: Text('Erro ao limpar horários: ${e.toString()}')),
+                                          );
                                         }
                                       }
                                     },
@@ -154,7 +152,7 @@ class _AgendaPageState extends State<AgendaPage> {
                             const SizedBox(height: 20),
                           ],
                         );
-                      }).toList(),
+                      }),
                       const SizedBox(height: 20), // Espaço extra para o final do conteúdo rolável
                     ],
                   ),
@@ -168,19 +166,17 @@ class _AgendaPageState extends State<AgendaPage> {
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
+                            // Captura o ScaffoldMessenger ANTES do 'await'
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             try {
                               await viewModel.saveAgenda();
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Agenda salva com sucesso!')),
-                                );
-                              }
+                              scaffoldMessenger.showSnackBar(
+                                const SnackBar(content: Text('Agenda salva com sucesso!')),
+                              );
                             } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro ao salvar agenda: ${e.toString()}')),
-                                );
-                              }
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(content: Text('Erro ao salvar agenda: ${e.toString()}')),
+                              );
                             }
                           },
                     child: viewModel.isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salvar Agenda'),

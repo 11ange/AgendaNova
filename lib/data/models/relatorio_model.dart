@@ -4,16 +4,11 @@ import 'package:agendanova/domain/entities/relatorio.dart';
 // Modelo de dados para a entidade Relatorio, com métodos para serialização/desserialização do Firestore
 class RelatorioModel extends Relatorio {
   RelatorioModel({
-    required String id,
-    required String tipoRelatorio,
-    required DateTime dataGeracao,
-    required Map<String, dynamic> dados,
-  }) : super(
-         id: id,
-         tipoRelatorio: tipoRelatorio,
-         dataGeracao: dataGeracao,
-         dados: dados,
-       );
+    required super.id,
+    required super.tipoRelatorio,
+    required super.dataGeracao,
+    required super.dados,
+  });
 
   // Construtor para criar um RelatorioModel a partir de um DocumentSnapshot do Firestore
   factory RelatorioModel.fromFirestore(DocumentSnapshot doc) {

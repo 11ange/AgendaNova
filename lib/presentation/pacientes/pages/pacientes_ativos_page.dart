@@ -79,11 +79,9 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    // --- AJUSTE: Alterado para ElevatedButton para ter cor de fundo ---
                     child: ElevatedButton(
                       onPressed: () => context.go('/pacientes-inativos'),
                       style: ElevatedButton.styleFrom(
-                        // Define a cor de fundo cinza claro e a cor do texto
                         backgroundColor: Colors.grey.shade300,
                         foregroundColor: Colors.black87,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -146,15 +144,13 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
                               if (confirm == true) {
                                 try {
                                   await viewModel.inativarPaciente(paciente.id!);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Paciente inativado com sucesso!')));
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Paciente inativado com sucesso!')));
                                 } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Erro ao inativar paciente: $e')));
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Erro ao inativar paciente: $e')));
                                 }
                               }
                             },

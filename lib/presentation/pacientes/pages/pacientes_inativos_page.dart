@@ -125,15 +125,13 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
                               if (confirm == true) {
                                 try {
                                   await viewModel.reativarPaciente(paciente.id!);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Paciente reativado com sucesso!')));
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Paciente reativado com sucesso!')));
                                 } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Erro ao reativar paciente: $e')));
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Erro ao reativar paciente: $e')));
                                 }
                               }
                             },

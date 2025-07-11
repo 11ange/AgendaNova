@@ -125,20 +125,19 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                     observacoes: _observacoesController.text.isEmpty ? null : _observacoesController.text,
                     dataCadastro: DateTime.now(),
                   );
+                  // Captura os objetos dependentes do contexto ANTES do 'await'
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final navigator = Navigator.of(dialogContext);
                   try {
                     await viewModel.adicionarItem(newItem);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Adicionado à lista de espera com sucesso!')),
-                      );
-                      Navigator.of(dialogContext).pop();
-                    }
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Adicionado à lista de espera com sucesso!')),
+                    );
+                    navigator.pop();
                   } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erro ao adicionar: ${e.toString()}')),
-                      );
-                    }
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('Erro ao adicionar: ${e.toString()}')),
+                    );
                   }
                 }
               },
@@ -247,17 +246,15 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                             final confirm = await _showConfirmationDialog(context,
                                 'Confirmar Remoção', 'Tem certeza que deseja remover ${item.nome} da lista de espera?');
                             if (confirm == true) {
+                              // Captura o ScaffoldMessenger ANTES do 'await'
+                              final scaffoldMessenger = ScaffoldMessenger.of(context);
                               try {
                                 await viewModel.removerItem(item.id!);
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Removido da lista de espera com sucesso!')));
-                                }
+                                scaffoldMessenger.showSnackBar(
+                                    const SnackBar(content: Text('Removido da lista de espera com sucesso!')));
                               } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Erro ao remover: $e')));
-                                }
+                                scaffoldMessenger.showSnackBar(
+                                    SnackBar(content: Text('Erro ao remover: $e')));
                               }
                             }
                           },

@@ -7,7 +7,7 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.5), // Fundo semi-transparente
+      color: Colors.black.withAlpha(128), // Fundo semi-transparente (0.5 * 255)
       child: const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Cor branca para o indicador
@@ -16,4 +16,3 @@ class LoadingIndicator extends StatelessWidget {
     );
   }
 }
-

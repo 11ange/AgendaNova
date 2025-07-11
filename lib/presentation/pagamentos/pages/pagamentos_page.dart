@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
@@ -47,9 +46,7 @@ class PagamentosPage extends StatelessWidget {
                   elevation: 2,
                   child: ExpansionTile(
                     title: Text(paciente?.nome ?? 'Paciente não encontrado'),
-                    // --- AJUSTE 1: Subtítulo agora é a forma de pagamento ---
                     subtitle: Text('Pagamento: ${treinamento.formaPagamento}'),
-                    // --- AJUSTE 2: Trailing adicionado para exibir o status ---
                     trailing: Chip(
                       label: Text(
                         statusGeral,
@@ -128,9 +125,7 @@ class PagamentosPage extends StatelessWidget {
       children: [
         Text('Pagamento Parcelado em 3x', style: Theme.of(context).textTheme.titleMedium),
         const Divider(height: 20),
-        // Lógica para exibir as 3 parcelas aqui
         const Text('Visualização de parcelas em desenvolvimento.'),
-        // TODO: Implementar a lista de parcelas com botões de confirmação
       ],
     );
   }
@@ -157,7 +152,7 @@ class PagamentosPage extends StatelessWidget {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

@@ -80,7 +80,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
       if (isDayBlockedFlag) {
         sessoesDoDia.add(Sessao(
-          id: '${docId}-dia-bloqueado',
+          id: '$docId-dia-bloqueado',
           treinamentoId: 'dia_bloqueado_completo',
           pacienteId: 'dia_bloqueado_completo',
           pacienteNome: 'Dia Bloqueado',
@@ -131,7 +131,7 @@ class SessaoRepositoryImpl implements SessaoRepository {
           if (isDayBlockedFlag) {
             final date = DateTime.parse(docId);
             sessoesDoMes.add(Sessao(
-              id: '${docId}-dia-bloqueado',
+              id: '$docId-dia-bloqueado',
               treinamentoId: 'dia_bloqueado_completo',
               pacienteId: 'dia_bloqueado_completo',
               pacienteNome: 'Dia Bloqueado',
@@ -235,11 +235,14 @@ class SessaoRepositoryImpl implements SessaoRepository {
   @override
   void updateSessaoInBatch(WriteBatch batch, Sessao sessao) {
     if (sessao.id == null) return;
-    final parts = sessao.id!.split('-');
-    final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    // --- CORREÇÃO AQUI ---
-    // A chave do horário é reconstruída corretamente, lidando com o ":"
-    final horarioKey = parts.sublist(3).join(':');
+
+    // --- CORREÇÃO APLICADA AQUI (LÓGICA MAIS ROBUSTA) ---
+    final int lastHyphenIndex = sessao.id!.lastIndexOf('-');
+    if (lastHyphenIndex == -1) return; // ID em formato inesperado
+
+    final String docId = sessao.id!.substring(0, lastHyphenIndex);
+    final String horarioKey = sessao.id!.substring(lastHyphenIndex + 1);
+    // --- FIM DA CORREÇÃO ---
 
     final sessaoModel = SessaoModel.fromEntity(sessao);
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
@@ -248,12 +251,15 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   void deleteSessaoInBatch(WriteBatch batch, String sessaoId) {
-    final parts = sessaoId.split('-');
-    final docId = '${parts[0]}-${parts[1]}-${parts[2]}';
-    // --- CORREÇÃO AQUI ---
-    final horarioKey = parts.sublist(3).join(':');
+  // --- CORREÇÃO APLICADA AQUI (LÓGICA MAIS ROBUSTA) ---
+  final int lastHyphenIndex = sessaoId.lastIndexOf('-');
+  if (lastHyphenIndex == -1) return; // ID em formato inesperado
 
-    final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
-    batch.update(docRef, {horarioKey: FieldValue.delete()});
+  final String docId = sessaoId.substring(0, lastHyphenIndex);
+  final String horarioKey = sessaoId.substring(lastHyphenIndex + 1);
+  // --- FIM DA CORREÇÃO ---
+
+  final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
+  batch.update(docRef, {horarioKey: FieldValue.delete()});
   }
 }

@@ -242,27 +242,24 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                               try {
                                 if (widget.pacienteId == null) {
                                   await viewModel.cadastrarPaciente(newPaciente);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Paciente cadastrado com sucesso!')),
-                                    );
-                                    context.pop(); // Volta para a tela anterior
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Paciente cadastrado com sucesso!')),
+                                  );
+                                  context.pop(); // Volta para a tela anterior
                                 } else {
                                   await viewModel.editarPaciente(newPaciente);
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Paciente atualizado com sucesso!')),
-                                    );
-                                    context.pop(); // Volta para a tela anterior
-                                  }
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Paciente atualizado com sucesso!')),
+                                  );
+                                  context.pop(); // Volta para a tela anterior
                                 }
                               } catch (e) {
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Erro: ${e.toString()}')),
-                                  );
-                                }
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erro: ${e.toString()}')),
+                                );
                               }
                             }
                           },

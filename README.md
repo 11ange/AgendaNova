@@ -41,5 +41,6 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 source ~/.bashrc
 
+ flutter config --android-sdk C:\Users\lolg\android
 
 flutter run -d web-server
