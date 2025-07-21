@@ -1,3 +1,4 @@
+// lib/presentation/pacientes/pages/historico_paciente_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
@@ -7,13 +8,15 @@ import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/data/models/pagamento_model.dart';
 
 class HistoricoPacientePage extends StatelessWidget {
   final String pacienteId;
 
   const HistoricoPacientePage({super.key, required this.pacienteId});
 
-  // Função auxiliar para construir o texto de pagamento
   String _buildPagamentoText(Treinamento treinamento) {
     String texto = 'Pagamento: ${treinamento.formaPagamento}';
     if (treinamento.formaPagamento == 'Convenio') {
@@ -59,6 +62,7 @@ class HistoricoPacientePage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final treinamento = viewModel.treinamentos[index];
                     final sessoes = viewModel.sessoesPorTreinamento[treinamento.id] ?? [];
+                    final pagamentos = viewModel.pagamentosPorTreinamento[treinamento.id] ?? [];
                     final sessoesRealizadas = sessoes.where((s) => s.status == 'Realizada').length;
 
                     return Card(
@@ -69,7 +73,7 @@ class HistoricoPacientePage extends StatelessWidget {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 2), // Pequeno espaçamento
+                            const SizedBox(height: 2),
                             Text('${treinamento.status.toUpperCase()} | $sessoesRealizadas de ${treinamento.numeroSessoesTotal} sessões realizadas'),
                             const SizedBox(height: 4),
                             Text(
@@ -79,21 +83,26 @@ class HistoricoPacientePage extends StatelessWidget {
                                 color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.9 * 255).toInt()),
                               ),
                             ),
+                            // Mostra os detalhes de pagamento diretamente no subtítulo
+                            _buildPagamentoSubtitle(context, treinamento, pagamentos),
                           ],
                         ),
                         children: sessoes.isEmpty
                             ? [const ListTile(title: Text('Nenhuma sessão encontrada para este treinamento.'))]
                             : sessoes.map((sessao) {
-                                String pagamentoInfo;
-                                if (sessao.statusPagamento == 'Realizado' && sessao.dataPagamento != null) {
-                                  pagamentoInfo = 'Pagamento em ${DateFormatter.formatDate(sessao.dataPagamento!)}';
-                                } else {
-                                  pagamentoInfo = 'Pagamento: ${sessao.statusPagamento}';
+                                String pagamentoInfo = '';
+                                // Remove a informação de pagamento da sessão para Convenio e 3x
+                                if (treinamento.formaPagamento != 'Convenio' && treinamento.tipoParcelamento != '3x') {
+                                  if (sessao.statusPagamento == 'Realizado' && sessao.dataPagamento != null) {
+                                    pagamentoInfo = ' | Pagamento em ${DateFormatter.formatDate(sessao.dataPagamento!)}';
+                                  } else {
+                                    pagamentoInfo = ' | Pagamento: ${sessao.statusPagamento}';
+                                  }
                                 }
 
                                 return ListTile(
                                   title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)} às ${DateFormat.Hm().format(sessao.dataHora)}'),
-                                  subtitle: Text('Status: ${sessao.status} | $pagamentoInfo'),
+                                  subtitle: Text('Status: ${sessao.status}$pagamentoInfo'),
                                   dense: true,
                                 );
                               }).toList(),
@@ -107,5 +116,61 @@ class HistoricoPacientePage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  // Widget para construir os subtítulos de pagamento
+  Widget _buildPagamentoSubtitle(BuildContext context, Treinamento treinamento, List<Pagamento> pagamentos) {
+    final textStyle = TextStyle(
+      fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
+      color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha((0.9 * 255).toInt()),
+      fontWeight: FontWeight.bold,
+    );
+
+    // Lógica para Convênio
+    if (treinamento.formaPagamento == 'Convenio') {
+      final pagamentoConvenio = pagamentos.isNotEmpty ? pagamentos.first : null;
+      final String statusText = (pagamentoConvenio != null && pagamentoConvenio.status == 'Realizado' && pagamentoConvenio.dataEnvioGuia != null)
+          ? 'Guia enviada em ${DateFormatter.formatDate(pagamentoConvenio.dataEnvioGuia!)}'
+          : 'Pagamento: Pendente';
+      return Padding(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: Text(statusText, style: textStyle),
+      );
+    }
+
+    // Lógica para 3x
+    if (treinamento.tipoParcelamento == '3x') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: List.generate(3, (index) {
+          final parcelaNum = index + 1;
+          final pagamentoDaParcela = pagamentos.firstWhere(
+            (p) => p.parcelaNumero == parcelaNum,
+            orElse: () => PagamentoModel(
+                treinamentoId: treinamento.id!,
+                pacienteId: treinamento.pacienteId,
+                formaPagamento: treinamento.formaPagamento,
+                status: 'Pendente',
+                dataPagamento: DateTime.now(),
+                parcelaNumero: parcelaNum,
+                totalParcelas: 3),
+          );
+          final bool isPaga = pagamentoDaParcela.status == 'Realizado';
+          final String statusText = isPaga ? 'Paga em ${DateFormatter.formatDate(pagamentoDaParcela.dataPagamento)}' : 'Pendente';
+
+          return Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              '$parcelaNumª Parcela: $statusText',
+              style: textStyle.copyWith(
+                color: isPaga ? Colors.green : Colors.orange,
+              ),
+            ),
+          );
+        }),
+      );
+    }
+
+    return const SizedBox.shrink(); // Retorna nada para outros tipos de pagamento
   }
 }

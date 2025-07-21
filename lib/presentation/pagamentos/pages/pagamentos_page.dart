@@ -1,4 +1,4 @@
-// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/presentation/pagamentos/pages/pagamentos_page.dart
+// lib/presentation/pagamentos/pages/pagamentos_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';

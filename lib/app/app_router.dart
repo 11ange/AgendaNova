@@ -1,3 +1,5 @@
+// lib/app/app_router.dart
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/auth/pages/login_page.dart';
 import 'package:agendanova/presentation/home/pages/home_page.dart';
@@ -15,10 +17,13 @@ import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewm
 import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
+import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // 1. Importe o ViewModel
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/home',
     routes: <GoRoute>[
       GoRoute(
         path: '/login',
@@ -30,7 +35,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/pacientes-ativos',
-        builder: (context, state) => const PacientesAtivosPage(),
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (_) => PacientesAtivosViewModel(),
+          child: const PacientesAtivosPage(),
+        ),
         routes: [
           GoRoute(
             path: 'novo',
@@ -57,7 +65,11 @@ class AppRouter {
       ),
       GoRoute(
         path: '/pacientes-inativos',
-        builder: (context, state) => const PacientesInativosPage(),
+        // 2. Envolva a rota com o Provider
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (_) => PacientesInativosViewModel(),
+          child: const PacientesInativosPage(),
+        ),
       ),
       GoRoute(
         path: '/agenda',
@@ -89,5 +101,23 @@ class AppRouter {
         ),
       ),
     ],
+    redirect: (context, state) {
+      if (kDebugMode) {
+        return null;
+      }
+
+      final bool loggedIn = FirebaseService.instance.getCurrentUser() != null;
+      final bool isLoggingIn = state.matchedLocation == '/login';
+
+      if (!loggedIn && !isLoggingIn) {
+        return '/login';
+      }
+
+      if (loggedIn && isLoggingIn) {
+        return '/home';
+      }
+
+      return null;
+    },
   );
 }

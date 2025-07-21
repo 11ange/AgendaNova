@@ -1,9 +1,11 @@
+// lib/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agendanova/domain/entities/pagamento.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
@@ -17,6 +19,7 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   Paciente? _paciente;
   List<Treinamento> _treinamentos = [];
   Map<String, List<Sessao>> _sessoesPorTreinamento = {};
+  final Map<String, List<Pagamento>> _pagamentosPorTreinamento = {};
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -24,13 +27,13 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   Paciente? get paciente => _paciente;
   List<Treinamento> get treinamentos => _treinamentos;
   Map<String, List<Sessao>> get sessoesPorTreinamento => _sessoesPorTreinamento;
+  Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento; // Getter corrigido
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
   Future<void> loadHistorico(String pacienteId) async {
     _setLoading(true);
     try {
-      // Carrega o paciente e os treinamentos em paralelo
       final results = await Future.wait([
         _pacienteRepository.getPacienteById(pacienteId),
         _treinamentoRepository.getTreinamentosByPacienteId(pacienteId).first,
@@ -43,13 +46,18 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
       treinamentos.sort((a, b) => b.dataInicio.compareTo(a.dataInicio));
       _treinamentos = treinamentos;
 
-      // Para cada treinamento, carrega as suas sessões
       final Map<String, List<Sessao>> sessoesMap = {};
+      _pagamentosPorTreinamento.clear();
+
       for (final treinamento in _treinamentos) {
         if (treinamento.id != null) {
           final sessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamento.id!);
           sessoes.sort((a, b) => a.dataHora.compareTo(b.dataHora));
           sessoesMap[treinamento.id!] = sessoes;
+
+          if (treinamento.pagamentos != null) {
+            _pagamentosPorTreinamento[treinamento.id!] = treinamento.pagamentos!;
+          }
         }
       }
       _sessoesPorTreinamento = sessoesMap;

@@ -1,4 +1,4 @@
-// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart
+// lib/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -74,6 +74,7 @@ class PagamentosViewModel extends ChangeNotifier {
       formaPagamento: treinamento.formaPagamento,
       status: 'Realizado',
       dataPagamento: dataPagamento,
+      dataEnvioGuia: dataPagamento, // CORREÇÃO AQUI
     );
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [novoPagamento]);
@@ -85,7 +86,10 @@ class PagamentosViewModel extends ChangeNotifier {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null || treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty) return;
 
-    final pagamentoAtualizado = treinamento.pagamentos!.first.copyWith(dataPagamento: novaData);
+    final pagamentoAtualizado = treinamento.pagamentos!.first.copyWith(
+      dataPagamento: novaData,
+      dataEnvioGuia: novaData, // CORREÇÃO AQUI
+    );
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamentoAtualizado]);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
     await loadData();
@@ -99,7 +103,6 @@ class PagamentosViewModel extends ChangeNotifier {
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
     await loadData();
   }
-
 
   Future<void> confirmarPagamentoParcela(Treinamento treinamento, int parcelaNum, DateTime dataPagamento) async {
     final novoPagamento = Pagamento(
@@ -147,7 +150,6 @@ class PagamentosViewModel extends ChangeNotifier {
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
     await loadData();
   }
-
 
   void _setLoading(bool value) {
     if (_isLoading != value) {
