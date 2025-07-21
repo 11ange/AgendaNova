@@ -1,3 +1,5 @@
+// lib/core/services/firebase_service.dart
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,6 +36,19 @@ class FirebaseService {
       throw Exception('Erro desconhecido ao fazer login: $e');
     }
   }
+  
+  // NOVO MÉTODO: Cria um novo usuário com e-mail e senha
+  Future<UserCredential> createUserWithEmailAndPassword(String email, String password) async {
+    try {
+      return await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      // Trata erros comuns como e-mail já em uso ou senha fraca
+      throw Exception('Erro ao criar usuário: ${e.message}');
+    } catch (e) {
+      throw Exception('Erro desconhecido ao criar usuário: $e');
+    }
+  }
+
 
   // Realiza o logout
   Future<void> signOut() async {
@@ -49,7 +64,7 @@ class FirebaseService {
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   // --- Métodos do Firestore ---
-
+  // ... (o resto do arquivo continua igual)
   // Obtém uma referência para uma coleção
   CollectionReference<Map<String, dynamic>> getCollectionRef(String collectionPath) {
     return _firestore.collection(collectionPath);
@@ -139,4 +154,3 @@ class FirebaseService {
     return await query.get();
   }
 }
-

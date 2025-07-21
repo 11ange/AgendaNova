@@ -1,10 +1,10 @@
-// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/presentation/auth/pages/login_page.dart
+// lib/presentation/auth/pages/login_page.dart
+import 'package:flutter/foundation.dart'; // 1. Import adicionado para corrigir o erro
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-// Tela de Login do aplicativo
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final _formKey =
-      GlobalKey<FormState>(); // Chave para o formulário de validação
+      GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -27,7 +27,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Usando ChangeNotifierProvider para fornecer o LoginViewModel
     return ChangeNotifierProvider(
       create: (_) => LoginViewModel(),
       child: Scaffold(
@@ -38,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
-            child: Column( // Adicionado Column para empilhar o ícone e o card
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
@@ -73,8 +72,10 @@ class _LoginPageState extends State<LoginPage> {
                               prefixIcon: Icon(Icons.person),
                             ),
                             keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              // Não valida se os campos forem deixados vazios para permitir o bypass
+                             validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira um e-mail.';
+                              }
                               return null;
                             },
                           ),
@@ -87,70 +88,78 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             obscureText: true,
                             validator: (value) {
-                              // Não valida se os campos forem deixados vazios para permitir o bypass
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor, insira uma senha.';
+                              }
+                              if (value.length < 6) {
+                                return 'A senha deve ter no mínimo 6 caracteres.';
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 32.0),
                           Consumer<LoginViewModel>(
                             builder: (context, viewModel, child) {
-                              return viewModel.isLoading
-                                  ? const CircularProgressIndicator()
-                                  : SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          final email = _emailController.text
-                                              .trim();
-                                          final password = _passwordController.text
-                                              .trim();
+                              if (viewModel.isLoading) {
+                                return const CircularProgressIndicator();
+                              }
+                              return Column(
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        if (kDebugMode && _emailController.text.isEmpty && _passwordController.text.isEmpty) {
+                                           context.go('/home');
+                                           return;
+                                        }
 
-                                          // Se ambos os campos estiverem vazios, avança sem autenticar
-                                          if (email.isEmpty && password.isEmpty) {
-                                            context.go('/home');
-                                          } else {
-                                            // Se os campos não estiverem vazios, tenta autenticar
-                                            if (_formKey.currentState!.validate()) {
-                                              // Captura os objetos dependentes do contexto ANTES do 'await'
-                                              final navigator = GoRouter.of(context);
-                                              final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                              try {
-                                                await viewModel.signIn(
-                                                  email,
-                                                  password,
-                                                );
-                                                // Se o login for bem-sucedido, navega para a tela inicial
-                                                navigator.go('/home');
-                                              } catch (e) {
-                                                // Exibe mensagem de erro
-                                                scaffoldMessenger.showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Erro de login: ${e.toString()}',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            }
+                                        if (_formKey.currentState!.validate()) {
+                                          final email = _emailController.text.trim();
+                                          final password = _passwordController.text.trim();
+                                          final navigator = GoRouter.of(context);
+                                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                          try {
+                                            await viewModel.signIn(email, password);
+                                            navigator.go('/home');
+                                          } catch (e) {
+                                            scaffoldMessenger.showSnackBar(
+                                              SnackBar(content: Text(e.toString())),
+                                            );
                                           }
-                                        },
-                                        child: const Text('Entrar'),
-                                      ),
-                                    );
-                            },
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Funcionalidade "Esqueceu a senha?" em desenvolvimento.',
+                                        }
+                                      },
+                                      child: const Text('Entrar'),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          final email = _emailController.text.trim();
+                                          final password = _passwordController.text.trim();
+                                          // 2. Variável 'navigator' removida daqui
+                                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                          try {
+                                            await viewModel.signUp(email, password);
+                                            scaffoldMessenger.showSnackBar(
+                                              const SnackBar(content: Text('Usuário criado com sucesso! Por favor, faça o login.')),
+                                            );
+                                          } catch (e) {
+                                            scaffoldMessenger.showSnackBar(
+                                              SnackBar(content: Text(e.toString())),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      child: const Text('Cadastrar Novo Usuário'),
+                                    ),
+                                  ),
+                                ],
                               );
                             },
-                            child: const Text('Esqueceu a senha?'),
                           ),
                         ],
                       ),

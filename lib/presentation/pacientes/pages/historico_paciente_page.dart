@@ -9,7 +9,6 @@ import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/data/models/pagamento_model.dart';
 
 class HistoricoPacientePage extends StatelessWidget {

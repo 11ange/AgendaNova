@@ -1,3 +1,5 @@
+// lib/presentation/auth/viewmodels/login_viewmodel.dart
+
 import 'package:flutter/material.dart';
 import 'package:agendanova/core/services/firebase_service.dart';
 
@@ -23,6 +25,19 @@ class LoginViewModel extends ChangeNotifier {
       _setLoading(false);
     }
   }
+  
+  // NOVO MÉTODO: Realiza o processo de cadastro
+  Future<void> signUp(String email, String password) async {
+    _setLoading(true);
+    try {
+      await _firebaseService.createUserWithEmailAndPassword(email, password);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
 
   // Define o estado de carregamento e notifica os ouvintes
   void _setLoading(bool value) {
@@ -30,4 +45,3 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-
