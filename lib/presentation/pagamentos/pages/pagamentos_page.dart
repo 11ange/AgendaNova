@@ -1,3 +1,4 @@
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/presentation/pagamentos/pages/pagamentos_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,12 +8,16 @@ import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/entities/pagamento.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:agendanova/data/models/pagamento_model.dart';
 
 class PagamentosPage extends StatelessWidget {
   const PagamentosPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold);
+    final subtitleStyle = Theme.of(context).textTheme.bodyMedium;
+
     return ChangeNotifierProvider(
       create: (_) => PagamentosViewModel(),
       child: Scaffold(
@@ -36,28 +41,53 @@ class PagamentosPage extends StatelessWidget {
                 final treinamento = viewModel.treinamentosAtivos[index];
                 final paciente = viewModel.getPacienteById(treinamento.pacienteId);
                 final pagamentos = viewModel.pagamentosPorTreinamento[treinamento.id] ?? [];
-                
-                // Lógica para determinar o status geral do pagamento
-                final bool isPago = pagamentos.any((p) => p.status == 'Realizado');
-                final String statusGeral = isPago ? 'Concluído' : 'Pendente';
+
+                final String statusGeral;
+                final Color statusColor;
+
+                if (treinamento.tipoParcelamento == '3x') {
+                  final parcelasPagas = pagamentos.where((p) => p.status == 'Realizado').length;
+                  if (parcelasPagas == 3) {
+                    statusGeral = 'Pago';
+                    statusColor = Colors.green;
+                  } else if (parcelasPagas > 0) {
+                    statusGeral = 'Parcial';
+                    statusColor = Colors.orange;
+                  } else {
+                    statusGeral = 'Pendente';
+                    statusColor = Colors.red;
+                  }
+                } else {
+                   final bool isPago = pagamentos.any((p) => p.status == 'Realizado');
+                   statusGeral = isPago ? 'Pago' : 'Pendente';
+                   statusColor = isPago ? Colors.green : Colors.red;
+                }
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   elevation: 2,
                   child: ExpansionTile(
-                    title: Text(paciente?.nome ?? 'Paciente não encontrado'),
-                    subtitle: Text('Pagamento: ${treinamento.formaPagamento}'),
-                    trailing: Chip(
-                      label: Text(
-                        statusGeral,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      backgroundColor: isPago ? Colors.green : Colors.orange,
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    title: Text(paciente?.nome ?? 'Paciente não encontrado', style: titleStyle),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${DateFormatter.formatDate(treinamento.dataInicio)} - ${DateFormatter.formatDate(treinamento.dataFimPrevista)} às ${treinamento.horario}',
+                          style: subtitleStyle,
+                        ),
+                        Text(
+                          'Pagamento: ${treinamento.formaPagamento}${treinamento.tipoParcelamento != null ? ' (${treinamento.tipoParcelamento})' : ''}',
+                          style: subtitleStyle,
+                        ),
+                      ],
+                    ),
+                    trailing: Text(
+                      statusGeral,
+                      style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
                     ),
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: _buildPagamentoDetails(context, viewModel, treinamento, pagamentos),
                       )
                     ],
@@ -80,76 +110,253 @@ class PagamentosPage extends StatelessWidget {
       final sessoes = viewModel.sessoesPorTreinamento[treinamento.id] ?? [];
       return _buildPorSessaoDetails(context, viewModel, treinamento, sessoes);
     }
-    return const Text('Forma de pagamento não especificada.');
+    return const SizedBox.shrink();
   }
 
-  // --- WIDGETS PARA CADA TIPO DE PAGAMENTO ---
-
   Widget _buildConvenioDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) {
-    final bool pago = pagamento?.status == 'Realizado';
+    final textStyle = Theme.of(context).textTheme.bodyMedium;
+    final bool isPaga = pagamento?.status == 'Realizado';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Detalhes do Convênio: ${treinamento.nomeConvenio ?? ''}', style: Theme.of(context).textTheme.titleMedium),
-        const Divider(height: 20),
-        if (pagamento != null) ...[
-          Text('Guia: ${pagamento.guiaConvenio ?? 'Não informada'}'),
-          Text('Data de Envio: ${pagamento.dataEnvioGuia != null ? DateFormatter.formatDate(pagamento.dataEnvioGuia!) : 'Não informada'}'),
-          const SizedBox(height: 8),
-          Text(
-            'Status do Pagamento: ${pagamento.status}',
-            style: TextStyle(fontWeight: FontWeight.bold, color: pago ? Colors.green : Colors.orange),
-          ),
-          if (pago) Text('Confirmado em: ${DateFormatter.formatDate(pagamento.dataPagamento)}')
-        ] else ...[
-          const Text('Nenhum registro de pagamento de convênio encontrado.'),
-        ],
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () { /* Lógica do Pop-up para confirmar/editar dados do convênio */ },
-            icon: Icon(pago ? Icons.check_circle : Icons.payment),
-            label: Text(pago ? 'Pagamento Confirmado' : 'Confirmar Pagamento'),
-            style: ElevatedButton.styleFrom(backgroundColor: pago ? Colors.green : Theme.of(context).primaryColor),
-          ),
+    return ListTile(
+      dense: true,
+      title: Text('Data envio da guia', style: textStyle),
+      trailing: Text(
+        isPaga ? 'Pago - ${DateFormatter.formatDate(pagamento!.dataPagamento)}' : 'Pendente',
+        style: textStyle?.copyWith(
+          color: isPaga ? Colors.green : Colors.orange,
+          fontWeight: FontWeight.bold,
         ),
-      ],
+      ),
+      onTap: () => _showConvenioDateEntryDialog(context, viewModel, treinamento, pagamento),
     );
   }
 
   Widget _buildParceladoDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, List<Pagamento> pagamentos) {
-     return Column(
+    final textStyle = Theme.of(context).textTheme.bodyMedium;
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Pagamento Parcelado em 3x', style: Theme.of(context).textTheme.titleMedium),
-        const Divider(height: 20),
-        const Text('Visualização de parcelas em desenvolvimento.'),
+        ...List.generate(3, (index) {
+          final parcelaNum = index + 1;
+          final pagamentoDaParcela = pagamentos.firstWhere(
+            (p) => p.parcelaNumero == parcelaNum,
+            orElse: () => PagamentoModel(
+                treinamentoId: treinamento.id!,
+                pacienteId: treinamento.pacienteId,
+                formaPagamento: treinamento.formaPagamento,
+                status: 'Pendente',
+                dataPagamento: DateTime.now(),
+                parcelaNumero: parcelaNum,
+                totalParcelas: 3),
+          );
+
+          final bool isPaga = pagamentoDaParcela.status == 'Realizado';
+
+          return ListTile(
+            dense: true,
+            title: Text('$parcelaNumª Parcela', style: textStyle),
+            trailing: Text(
+              isPaga ? 'Pago - ${DateFormatter.formatDate(pagamentoDaParcela.dataPagamento)}' : 'Pendente',
+              style: textStyle?.copyWith(
+                color: isPaga ? Colors.green : Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onTap: () => _showParcelaDateEntryDialog(context, viewModel, treinamento, pagamentoDaParcela),
+          );
+        }),
       ],
+    );
+  }
+
+   Future<void> _showConvenioDateEntryDialog(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) async {
+    final dataPagamentoController = TextEditingController();
+    DateTime? dataPagamentoSelecionada = pagamento?.status == 'Realizado' ? pagamento!.dataPagamento : DateTime.now();
+    dataPagamentoController.text = DateFormatter.formatDate(dataPagamentoSelecionada);
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Pagamento do Convênio'),
+              content: GestureDetector(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: dataPagamentoSelecionada ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      dataPagamentoSelecionada = picked;
+                      dataPagamentoController.text = DateFormatter.formatDate(picked);
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: dataPagamentoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Data do Pagamento',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar')),
+                if (pagamento?.status == 'Realizado') ...[
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await viewModel.reverterPagamentoConvenio(treinamento.id!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Reverter Pagamento', style: TextStyle(color: Colors.red)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await viewModel.updateDataPagamentoConvenio(treinamento.id!, dataPagamentoSelecionada!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Atualizar Data'),
+                  )
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: () async {
+                       try {
+                        await viewModel.confirmarPagamentoConvenio(treinamento, dataPagamentoSelecionada!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Confirmar'),
+                  )
+                ]
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+   Future<void> _showParcelaDateEntryDialog(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento parcela) async {
+    final dataPagamentoController = TextEditingController();
+    DateTime? dataPagamentoSelecionada = parcela.status == 'Realizado' ? parcela.dataPagamento : DateTime.now();
+    dataPagamentoController.text = DateFormatter.formatDate(dataPagamentoSelecionada);
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Pagamento da ${parcela.parcelaNumero}ª Parcela'),
+              content: GestureDetector(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: dataPagamentoSelecionada ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      dataPagamentoSelecionada = picked;
+                      dataPagamentoController.text = DateFormatter.formatDate(picked);
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: dataPagamentoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Data do Pagamento',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar')),
+                if (parcela.status == 'Realizado') ...[
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await viewModel.reverterPagamentoParcela(treinamento.id!, parcela.parcelaNumero!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Reverter Pagamento', style: TextStyle(color: Colors.red)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await viewModel.updateDataPagamentoParcela(treinamento.id!, parcela.parcelaNumero!, dataPagamentoSelecionada!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Atualizar Data'),
+                  )
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: () async {
+                       try {
+                        await viewModel.confirmarPagamentoParcela(treinamento, parcela.parcelaNumero!, dataPagamentoSelecionada!);
+                        if (!dialogContext.mounted) return;
+                        Navigator.of(dialogContext).pop();
+                      } catch (e) {
+                         ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                      }
+                    },
+                    child: const Text('Confirmar'),
+                  )
+                ]
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildPorSessaoDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, List<Sessao> sessoes) {
     if (sessoes.isEmpty) return const Center(child: Text('Nenhuma sessão encontrada.'));
+    final textStyle = Theme.of(context).textTheme.bodyMedium;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Pagamento por Sessão', style: Theme.of(context).textTheme.titleMedium),
-        const Divider(height: 20),
         ...sessoes.map((sessao) {
           final bool pago = sessao.statusPagamento == 'Realizado';
-          return Card(
-            elevation: 1,
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            child: ListTile(
-              title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)}'),
-              subtitle: Text(sessao.status),
-              trailing: Text(
-                sessao.statusPagamento,
-                style: TextStyle(color: pago ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
-              ),
+          return ListTile(
+            dense: true,
+            title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)}', style: textStyle),
+            trailing: Text(
+              sessao.statusPagamento,
+              style: textStyle?.copyWith(color: pago ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
             ),
           );
         }),

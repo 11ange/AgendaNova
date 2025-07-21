@@ -1,5 +1,7 @@
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/data/models/treinamento_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agendanova/data/models/pagamento_model.dart';
 
 // Modelo de dados para a entidade Treinamento, com métodos para serialização/desserialização do Firestore
 class TreinamentoModel extends Treinamento {
@@ -16,6 +18,7 @@ class TreinamentoModel extends Treinamento {
     super.tipoParcelamento,
     super.nomeConvenio,
     required super.dataCadastro,
+    super.pagamentos,
   });
 
   // Construtor para criar um TreinamentoModel a partir de um DocumentSnapshot do Firestore
@@ -34,6 +37,9 @@ class TreinamentoModel extends Treinamento {
       tipoParcelamento: data['tipoParcelamento'] as String?,
       nomeConvenio: data['nomeConvenio'] as String?, // --- NOVO CAMPO ---
       dataCadastro: (data['dataCadastro'] as Timestamp).toDate(),
+      pagamentos: (data['pagamentos'] as List<dynamic>?)
+          ?.map((p) => PagamentoModel.fromMap(p as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -51,6 +57,7 @@ class TreinamentoModel extends Treinamento {
       'tipoParcelamento': tipoParcelamento,
       'nomeConvenio': nomeConvenio, // --- NOVO CAMPO ---
       'dataCadastro': Timestamp.fromDate(dataCadastro),
+      'pagamentos': pagamentos?.map((p) => PagamentoModel.fromEntity(p).toFirestore()).toList(),
     };
   }
 
@@ -69,6 +76,7 @@ class TreinamentoModel extends Treinamento {
       tipoParcelamento: treinamento.tipoParcelamento,
       nomeConvenio: treinamento.nomeConvenio, // --- NOVO CAMPO ---
       dataCadastro: treinamento.dataCadastro,
+      pagamentos: treinamento.pagamentos,
     );
   }
 }

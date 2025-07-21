@@ -1,3 +1,4 @@
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/domain/entities/pagamento.dart
 // Entidade pura de domínio para Pagamento
 class Pagamento {
   final String? id; // ID do documento no Firestore
@@ -10,6 +11,8 @@ class Pagamento {
   final String? observacoes;
   final String? guiaConvenio; // --- NOVO CAMPO ---
   final DateTime? dataEnvioGuia; // --- NOVO CAMPO ---
+  final int? parcelaNumero;
+  final int? totalParcelas;
 
   Pagamento({
     this.id,
@@ -22,6 +25,8 @@ class Pagamento {
     this.observacoes,
     this.guiaConvenio,
     this.dataEnvioGuia,
+    this.parcelaNumero,
+    this.totalParcelas,
   });
 
   // Método para criar uma cópia da entidade com campos atualizados
@@ -36,6 +41,8 @@ class Pagamento {
     String? observacoes,
     String? guiaConvenio,
     DateTime? dataEnvioGuia,
+    int? parcelaNumero,
+    int? totalParcelas,
   }) {
     return Pagamento(
       id: id ?? this.id,
@@ -48,6 +55,8 @@ class Pagamento {
       observacoes: observacoes ?? this.observacoes,
       guiaConvenio: guiaConvenio ?? this.guiaConvenio,
       dataEnvioGuia: dataEnvioGuia ?? this.dataEnvioGuia,
+      parcelaNumero: parcelaNumero ?? this.parcelaNumero,
+      totalParcelas: totalParcelas ?? this.totalParcelas,
     );
   }
 }

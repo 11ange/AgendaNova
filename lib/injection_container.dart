@@ -1,3 +1,4 @@
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/injection_container.dart
 import 'package:get_it/get_it.dart';
 import 'package:agendanova/core/services/firebase_service.dart';
 import 'package:agendanova/data/datasources/firebase_datasource.dart';
@@ -69,7 +70,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DefinirAgendaUseCase(sl()));
   sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl(), sl()));
-  sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl(), sl(), sl()));
+  sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl())); // CORRIGIDO AQUI
   sl.registerLazySingleton(() => ReverterPagamentoUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => GerarRelatorioMensalGlobalUseCase(sl(), sl(), sl()));
   sl.registerLazySingleton(() => GerarRelatorioIndividualPacienteUseCase(sl(), sl(), sl()));

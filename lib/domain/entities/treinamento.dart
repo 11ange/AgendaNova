@@ -1,4 +1,5 @@
-//import 'package:agendanova/domain/entities/paciente.dart';
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/domain/entities/treinamento.dart
+import 'package:agendanova/domain/entities/pagamento.dart';
 
 // Entidade pura de domínio para Treinamento
 class Treinamento {
@@ -14,6 +15,7 @@ class Treinamento {
   final String? tipoParcelamento; // "Por sessão", "3x" (para Dinheiro/Pix)
   final String? nomeConvenio; // --- NOVO CAMPO ---
   final DateTime dataCadastro;
+  final List<Pagamento>? pagamentos;
 
   Treinamento({
     this.id,
@@ -28,6 +30,7 @@ class Treinamento {
     this.tipoParcelamento,
     this.nomeConvenio, // --- NOVO CAMPO ---
     required this.dataCadastro,
+    this.pagamentos,
   });
 
   // Método para criar uma cópia da entidade com campos atualizados
@@ -44,6 +47,7 @@ class Treinamento {
     String? tipoParcelamento,
     String? nomeConvenio, // --- NOVO CAMPO ---
     DateTime? dataCadastro,
+    List<Pagamento>? pagamentos,
   }) {
     return Treinamento(
       id: id ?? this.id,
@@ -58,6 +62,7 @@ class Treinamento {
       tipoParcelamento: tipoParcelamento ?? this.tipoParcelamento,
       nomeConvenio: nomeConvenio ?? this.nomeConvenio, // --- NOVO CAMPO ---
       dataCadastro: dataCadastro ?? this.dataCadastro,
+      pagamentos: pagamentos ?? this.pagamentos,
     );
   }
 }

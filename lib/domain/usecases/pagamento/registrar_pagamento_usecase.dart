@@ -1,19 +1,13 @@
+// 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/domain/usecases/pagamento/registrar_pagamento_usecase.dart
 import 'package:agendanova/domain/entities/pagamento.dart';
-//import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/domain/repositories/pagamento_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
 
-// Use case para registrar um novo pagamento
+// Use case para registrar o pagamento de um convênio.
 class RegistrarPagamentoUseCase {
-  final PagamentoRepository _pagamentoRepository;
   final TreinamentoRepository _treinamentoRepository;
-  final SessaoRepository _sessaoRepository;
 
   RegistrarPagamentoUseCase(
-    this._pagamentoRepository,
     this._treinamentoRepository,
-    this._sessaoRepository,
   );
 
   Future<void> call({
@@ -29,7 +23,8 @@ class RegistrarPagamentoUseCase {
       throw Exception('Treinamento não encontrado.');
     }
 
-    // Regra de Negócio: Para convênios, o pagamento é registrado para o treinamento inteiro.
+    // Regra de Negócio: Este use case agora trata especificamente do pagamento por convênio,
+    // que é um pagamento único registrado no treinamento.
     if (formaPagamento == 'Convenio') {
       if (guiaConvenio == null || guiaConvenio.isEmpty) {
         throw Exception('Número da guia é obrigatório para pagamento por convênio.');
@@ -37,53 +32,26 @@ class RegistrarPagamentoUseCase {
       if (dataEnvioGuia == null) {
         throw Exception('Data de envio da guia é obrigatória para pagamento por convênio.');
       }
-      // Criar um único registro de pagamento para o treinamento
+      
+      // Cria o objeto de pagamento
       final pagamento = Pagamento(
         treinamentoId: treinamentoId,
         pacienteId: pacienteId,
         formaPagamento: formaPagamento,
-        status: 'Realizado', // Pagamento por convênio é considerado realizado ao registrar a guia
-        dataPagamento: DateTime.now(),
+        status: 'Realizado', 
+        dataPagamento: dataEnvioGuia, // A data do pagamento é a data de envio da guia
         guiaConvenio: guiaConvenio,
         dataEnvioGuia: dataEnvioGuia,
       );
-      await _pagamentoRepository.addPagamento(pagamento);
 
-      // Marcar todas as sessões do treinamento como pagas (se ainda não estiverem)
-      final sessoes = await _sessaoRepository.getSessoesByTreinamentoId(treinamentoId).first;
-      for (var sessao in sessoes) {
-        if (sessao.statusPagamento == 'Pendente') {
-          await _sessaoRepository.updateSessao(
-            sessao.copyWith(statusPagamento: 'Realizado', dataPagamento: DateTime.now()),
-          );
-        }
-      }
-    }
-    // Regra de Negócio: Para PIX ou Dinheiro é possível selecionar o parcelamento: Por sessão ou 3x.
-    else if (formaPagamento == 'Pix' || formaPagamento == 'Dinheiro') {
-      if (tipoParcelamento == 'Por sessão') {
-        // O pagamento por sessão é gerenciado diretamente na sessão, não aqui.
-        // Este use case seria para pagamentos avulsos ou parcelas de 3x.
-        throw Exception('Pagamento por sessão é gerenciado na sessão individualmente.');
-      } else if (tipoParcelamento == '3x') {
-        // TODO: Lógica para registrar parcelas de 3x
-        // Isso exigiria um mecanismo para rastrear as parcelas e seus status.
-        // Por enquanto, vamos criar um registro de pagamento genérico.
-        final pagamento = Pagamento(
-          treinamentoId: treinamentoId,
-          pacienteId: pacienteId,
-          formaPagamento: formaPagamento,
-          tipoParcelamento: tipoParcelamento,
-          status: 'Realizado', // Considera a parcela como realizada ao ser registrada
-          dataPagamento: DateTime.now(),
-          observacoes: 'Parcela de 3x (implementação futura)',
-        );
-        await _pagamentoRepository.addPagamento(pagamento);
-      } else {
-        throw Exception('Tipo de parcelamento inválido para Pix/Dinheiro.');
-      }
+      // Adiciona o pagamento à lista de pagamentos do treinamento e atualiza o documento.
+      final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamento]);
+      await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+
     } else {
-      throw Exception('Forma de pagamento inválida.');
+      // Outras formas de pagamento como "3x" e "Por sessão" são gerenciadas
+      // diretamente na tela de pagamentos (PagamentosViewModel).
+      throw UnsupportedError('Este use case é destinado apenas para pagamentos de convênio.');
     }
   }
 }
