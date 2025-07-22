@@ -1,9 +1,10 @@
 // lib/presentation/auth/pages/login_page.dart
-import 'package:flutter/foundation.dart'; // 1. Import adicionado para corrigir o erro
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:agendanova/core/utils/snackbar_helper.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -117,15 +118,13 @@ class _LoginPageState extends State<LoginPage> {
                                         if (_formKey.currentState!.validate()) {
                                           final email = _emailController.text.trim();
                                           final password = _passwordController.text.trim();
-                                          final navigator = GoRouter.of(context);
-                                          final scaffoldMessenger = ScaffoldMessenger.of(context);
                                           try {
                                             await viewModel.signIn(email, password);
-                                            navigator.go('/home');
+                                            if (!context.mounted) return;
+                                            context.go('/home');
                                           } catch (e) {
-                                            scaffoldMessenger.showSnackBar(
-                                              SnackBar(content: Text(e.toString())),
-                                            );
+                                            if (!context.mounted) return;
+                                            SnackBarHelper.showError(context, e);
                                           }
                                         }
                                       },
@@ -140,17 +139,13 @@ class _LoginPageState extends State<LoginPage> {
                                         if (_formKey.currentState!.validate()) {
                                           final email = _emailController.text.trim();
                                           final password = _passwordController.text.trim();
-                                          // 2. Variável 'navigator' removida daqui
-                                          final scaffoldMessenger = ScaffoldMessenger.of(context);
                                           try {
                                             await viewModel.signUp(email, password);
-                                            scaffoldMessenger.showSnackBar(
-                                              const SnackBar(content: Text('Usuário criado com sucesso! Por favor, faça o login.')),
-                                            );
+                                            if (!context.mounted) return;
+                                            SnackBarHelper.showSuccess(context, 'Usuário criado com sucesso! Por favor, faça o login.');
                                           } catch (e) {
-                                            scaffoldMessenger.showSnackBar(
-                                              SnackBar(content: Text(e.toString())),
-                                            );
+                                            if (!context.mounted) return;
+                                            SnackBarHelper.showError(context, e);
                                           }
                                         }
                                       },

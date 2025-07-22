@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:agendanova/core/utils/snackbar_helper.dart'; // Importe o helper
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
@@ -46,7 +47,6 @@ class _AgendaPageState extends State<AgendaPage> {
       ),
       body: Consumer<AgendaViewModel>(
         builder: (context, viewModel, child) {
-          // **CORREÇÃO AQUI: Mostra o erro na tela**
           if (viewModel.errorMessage != null) {
             return Center(
               child: Padding(
@@ -84,7 +84,6 @@ class _AgendaPageState extends State<AgendaPage> {
                                   IconButton(
                                     icon: const Icon(Icons.delete_sweep, color: Colors.red),
                                     onPressed: () async {
-                                      final scaffoldMessenger = ScaffoldMessenger.of(context);
                                       final confirm = await showDialog<bool>(
                                         context: context,
                                         builder: (BuildContext dialogContext) {
@@ -108,13 +107,11 @@ class _AgendaPageState extends State<AgendaPage> {
                                       if (confirm == true) {
                                         try {
                                           await viewModel.clearDayAgenda(day);
-                                          scaffoldMessenger.showSnackBar(
-                                            SnackBar(content: Text('Horários de $day limpos com sucesso!')),
-                                          );
+                                          if (!context.mounted) return;
+                                          SnackBarHelper.showSuccess(context, 'Horários de $day limpos com sucesso!');
                                         } catch (e) {
-                                          scaffoldMessenger.showSnackBar(
-                                            SnackBar(content: Text('Erro ao limpar horários: ${e.toString()}')),
-                                          );
+                                          if (!context.mounted) return;
+                                          SnackBarHelper.showError(context, e);
                                         }
                                       }
                                     },
@@ -172,16 +169,13 @@ class _AgendaPageState extends State<AgendaPage> {
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
-                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             try {
                               await viewModel.saveAgenda();
-                              scaffoldMessenger.showSnackBar(
-                                const SnackBar(content: Text('Agenda salva com sucesso!')),
-                              );
+                              if (!context.mounted) return;
+                              SnackBarHelper.showSuccess(context, 'Agenda salva com sucesso!');
                             } catch (e) {
-                              scaffoldMessenger.showSnackBar(
-                                SnackBar(content: Text('Erro ao salvar agenda: ${e.toString()}')),
-                              );
+                              if (!context.mounted) return;
+                              SnackBarHelper.showError(context, e);
                             }
                           },
                     child: viewModel.isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salvar Agenda'),

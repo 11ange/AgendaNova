@@ -1,5 +1,4 @@
 // lib/app/app_router.dart
-import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/auth/pages/login_page.dart';
 import 'package:agendanova/presentation/home/pages/home_page.dart';
@@ -19,11 +18,11 @@ import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_vie
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 import 'package:agendanova/core/services/firebase_service.dart';
 import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart'; // 1. Importe o ViewModel
+import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/login', // Pode iniciar no login, o redirect cuidará do resto
     routes: <GoRoute>[
       GoRoute(
         path: '/login',
@@ -65,7 +64,6 @@ class AppRouter {
       ),
       GoRoute(
         path: '/pacientes-inativos',
-        // 2. Envolva a rota com o Provider
         builder: (context, state) => ChangeNotifierProvider(
           create: (_) => PacientesInativosViewModel(),
           child: const PacientesInativosPage(),
@@ -102,21 +100,23 @@ class AppRouter {
       ),
     ],
     redirect: (context, state) {
-      if (kDebugMode) {
-        return null;
-      }
-
+      // --- CORREÇÃO AQUI ---
+      // A verificação de kDebugMode foi removida, pois a lógica agora é robusta.
+      
       final bool loggedIn = FirebaseService.instance.getCurrentUser() != null;
       final bool isLoggingIn = state.matchedLocation == '/login';
 
+      // Se não está logado e não está indo para a tela de login, redireciona para /login
       if (!loggedIn && !isLoggingIn) {
         return '/login';
       }
 
+      // Se está logado e tentando acessar a tela de login, redireciona para /home
       if (loggedIn && isLoggingIn) {
         return '/home';
       }
 
+      // Em todos os outros casos, permite a navegação.
       return null;
     },
   );

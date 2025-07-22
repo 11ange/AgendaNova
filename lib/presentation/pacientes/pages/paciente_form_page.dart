@@ -6,6 +6,7 @@ import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewm
 import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
+import 'package:agendanova/core/utils/snackbar_helper.dart'; // <<< IMPORT ADICIONADO AQUI
 
 // Tela de formulário para cadastro e edição de pacientes
 class PacienteFormPage extends StatefulWidget {
@@ -28,9 +29,8 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
   DateTime? _dataNascimento;
   String? _afinandoCerebro;
 
-  // Referência ao ViewModel
   late PacienteFormViewModel _viewModel;
-  bool _isInitialDataLoaded = false; // Flag para controlar o carregamento inicial
+  bool _isInitialDataLoaded = false;
 
   @override
   void initState() {
@@ -38,17 +38,14 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
     _viewModel = Provider.of<PacienteFormViewModel>(context, listen: false);
 
     if (widget.pacienteId != null) {
-      // Usar Future.microtask para agendar a chamada assíncrona
-      // Isso garante que a operação comece após o initState ter sido concluído
       Future.microtask(() async {
         await _viewModel.loadPaciente(widget.pacienteId!);
-        if (mounted && !_isInitialDataLoaded) { // Verificar mounted e a flag
+        if (mounted && !_isInitialDataLoaded) {
           _populateFields(_viewModel.paciente);
-          _isInitialDataLoaded = true; // Marca que os dados iniciais foram carregados
+          _isInitialDataLoaded = true;
         }
       });
     } else {
-      // Para novo paciente, marca como carregado imediatamente
       _isInitialDataLoaded = true;
     }
   }
@@ -99,18 +96,16 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
     return Scaffold(
       appBar: CustomAppBar(
         title: widget.pacienteId == null ? 'Novo Paciente' : 'Editar Paciente',
-        onBackButtonPressed: () => context.pop(), // CORREÇÃO: Volta para a tela anterior na pilha
+        onBackButtonPressed: () => context.pop(),
       ),
       body: Consumer<PacienteFormViewModel>(
         builder: (context, viewModel, child) {
-          // Exibe indicador de carregamento apenas se estiver editando e carregando dados
-          // E se os dados iniciais ainda não foram carregados
           if (viewModel.isLoading && widget.pacienteId != null && !_isInitialDataLoaded) {
             return const Center(child: CircularProgressIndicator());
           }
-          return Column( // Usar Column para fixar o botão na parte inferior
+          return Column(
             children: [
-              Expanded( // Conteúdo do formulário rolável
+              Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Form(
@@ -202,13 +197,12 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                           maxLines: 3,
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        const SizedBox(height: 32), // Espaço extra para o final do formulário
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
                 ),
               ),
-              // Botão Salvar fixo na parte inferior
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SizedBox(
@@ -243,23 +237,17 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                                 if (widget.pacienteId == null) {
                                   await viewModel.cadastrarPaciente(newPaciente);
                                   if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Paciente cadastrado com sucesso!')),
-                                  );
-                                  context.pop(); // Volta para a tela anterior
+                                  SnackBarHelper.showSuccess(context, 'Paciente cadastrado com sucesso!');
                                 } else {
                                   await viewModel.editarPaciente(newPaciente);
                                   if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Paciente atualizado com sucesso!')),
-                                  );
-                                  context.pop(); // Volta para a tela anterior
+                                  SnackBarHelper.showSuccess(context, 'Paciente atualizado com sucesso!');
                                 }
+                                if (!context.mounted) return;
+                                context.pop();
                               } catch (e) {
                                 if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erro: ${e.toString()}')),
-                                );
+                                SnackBarHelper.showError(context, e);
                               }
                             }
                           },

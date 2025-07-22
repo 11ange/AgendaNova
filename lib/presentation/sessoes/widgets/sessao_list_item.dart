@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:agendanova/domain/entities/sessao.dart';
 import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart'; // Apenas para o enum
+import 'package:agendanova/core/utils/snackbar_helper.dart';
+import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 import 'package:agendanova/presentation/sessoes/widgets/treinamento_form_dialog.dart';
 
@@ -52,8 +53,6 @@ class SessaoListItem extends StatelessWidget {
       ),
     );
   }
-
-  // --- MÉTODOS DE DIÁLOGO MOVIDOS PARA CÁ ---
 
   Future<void> _showConfirmPaymentDialog(
       BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
@@ -113,22 +112,16 @@ class SessaoListItem extends StatelessWidget {
                   child: const Text('Confirmar'),
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {
-                      final scaffoldMessenger = ScaffoldMessenger.of(context);
                       final navigator = Navigator.of(dialogContext);
                       try {
                         await viewModel.confirmarPagamentoSessao(
                             sessao, dataPagamentoSelecionada!);
-                        scaffoldMessenger.showSnackBar(
-                          const SnackBar(
-                              content: Text('Pagamento confirmado com sucesso!')),
-                        );
+                        if (!context.mounted) return;
+                        SnackBarHelper.showSuccess(context, 'Pagamento confirmado com sucesso!');
                         navigator.pop();
                       } catch (e) {
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('Erro ao confirmar pagamento: $e')),
-                        );
+                         if (!context.mounted) return;
+                         SnackBarHelper.showError(context, e);
                       }
                     }
                   },
@@ -168,8 +161,6 @@ class SessaoListItem extends StatelessWidget {
     );
   }
 
-  // --- WIDGETS DE UI ---
-
   Color _getCardBackgroundColor(Sessao? sessao, bool isDailyBlocked) {
     if (isDailyBlocked) return Colors.grey.shade200;
     if (sessao == null) return Colors.green.shade50;
@@ -195,7 +186,6 @@ class SessaoListItem extends StatelessWidget {
       return Text('Horário Disponível', style: TextStyle(color: Colors.green.shade800));
     }
 
-    // Correção: `sessaoNaoNula` agora é inferida como não-nula, sem precisar do `!`.
     final sessaoNaoNula = sessao;
     final isPatientSessionBlocked = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId != 'bloqueio_manual';
     final isManualBlock = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId == 'bloqueio_manual';

@@ -7,6 +7,7 @@ import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_vie
 import 'package:agendanova/presentation/lista_espera/widgets/lista_espera_card.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
+import 'package:agendanova/core/utils/snackbar_helper.dart'; // <<< IMPORT ADICIONADO
 
 // Tela de Lista de Espera
 class ListaEsperaPage extends StatefulWidget {
@@ -122,18 +123,16 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                     observacoes: _observacoesController.text.isEmpty ? null : _observacoesController.text,
                     dataCadastro: DateTime.now(),
                   );
-                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(dialogContext);
                   try {
                     await viewModel.adicionarItem(newItem);
-                    scaffoldMessenger.showSnackBar(
-                      const SnackBar(content: Text('Adicionado à lista de espera com sucesso!')),
-                    );
+                    // A verificação `mounted` garante que o widget da página ainda existe
+                    if (!context.mounted) return;
+                    SnackBarHelper.showSuccess(context, 'Adicionado à lista de espera com sucesso!');
                     navigator.pop();
                   } catch (e) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(content: Text('Erro ao adicionar: ${e.toString()}')),
-                    );
+                    if (!context.mounted) return;
+                    SnackBarHelper.showError(context, e);
                   }
                 }
               },
@@ -147,17 +146,17 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
   Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {
     return showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(title),
           content: Text(content),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
               child: const Text('Confirmar'),
             ),
           ],
@@ -238,19 +237,17 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                         return ListaEsperaCard(
                           item: item,
                           onRemove: () async {
-                            // **CORREÇÃO AQUI: Captura antes do await**
-                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             final confirm = await _showConfirmationDialog(context,
                                 'Confirmar Remoção', 'Tem certeza que deseja remover ${item.nome} da lista de espera?');
                             
                             if (confirm == true) {
                               try {
                                 await viewModel.removerItem(item.id!);
-                                scaffoldMessenger.showSnackBar(
-                                    const SnackBar(content: Text('Removido da lista de espera com sucesso!')));
+                                if (!context.mounted) return;
+                                SnackBarHelper.showSuccess(context, 'Removido da lista de espera com sucesso!');
                               } catch (e) {
-                                scaffoldMessenger.showSnackBar(
-                                    SnackBar(content: Text('Erro ao remover: $e')));
+                                if (!context.mounted) return;
+                                SnackBarHelper.showError(context, e);
                               }
                             }
                           },

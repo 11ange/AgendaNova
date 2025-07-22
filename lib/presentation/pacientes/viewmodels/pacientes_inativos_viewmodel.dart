@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart'; // Importar GetIt
+import 'package:get_it/get_it.dart';
 import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/domain/usecases/paciente/reativar_paciente_usecase.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
@@ -7,7 +7,6 @@ import 'dart:async';
 
 // ViewModel para a tela de Pacientes Inativos
 class PacientesInativosViewModel extends ChangeNotifier {
-  // Obtenha as instâncias via GetIt
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
   final ReativarPacienteUseCase _reativarPacienteUseCase = GetIt.instance<ReativarPacienteUseCase>();
 
@@ -17,32 +16,38 @@ class PacientesInativosViewModel extends ChangeNotifier {
   final _pacientesStreamController = StreamController<List<Paciente>>.broadcast();
   Stream<List<Paciente>> get pacientesStream => _pacientesStreamController.stream;
 
-  // Construtor sem parâmetros, pois as dependências são resolvidas via GetIt
+  // Variável para armazenar a inscrição do stream
+  StreamSubscription? _pacientesSubscription;
+
   PacientesInativosViewModel() {
-    _listenToPacientes(); // Chamar o método para iniciar a escuta do stream
+    _listenToPacientes();
   }
 
   void _listenToPacientes() {
-    _pacienteRepository.getPacientesInativos().listen(
+    // Cancela qualquer inscrição anterior para evitar leaks
+    _pacientesSubscription?.cancel();
+    // Armazena a nova inscrição na variável
+    _pacientesSubscription = _pacienteRepository.getPacientesInativos().listen(
       (pacientesList) {
         _pacientes = pacientesList;
-        _pacientesStreamController.add(_pacientes);
+        // Adiciona um check de segurança
+        if (!_pacientesStreamController.isClosed) {
+          _pacientesStreamController.add(_pacientes);
+        }
         notifyListeners();
       },
       onError: (error) {
-        _pacientesStreamController.addError(error);
-        // Em vez de print, você pode usar um logger ou exibir uma mensagem mais amigável
-        // print('Erro ao carregar pacientes inativos: $error');
+        if (!_pacientesStreamController.isClosed) {
+          _pacientesStreamController.addError(error);
+        }
       },
     );
   }
 
   void loadPacientesInativos() {
-    // Este método pode ser usado para forçar um recarregamento se necessário,
-    // mas a escuta já é iniciada no construtor.
+    _listenToPacientes();
   }
 
-  // Reativa um paciente
   Future<void> reativarPaciente(String id) async {
     try {
       await _reativarPacienteUseCase.call(id);
@@ -53,8 +58,9 @@ class PacientesInativosViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    // Cancela a inscrição e fecha o controller
+    _pacientesSubscription?.cancel();
     _pacientesStreamController.close();
     super.dispose();
   }
 }
-

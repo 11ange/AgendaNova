@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
+import 'package:agendanova/core/utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -165,17 +166,11 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
 
                             if (!context.mounted) return;
                             
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Treinamento agendado com sucesso!')),
-                            );
+                            SnackBarHelper.showSuccess(context, 'Treinamento agendado com sucesso!');
                             Navigator.of(context).pop(true);
                           } catch (e) {
-
                             if (!context.mounted) return;
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Erro ao agendar: ${e.toString()}')),
-                            );
+                            SnackBarHelper.showError(context, e);
                           }
                         }
                       },

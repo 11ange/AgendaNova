@@ -1,10 +1,9 @@
 // lib/presentation/pacientes/pages/pacientes_ativos_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
 import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
+import 'package:agendanova/presentation/pacientes/widgets/pacientes_list_page_body.dart';
 import 'package:provider/provider.dart';
 
 class PacientesAtivosPage extends StatefulWidget {
@@ -15,28 +14,18 @@ class PacientesAtivosPage extends StatefulWidget {
 }
 
 class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
-  final TextEditingController _searchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PacientesAtivosViewModel>(context, listen: false).loadPacientesAtivos();
     });
-    _searchController.addListener(() {
-      setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // O ChangeNotifierProvider foi removido daqui e colocado na rota
+    final viewModel = Provider.of<PacientesAtivosViewModel>(context, listen: false);
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Pacientes Ativos',
@@ -45,22 +34,7 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Buscar paciente',
-                hintText: 'Nome, telefone ou e-mail',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -96,101 +70,19 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
             ),
           ),
           Expanded(
-            child: Consumer<PacientesAtivosViewModel>(
-              builder: (context, viewModel, child) {
-                return StreamBuilder<List<Paciente>>(
-                  stream: viewModel.pacientesStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Erro ao carregar pacientes: ${snapshot.error}'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('Nenhum paciente ativo encontrado.', style: Theme.of(context).textTheme.bodyMedium));
-                    }
-
-                    List<Paciente> currentPacientes = snapshot.data!;
-                    final String query = _searchController.text.toLowerCase();
-
-                    if (query.isNotEmpty) {
-                      currentPacientes = currentPacientes
-                          .where((paciente) =>
-                              paciente.nome.toLowerCase().contains(query) ||
-                              (paciente.telefoneResponsavel?.toLowerCase().contains(query) ?? false) ||
-                              (paciente.emailResponsavel?.toLowerCase().contains(query) ?? false))
-                          .toList();
-                    }
-
-                    currentPacientes.sort((a, b) => a.nome.compareTo(b.nome));
-
-                    if (currentPacientes.isEmpty) {
-                      return Center(child: Text('Nenhum paciente encontrado com os critérios de busca.', style: Theme.of(context).textTheme.bodyMedium));
-                    }
-
-                    return ListView.builder(
-                      itemCount: currentPacientes.length,
-                      itemBuilder: (context, index) {
-                        final paciente = currentPacientes[index];
-                        return PacienteCard(
-                          paciente: paciente,
-                          onEdit: () {
-                            context.push('/pacientes-ativos/editar/${paciente.id}');
-                          },
-                          onAction: () async {
-                            final confirm = await _showConfirmationDialog(context,
-                                'Confirmar Inativação', 'Tem certeza que deseja inativar este paciente?');
-                            if (confirm == true) {
-                              try {
-                                await viewModel.inativarPaciente(paciente.id!);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Paciente inativado com sucesso!')));
-                              } catch (e) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Erro ao inativar paciente: $e')));
-                              }
-                            }
-                          },
-                          actionIcon: Icons.person_off,
-                          actionTooltip: 'Inativar Paciente',
-                          onTap: () {
-                            context.go('/pacientes-ativos/historico/${paciente.id}');
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+            child: PacientesListPageBody(
+              pacientesStream: viewModel.pacientesStream,
+              onAction: viewModel.inativarPaciente,
+              actionIcon: Icons.person_off,
+              actionTooltip: 'Inativar Paciente',
+              confirmationTitle: 'Confirmar Inativação',
+              confirmationContent: 'Tem certeza que deseja inativar o paciente',
+              emptyListMessage: 'Nenhum paciente ativo encontrado.',
+              successMessage: 'Paciente inativado com sucesso!', // <<< GARANTA QUE ESTA LINHA ESTEJA AQUI
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Future<bool?> _showConfirmationDialog(BuildContext context, String title, String content) async {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
