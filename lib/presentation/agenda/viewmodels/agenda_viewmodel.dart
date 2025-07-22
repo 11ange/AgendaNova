@@ -11,11 +11,11 @@ class AgendaViewModel extends ChangeNotifier {
   final DefinirAgendaUseCase _definirAgendaUseCase = GetIt.instance<DefinirAgendaUseCase>();
 
   bool _isLoading = false;
-  String? _errorMessage; // Variável para armazenar o erro
+  String? _errorMessage;
   Map<String, List<String>> _currentAgenda = {};
 
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage; // Getter para o erro
+  String? get errorMessage => _errorMessage;
   Map<String, List<String>> get currentAgenda => _currentAgenda;
 
   AgendaViewModel() {
@@ -25,27 +25,36 @@ class AgendaViewModel extends ChangeNotifier {
   void _listenToAgendaChanges() {
     _agendaDisponibilidadeRepository.getAgendaDisponibilidade().listen(
       (agenda) {
-        _errorMessage = null; // Limpa o erro em caso de sucesso
+        _errorMessage = null;
         if (agenda != null) {
           _currentAgenda = Map.from(agenda.agenda);
         } else {
           _currentAgenda = {};
         }
-        notifyListeners();
+        
+        // **CORREÇÃO AQUI:**
+        // Só notifica se já houver widgets ouvindo. Isso evita a chamada
+        // durante a construção inicial do widget pelo router.
+        if (hasListeners) {
+          notifyListeners();
+        }
       },
       onError: (error, stackTrace) {
-        // **CORREÇÃO AQUI: Lida com o erro**
         _errorMessage = 'Falha ao carregar os dados da agenda.';
         logger.e('Erro ao carregar agenda', error: error, stackTrace: stackTrace);
-        notifyListeners();
+        
+        // **CORREÇÃO AQUI TAMBÉM:**
+        if (hasListeners) {
+          notifyListeners();
+        }
       },
     );
   }
 
   void loadAgenda() {
-    // A escuta já foi iniciada, mas podemos garantir que o estado de erro seja limpo
     _errorMessage = null;
-    notifyListeners();
+    // Não é mais necessário chamar notifyListeners() aqui,
+    // pois a própria construção do widget já vai ler o estado mais recente.
   }
 
   bool isTimeSelected(String day, String time) {
