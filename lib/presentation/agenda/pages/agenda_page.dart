@@ -1,10 +1,10 @@
+// lib/presentation/agenda/pages/agenda_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:provider/provider.dart';
 
-// Tela de Definição de Agenda
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
 
@@ -28,20 +28,17 @@ class _AgendaPageState extends State<AgendaPage> {
     '17:00', '17:30',
   ];
 
-  // Referência ao ViewModel
   late AgendaViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    // Acessa o ViewModel diretamente no initState, pois ele será fornecido pelo GoRouter
     _viewModel = Provider.of<AgendaViewModel>(context, listen: false);
     _viewModel.loadAgenda();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Não é mais necessário o ChangeNotifierProvider aqui, pois ele é fornecido acima
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Horários de Atendimento',
@@ -49,12 +46,23 @@ class _AgendaPageState extends State<AgendaPage> {
       ),
       body: Consumer<AgendaViewModel>(
         builder: (context, viewModel, child) {
+          // **CORREÇÃO AQUI: Mostra o erro na tela**
+          if (viewModel.errorMessage != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(viewModel.errorMessage!),
+              ),
+            );
+          }
+
           if (viewModel.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          return Column( // Usar Column para fixar o botão na parte inferior
+
+          return Column(
             children: [
-              Expanded( // Conteúdo da agenda rolável
+              Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -66,7 +74,7 @@ class _AgendaPageState extends State<AgendaPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 12.0),
-                              child: Row( // Usar Row para colocar o texto e o botão lado a lado
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
@@ -76,7 +84,7 @@ class _AgendaPageState extends State<AgendaPage> {
                                   IconButton(
                                     icon: const Icon(Icons.delete_sweep, color: Colors.red),
                                     onPressed: () async {
-                                      // Confirmação antes de limpar
+                                      final scaffoldMessenger = ScaffoldMessenger.of(context);
                                       final confirm = await showDialog<bool>(
                                         context: context,
                                         builder: (BuildContext dialogContext) {
@@ -98,10 +106,8 @@ class _AgendaPageState extends State<AgendaPage> {
                                       );
 
                                       if (confirm == true) {
-                                        // Captura o ScaffoldMessenger ANTES do 'await'
-                                        final scaffoldMessenger = ScaffoldMessenger.of(context);
                                         try {
-                                          await viewModel.clearDayAgenda(day); // Chama o método do ViewModel
+                                          await viewModel.clearDayAgenda(day);
                                           scaffoldMessenger.showSnackBar(
                                             SnackBar(content: Text('Horários de $day limpos com sucesso!')),
                                           );
@@ -121,10 +127,10 @@ class _AgendaPageState extends State<AgendaPage> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3, // 3 botões lado a lado
+                                crossAxisCount: 3,
                                 crossAxisSpacing: 10.0,
                                 mainAxisSpacing: 10.0,
-                                childAspectRatio: 2.5, // Ajuste para o tamanho do botão
+                                childAspectRatio: 2.5,
                               ),
                               itemCount: _times.length,
                               itemBuilder: (context, index) {
@@ -140,7 +146,7 @@ class _AgendaPageState extends State<AgendaPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    padding: EdgeInsets.zero, // Remove padding padrão para melhor controle
+                                    padding: EdgeInsets.zero,
                                   ),
                                   child: Text(
                                     time,
@@ -153,7 +159,7 @@ class _AgendaPageState extends State<AgendaPage> {
                           ],
                         );
                       }),
-                      const SizedBox(height: 20), // Espaço extra para o final do conteúdo rolável
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -166,7 +172,6 @@ class _AgendaPageState extends State<AgendaPage> {
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
-                            // Captura o ScaffoldMessenger ANTES do 'await'
                             final scaffoldMessenger = ScaffoldMessenger.of(context);
                             try {
                               await viewModel.saveAgenda();

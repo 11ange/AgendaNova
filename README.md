@@ -44,3 +44,12 @@ source ~/.bashrc
  flutter config --android-sdk C:\Users\lolg\android
 
 flutter run -d web-server
+
+
+Adicione sua imagem
+
+Crie uma pasta na raiz do seu projeto chamada assets, e dentro dela outra chamada icon.
+
+Coloque sua imagem de ícone principal (em alta resolução, de preferência 1024x1024 pixels) dentro dessa pasta e nomeie-a como icon.png. O caminho deve ser assets/icon/icon.png, como configurado no pubspec.yaml.
+
+flutter pub run flutter_launcher_icons

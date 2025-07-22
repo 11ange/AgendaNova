@@ -1,3 +1,4 @@
+// lib/presentation/lista_espera/pages/lista_espera_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/domain/entities/lista_espera.dart';
@@ -20,34 +21,30 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
   final TextEditingController _telefoneController = TextEditingController();
   final TextEditingController _observacoesController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _searchController = TextEditingController(); // Adicionado para a busca
-  List<ListaEspera> _filteredList = []; // Para armazenar a lista filtrada
+  final TextEditingController _searchController = TextEditingController();
+  List<ListaEspera> _filteredList = [];
 
-  // Referência ao ViewModel
   late ListaEsperaViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    // Acessa o ViewModel diretamente no initState, pois ele será fornecido pelo GoRouter
     _viewModel = Provider.of<ListaEsperaViewModel>(context, listen: false);
 
-    // Escuta as mudanças no stream do ViewModel e aplica o filtro
     _viewModel.listaEsperaStream.listen((list) {
       setState(() {
         _filteredList = list;
-        _applyFilter(_searchController.text); // Aplica o filtro inicial
+        _applyFilter(_searchController.text);
       });
     });
 
-    // Adiciona listener para o campo de busca
     _searchController.addListener(() {
       _applyFilter(_searchController.text);
     });
   }
 
   void _applyFilter(String query) {
-    final originalList = _viewModel.listaEspera; // Pega a lista completa do ViewModel
+    final originalList = _viewModel.listaEspera;
     if (query.isEmpty) {
       setState(() {
         _filteredList = originalList;
@@ -66,7 +63,7 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
     _nomeController.dispose();
     _telefoneController.dispose();
     _observacoesController.dispose();
-    _searchController.dispose(); // Dispose do controller de busca
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -77,7 +74,7 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // O usuário deve tocar no botão
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Adicionar à Lista de Espera'),
@@ -125,7 +122,6 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                     observacoes: _observacoesController.text.isEmpty ? null : _observacoesController.text,
                     dataCadastro: DateTime.now(),
                   );
-                  // Captura os objetos dependentes do contexto ANTES do 'await'
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final navigator = Navigator.of(dialogContext);
                   try {
@@ -191,7 +187,7 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              style: Theme.of(context).textTheme.bodyLarge, // Ajuste de fonte
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
           Padding(
@@ -227,7 +223,6 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                       return const Center(child: Text('A lista de espera está vazia.'));
                     }
 
-                    // A lista filtrada já está em _filteredList, que é atualizada pelo listener
                     final displayedList = _filteredList;
 
                     if (displayedList.isEmpty && _searchController.text.isNotEmpty) {
@@ -243,11 +238,12 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                         return ListaEsperaCard(
                           item: item,
                           onRemove: () async {
+                            // **CORREÇÃO AQUI: Captura antes do await**
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
                             final confirm = await _showConfirmationDialog(context,
                                 'Confirmar Remoção', 'Tem certeza que deseja remover ${item.nome} da lista de espera?');
+                            
                             if (confirm == true) {
-                              // Captura o ScaffoldMessenger ANTES do 'await'
-                              final scaffoldMessenger = ScaffoldMessenger.of(context);
                               try {
                                 await viewModel.removerItem(item.id!);
                                 scaffoldMessenger.showSnackBar(

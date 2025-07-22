@@ -67,7 +67,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ReativarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => AdicionarListaEsperaUseCase(sl()));
   sl.registerLazySingleton(() => RemoverListaEsperaUseCase(sl()));
-  sl.registerLazySingleton(() => DefinirAgendaUseCase(sl()));
+  sl.registerLazySingleton(() => DefinirAgendaUseCase(sl(), sl())); // CORRIGIDO AQUI
   sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl()));
