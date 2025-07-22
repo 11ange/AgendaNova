@@ -1,3 +1,4 @@
+// lib/presentation/sessoes/pages/sessoes_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
@@ -96,16 +97,16 @@ class _SessoesPageState extends State<SessoesPage> {
                     Color color;
                     switch (status) {
                       case 'livre':
-                        color = Colors.green.shade200;
+                        color = Colors.green.shade100;
                         break;
                       case 'parcial':
-                        color = Colors.yellow.shade200;
+                        color = Colors.yellow.shade300;
                         break;
                       case 'cheio':
-                        color = Colors.red.shade200;
+                        color = Colors.red.shade300;
                         break;
                       case 'indisponivel':
-                        color = Colors.transparent;
+                        color = Colors.grey.shade200;
                         break;
                       default:
                         color = Colors.transparent;
@@ -428,7 +429,7 @@ class _SessoesPageState extends State<SessoesPage> {
     final isOccupied = sessao != null;
 
     if (isDailyBlocked) {
-      return Text('Dia bloqueado', style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold));
+      return Text('Dia bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
     }
 
     if (!isOccupied) {
@@ -441,7 +442,7 @@ class _SessoesPageState extends State<SessoesPage> {
     final isManualBlock = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId == 'bloqueio_manual';
 
     if (isManualBlock) {
-      return Text('Horário bloqueado', style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold));
+      return Text('Horário bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
     }
 
     // É uma sessão de paciente (agendada, realizada, falta, cancelada ou bloqueada)
@@ -458,7 +459,7 @@ class _SessoesPageState extends State<SessoesPage> {
     if (isPatientSessionBlocked) {
       statusIndicatorWidget = Text(
         'BLOQUEADO',
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade800),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade800),
       );
     } else if (sessaoNaoNula.status == 'Falta') {
       statusIndicatorWidget = Text(
@@ -512,16 +513,16 @@ class _SessoesPageState extends State<SessoesPage> {
   }
 
   Color _getCardBackgroundColor(Sessao? sessao, bool isDailyBlocked) {
-    if (isDailyBlocked) return Colors.orange.shade50;
+    if (isDailyBlocked) return Colors.grey.shade200;
     if (sessao == null) return Colors.green.shade50;
     
     switch (sessao.status) {
       case 'Agendada': return Colors.blue.shade50;
-      case 'Realizada': return Colors.green.shade100;
-      case 'Falta': return Colors.red.shade50;
-      case 'Cancelada': return Colors.yellow.shade50;
-      case 'Bloqueada': return Colors.orange.shade50;
-      default: return Colors.grey.shade50;
+      case 'Realizada': return Colors.blue.shade200;
+      case 'Falta': return Colors.red.shade100;
+      case 'Cancelada': return Colors.grey.shade100;
+      case 'Bloqueada': return Colors.grey.shade200;
+      default: return Colors.white;
     }
   }
 

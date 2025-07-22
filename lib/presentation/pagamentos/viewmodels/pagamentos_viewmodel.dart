@@ -9,12 +9,14 @@ import 'package:agendanova/domain/entities/treinamento.dart';
 import 'package:agendanova/domain/repositories/paciente_repository.dart';
 import 'package:agendanova/domain/repositories/sessao_repository.dart';
 import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agendanova/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
 import 'package:agendanova/core/utils/logger.dart';
 
 class PagamentosViewModel extends ChangeNotifier {
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
   final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
+  final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase = GetIt.instance<AtualizarStatusSessaoUseCase>();
 
   List<Paciente> _pacientes = [];
   List<Treinamento> _treinamentosAtivos = [];
@@ -43,7 +45,9 @@ class PagamentosViewModel extends ChangeNotifier {
     _setLoading(true);
     try {
       _pacientes = await _pacienteRepository.getPacientes().first;
-      _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => list.where((t) => t.status == 'ativo').toList());
+      _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => 
+          list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento').toList()
+      );
       
       _pagamentosPorTreinamento.clear();
       for (var treinamento in _treinamentosAtivos) {
@@ -74,11 +78,12 @@ class PagamentosViewModel extends ChangeNotifier {
       formaPagamento: treinamento.formaPagamento,
       status: 'Realizado',
       dataPagamento: dataPagamento,
-      dataEnvioGuia: dataPagamento, // CORREÇÃO AQUI
+      dataEnvioGuia: dataPagamento,
     );
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [novoPagamento]);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -88,10 +93,11 @@ class PagamentosViewModel extends ChangeNotifier {
 
     final pagamentoAtualizado = treinamento.pagamentos!.first.copyWith(
       dataPagamento: novaData,
-      dataEnvioGuia: novaData, // CORREÇÃO AQUI
+      dataEnvioGuia: novaData,
     );
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamentoAtualizado]);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -101,6 +107,7 @@ class PagamentosViewModel extends ChangeNotifier {
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: []);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -121,6 +128,7 @@ class PagamentosViewModel extends ChangeNotifier {
     
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: pagamentosAtuais);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -137,6 +145,7 @@ class PagamentosViewModel extends ChangeNotifier {
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: pagamentosAtualizados);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -148,6 +157,7 @@ class PagamentosViewModel extends ChangeNotifier {
     
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: pagamentosAtualizados);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 

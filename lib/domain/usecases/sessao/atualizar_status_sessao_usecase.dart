@@ -75,11 +75,25 @@ class AtualizarStatusSessaoUseCase {
     final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
 
     if (sessoesConcluidas >= treinamento.numeroSessoesTotal) {
-      final pagamentosPendentes = todasSessoes.any((s) => s.statusPagamento == 'Pendente' && s.status != 'Cancelada');
+      bool pagamentosPendentes = false;
+
+      // Verifica o status do pagamento com base no tipo
+      if (treinamento.formaPagamento == 'Convenio') {
+        pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty || treinamento.pagamentos!.any((p) => p.status != 'Realizado');
+      } else if (treinamento.tipoParcelamento == '3x') {
+        pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.where((p) => p.status == 'Realizado').length < 3;
+      } else { // Pagamento 'Por sessão'
+        pagamentosPendentes = todasSessoes.any((s) => s.statusPagamento == 'Pendente' && s.status != 'Cancelada');
+      }
+
       if (pagamentosPendentes) {
-        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Pendente Pagamento'));
+        if (treinamento.status != 'Pendente Pagamento') {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Pendente Pagamento'));
+        }
       } else {
-        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+        if (treinamento.status != 'Finalizado') {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+        }
       }
     } else {
       if (treinamento.status == 'Finalizado' || treinamento.status == 'Pendente Pagamento') {

@@ -128,12 +128,18 @@ class HistoricoPacientePage extends StatelessWidget {
     // Lógica para Convênio
     if (treinamento.formaPagamento == 'Convenio') {
       final pagamentoConvenio = pagamentos.isNotEmpty ? pagamentos.first : null;
-      final String statusText = (pagamentoConvenio != null && pagamentoConvenio.status == 'Realizado' && pagamentoConvenio.dataEnvioGuia != null)
+      final bool isPago = (pagamentoConvenio != null && pagamentoConvenio.status == 'Realizado' && pagamentoConvenio.dataEnvioGuia != null);
+      final String statusText = isPago
           ? 'Guia enviada em ${DateFormatter.formatDate(pagamentoConvenio.dataEnvioGuia!)}'
           : 'Pagamento: Pendente';
       return Padding(
         padding: const EdgeInsets.only(top: 4.0),
-        child: Text(statusText, style: textStyle),
+        child: Text(
+          statusText, 
+          style: textStyle.copyWith(
+            color: isPago ? Colors.green : Colors.orange,
+          )
+        ),
       );
     }
 
