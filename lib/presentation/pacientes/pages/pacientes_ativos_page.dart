@@ -1,4 +1,3 @@
-// lib/presentation/pacientes/pages/pacientes_ativos_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
@@ -78,7 +77,7 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
               confirmationTitle: 'Confirmar Inativação',
               confirmationContent: 'Tem certeza que deseja inativar o paciente',
               emptyListMessage: 'Nenhum paciente ativo encontrado.',
-              successMessage: 'Paciente inativado com sucesso!', // <<< GARANTA QUE ESTA LINHA ESTEJA AQUI
+              successMessage: 'Paciente inativado com sucesso!',
             ),
           ),
         ],

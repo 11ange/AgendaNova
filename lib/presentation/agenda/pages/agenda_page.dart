@@ -127,7 +127,7 @@ class _AgendaPageState extends State<AgendaPage> {
                                 crossAxisCount: 3,
                                 crossAxisSpacing: 10.0,
                                 mainAxisSpacing: 10.0,
-                                childAspectRatio: 2.5,
+                                childAspectRatio: 3.0,
                               ),
                               itemCount: _times.length,
                               itemBuilder: (context, index) {

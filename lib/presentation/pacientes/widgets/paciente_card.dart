@@ -23,11 +23,11 @@ class PacienteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 16.0),
+      margin: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 16.0),
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,15 +57,13 @@ class PacienteCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // --- AJUSTE: Espaçamento vertical reduzido ---
-              const SizedBox(height: 2.0),
               Text(
                 'Responsável: ${paciente.nomeResponsavel}',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
               Text(
                 'Idade: ${paciente.idade} anos',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ],
           ),

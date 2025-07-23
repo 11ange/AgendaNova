@@ -65,6 +65,7 @@ class HistoricoPacientePage extends StatelessWidget {
                     final sessoesRealizadas = sessoes.where((s) => s.status == 'Realizada').length;
 
                     return Card(
+                      color: treinamento.status == 'Finalizado' ? Colors.red.shade50 : null,
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
                       elevation: 2,
                       child: ExpansionTile(

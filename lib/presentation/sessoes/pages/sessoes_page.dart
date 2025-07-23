@@ -79,6 +79,14 @@ class _SessoesPageState extends State<SessoesPage> {
                   });
                   viewModel.onPageChanged(focusedDay);
                 },
+                onTodayButtonPressed: () {
+                  final now = DateTime.now();
+                  setState(() {
+                    _focusedDay = now;
+                    _selectedDay = now;
+                  });
+                  viewModel.loadSessoesForDay(now);
+                },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),

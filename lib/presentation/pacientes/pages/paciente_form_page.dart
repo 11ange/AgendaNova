@@ -6,7 +6,7 @@ import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewm
 import 'package:agendanova/core/utils/date_formatter.dart';
 import 'package:agendanova/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart'; // <<< IMPORT ADICIONADO AQUI
+import 'package:agendanova/core/utils/snackbar_helper.dart';
 
 // Tela de formulário para cadastro e edição de pacientes
 class PacienteFormPage extends StatefulWidget {
@@ -139,7 +139,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                               ),
                               validator: (value) {
                                 if (_dataNascimento == null) {
-                                  return 'Por favor, selecione a data de nascimento';
+                                  return 'Data de Nascimento é obrigatório';
                                 }
                                 return null;
                               },

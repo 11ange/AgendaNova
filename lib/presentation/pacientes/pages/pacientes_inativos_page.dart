@@ -1,4 +1,3 @@
-// lib/presentation/pacientes/pages/pacientes_inativos_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
@@ -39,7 +38,7 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
         confirmationTitle: 'Confirmar Reativação',
         confirmationContent: 'Tem certeza que deseja reativar o paciente',
         emptyListMessage: 'Nenhum paciente inativo encontrado.',
-        successMessage: 'Paciente reativado com sucesso!', // <<< GARANTA QUE ESTA LINHA ESTEJA AQUI
+        successMessage: 'Paciente reativado com sucesso!',
       ),
     );
   }
