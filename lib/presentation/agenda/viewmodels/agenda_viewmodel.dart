@@ -1,10 +1,10 @@
 // lib/presentation/agenda/viewmodels/agenda_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agendanova/domain/usecases/agenda/definir_agenda_usecase.dart';
-import 'package:agendanova/core/utils/logger.dart';
+import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/domain/usecases/agenda/definir_agenda_usecase.dart';
+import 'package:agenda_treinamento/core/utils/logger.dart';
 
 class AgendaViewModel extends ChangeNotifier {
   final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();

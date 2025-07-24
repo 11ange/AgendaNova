@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/presentation/home/viewmodels/home_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/presentation/home/viewmodels/home_viewmodel.dart';
 import 'package:intl/intl.dart';
 import 'package:get_it/get_it.dart'; // Import necessário
-import 'package:agendanova/injection_container.dart' as di; // Import necessário
+import 'package:agenda_treinamento/injection_container.dart' as di; // Import necessário
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

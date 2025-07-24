@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/core/utils/date_formatter.dart'; // Importação adicionada
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart'; // Importação adicionada
 
 // Modelo de dados para a entidade Paciente, com métodos para serialização/desserialização do Firestore
 class PacienteModel extends Paciente {

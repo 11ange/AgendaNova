@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
-import 'package:agendanova/presentation/pacientes/widgets/pacientes_list_page_body.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/widgets/pacientes_list_page_body.dart';
 import 'package:provider/provider.dart';
 
 class PacientesInativosPage extends StatefulWidget {

@@ -1,13 +1,13 @@
 // lib/presentation/lista_espera/pages/lista_espera_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/domain/entities/lista_espera.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
-import 'package:agendanova/presentation/lista_espera/widgets/lista_espera_card.dart';
-import 'package:agendanova/core/utils/input_validators.dart';
+import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/lista_espera/widgets/lista_espera_card.dart';
+import 'package:agenda_treinamento/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart'; // <<< IMPORT ADICIONADO
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart'; // <<< IMPORT ADICIONADO
 
 // Tela de Lista de Espera
 class ListaEsperaPage extends StatefulWidget {

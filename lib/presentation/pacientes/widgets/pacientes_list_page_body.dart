@@ -1,9 +1,9 @@
 // lib/presentation/pacientes/widgets/pacientes_list_page_body.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/presentation/pacientes/widgets/paciente_card.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/presentation/pacientes/widgets/paciente_card.dart';
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 
 class PacientesListPageBody extends StatefulWidget {
   final Stream<List<Paciente>> pacientesStream;

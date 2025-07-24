@@ -1,8 +1,8 @@
-import 'package:agendanova/core/constants/firestore_collections.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/models/agenda_disponibilidade_model.dart';
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/core/constants/firestore_collections.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/models/agenda_disponibilidade_model.dart';
+import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 
 // Implementação concreta do AgendaDisponibilidadeRepository que usa o FirebaseDatasource
 class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeRepository {

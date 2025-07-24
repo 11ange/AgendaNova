@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 
 // Use case para reativar um paciente
 class ReativarPacienteUseCase {

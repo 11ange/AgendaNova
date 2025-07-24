@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/repositories/lista_espera_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/lista_espera_repository.dart';
 
 // Use case para remover um item da lista de espera
 class RemoverListaEsperaUseCase {

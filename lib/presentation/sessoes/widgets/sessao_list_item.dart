@@ -1,12 +1,12 @@
 // lib/presentation/sessoes/widgets/sessao_list_item.dart
 import 'package:flutter/material.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart';
-import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
-import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
-import 'package:agendanova/presentation/sessoes/widgets/treinamento_form_dialog.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
+import 'package:agenda_treinamento/presentation/sessoes/pages/sessoes_page.dart';
+import 'package:agenda_treinamento/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/sessoes/widgets/treinamento_form_dialog.dart';
 
 class SessaoListItem extends StatelessWidget {
   final String timeSlot;

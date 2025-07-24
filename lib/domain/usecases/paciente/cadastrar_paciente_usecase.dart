@@ -1,5 +1,5 @@
-import 'package:agendanova/domain/entities/paciente.dart'; // Importação corrigida
-import 'package:agendanova/domain/repositories/paciente_repository.dart'; // Importação corrigida
+import 'package:agenda_treinamento/domain/entities/paciente.dart'; // Importação corrigida
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart'; // Importação corrigida
 
 // Use case para cadastrar um novo paciente
 class CadastrarPacienteUseCase {

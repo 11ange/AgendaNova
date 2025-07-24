@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/lista_espera_repository_impl.dart';
-import 'package:agendanova/domain/entities/lista_espera.dart';
-import 'package:agendanova/domain/repositories/lista_espera_repository.dart';
-import 'package:agendanova/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
-import 'package:agendanova/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/repositories/lista_espera_repository_impl.dart';
+import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
+import 'package:agenda_treinamento/domain/repositories/lista_espera_repository.dart';
+import 'package:agenda_treinamento/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
+import 'package:agenda_treinamento/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'dart:async';
-import 'package:agendanova/core/utils/logger.dart'; // Importa o logger
+import 'package:agenda_treinamento/core/utils/logger.dart'; // Importa o logger
 
 // ViewModel para a tela de Lista de Espera
 class ListaEsperaViewModel extends ChangeNotifier {

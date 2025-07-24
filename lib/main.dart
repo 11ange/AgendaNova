@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // <<< IMPORTE O FIREBASE AUTH
-import 'package:agendanova/app/app_widget.dart';
-import 'package:agendanova/firebase_options.dart';
-import 'package:agendanova/injection_container.dart' as di;
+import 'package:agenda_treinamento/app/app_widget.dart';
+import 'package:agenda_treinamento/firebase_options.dart';
+import 'package:agenda_treinamento/injection_container.dart' as di;
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {

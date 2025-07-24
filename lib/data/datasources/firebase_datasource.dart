@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
 
 // DataSource que interage diretamente com o Firebase Firestore
 class FirebaseDatasource {

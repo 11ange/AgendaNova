@@ -1,10 +1,10 @@
 // lib/presentation/agenda/pages/agenda_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart'; // Importe o helper
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart'; // Importe o helper
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});

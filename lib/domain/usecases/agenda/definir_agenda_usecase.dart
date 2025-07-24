@@ -1,7 +1,7 @@
 // lib/domain/usecases/agenda/definir_agenda_usecase.dart
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:intl/intl.dart';
 
 // Use case para definir a agenda de horários de atendimento

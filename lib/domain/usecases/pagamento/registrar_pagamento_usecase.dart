@@ -1,6 +1,6 @@
 // 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/domain/usecases/pagamento/registrar_pagamento_usecase.dart
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
 
 // Use case para registrar o pagamento de um convênio.
 class RegistrarPagamentoUseCase {

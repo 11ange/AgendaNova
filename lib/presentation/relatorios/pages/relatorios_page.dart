@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
-import 'package:agendanova/domain/entities/paciente.dart'; // Para seleção de paciente
-//import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/relatorios/viewmodels/relatorios_viewmodel.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart'; // Para seleção de paciente
+//import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // Importação adicionada para DateFormat
 

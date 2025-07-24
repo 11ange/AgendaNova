@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-import 'package:agendanova/core/utils/logger.dart'; // Importa o logger
+import 'package:agenda_treinamento/core/utils/logger.dart'; // Importa o logger
 
 class HomeViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();

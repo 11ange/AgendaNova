@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 
 // Widget reutilizável para exibir um registro de pagamento em um card
 class PagamentoCard extends StatelessWidget {

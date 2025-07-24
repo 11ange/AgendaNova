@@ -1,8 +1,8 @@
-import 'package:agendanova/core/constants/firestore_collections.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/models/sessao_model.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/core/constants/firestore_collections.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/models/sessao_model.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 

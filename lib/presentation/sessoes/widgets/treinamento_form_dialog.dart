@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
-import 'package:agendanova/core/utils/input_validators.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart';
+import 'package:agenda_treinamento/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
+import 'package:agenda_treinamento/core/utils/input_validators.dart';
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 

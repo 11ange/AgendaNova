@@ -1,11 +1,11 @@
 {
-    "name": "agendanova",
-    "short_name": "agendanova",
+    "name": "Agenda de Treinamento",
+    "short_name": "Agenda_Treinamento",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Agenda para controle de treinamentos auditivos.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

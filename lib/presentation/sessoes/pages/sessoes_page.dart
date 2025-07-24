@@ -1,12 +1,12 @@
 // lib/presentation/sessoes/pages/sessoes_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
-import 'package:agendanova/presentation/sessoes/widgets/sessao_list_item.dart';
-import 'package:agendanova/presentation/sessoes/widgets/sessoes_calendar.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/sessoes/widgets/sessao_list_item.dart';
+import 'package:agenda_treinamento/presentation/sessoes/widgets/sessoes_calendar.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:intl/intl.dart';
 
 // Enum para tornar as ações do menu mais seguras e legíveis

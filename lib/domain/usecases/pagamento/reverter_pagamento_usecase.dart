@@ -1,6 +1,6 @@
-import 'package:agendanova/domain/repositories/pagamento_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/pagamento_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
 
 // Use case para reverter um pagamento
 class ReverterPagamentoUseCase {

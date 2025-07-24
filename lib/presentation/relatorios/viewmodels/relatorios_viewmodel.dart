@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/repositories/sessao_repository_impl.dart';
-import 'package:agendanova/data/repositories/treinamento_repository_impl.dart';
-import 'package:agendanova/data/repositories/paciente_repository_impl.dart';
-import 'package:agendanova/domain/entities/relatorio.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/usecases/relatorio/gerar_relatorio_mensal_global_usecase.dart';
-import 'package:agendanova/domain/usecases/relatorio/gerar_relatorio_individual_paciente_usecase.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/repositories/sessao_repository_impl.dart';
+import 'package:agenda_treinamento/data/repositories/treinamento_repository_impl.dart';
+import 'package:agenda_treinamento/data/repositories/paciente_repository_impl.dart';
+import 'package:agenda_treinamento/domain/entities/relatorio.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/usecases/relatorio/gerar_relatorio_mensal_global_usecase.dart';
+import 'package:agenda_treinamento/domain/usecases/relatorio/gerar_relatorio_individual_paciente_usecase.dart';
 import 'dart:async';
 
 // ViewModel para a tela de Relatórios

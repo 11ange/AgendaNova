@@ -1,10 +1,10 @@
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agendanova/core/utils/date_time_helper.dart'; // Para ajudar com cálculo de datas
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/core/utils/date_time_helper.dart'; // Para ajudar com cálculo de datas
 
 // Use case para criar um novo treinamento e suas sessões
 class CriarTreinamentoUseCase {

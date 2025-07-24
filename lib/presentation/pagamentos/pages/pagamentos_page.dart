@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:agendanova/data/models/pagamento_model.dart';
+import 'package:agenda_treinamento/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/data/models/pagamento_model.dart';
 
 class PagamentosPage extends StatelessWidget {
   const PagamentosPage({super.key});

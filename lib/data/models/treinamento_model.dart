@@ -1,7 +1,7 @@
 // 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/data/models/treinamento_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/data/models/pagamento_model.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/data/models/pagamento_model.dart';
 
 // Modelo de dados para a entidade Treinamento, com métodos para serialização/desserialização do Firestore
 class TreinamentoModel extends Treinamento {

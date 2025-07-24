@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
 
 // Modelo de dados para a entidade ListaEspera, com métodos para serialização/desserialização do Firestore
 class ListaEsperaModel extends ListaEspera {

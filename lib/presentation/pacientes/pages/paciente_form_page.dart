@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:agendanova/core/utils/input_validators.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/core/utils/input_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart';
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 
 // Tela de formulário para cadastro e edição de pacientes
 class PacienteFormPage extends StatefulWidget {

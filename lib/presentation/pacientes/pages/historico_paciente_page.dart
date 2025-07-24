@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart';
-import 'package:agendanova/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agendanova/core/utils/date_formatter.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/data/models/pagamento_model.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/data/models/pagamento_model.dart';
 
 class HistoricoPacientePage extends StatelessWidget {
   final String pacienteId;

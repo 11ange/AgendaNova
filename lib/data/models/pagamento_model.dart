@@ -1,6 +1,6 @@
 // 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/data/models/pagamento_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 
 // Modelo de dados para a entidade Pagamento, com métodos para serialização/desserialização do Firestore
 class PagamentoModel extends Pagamento {

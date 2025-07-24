@@ -1,8 +1,8 @@
-import 'package:agendanova/core/constants/firestore_collections.dart';
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/models/pagamento_model.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/repositories/pagamento_repository.dart';
+import 'package:agenda_treinamento/core/constants/firestore_collections.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/models/pagamento_model.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/repositories/pagamento_repository.dart';
 
 // Implementação concreta do PagamentoRepository que usa o FirebaseDatasource
 class PagamentoRepositoryImpl implements PagamentoRepository {

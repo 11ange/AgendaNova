@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/usecases/paciente/reativar_paciente_usecase.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/usecases/paciente/reativar_paciente_usecase.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 import 'dart:async';
 
 // ViewModel para a tela de Pacientes Inativos

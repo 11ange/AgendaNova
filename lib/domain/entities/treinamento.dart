@@ -1,5 +1,5 @@
 // 11ange/agendanova/AgendaNova-9b6192d7a5af5a265ec3aa3d41748ca9d26ac96a/lib/domain/entities/treinamento.dart
-import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 
 // Entidade pura de domínio para Treinamento
 class Treinamento {

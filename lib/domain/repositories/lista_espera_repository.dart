@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/lista_espera.dart';
+import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
 
 // Contrato (interface) para o repositório de Lista de Espera
 abstract class ListaEsperaRepository {

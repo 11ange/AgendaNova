@@ -2,15 +2,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/entities/pagamento.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/entities/treinamento.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
-import 'package:agendanova/core/utils/logger.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
+import 'package:agenda_treinamento/core/utils/logger.dart';
 
 class PagamentosViewModel extends ChangeNotifier {
   final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();

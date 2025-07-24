@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/domain/entities/lista_espera.dart';
-// import 'package:agendanova/core/utils/date_formatter.dart'; // Removido, pois dataCadastro será removida
+import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
+// import 'package:agenda_treinamento/core/utils/date_formatter.dart'; // Removido, pois dataCadastro será removida
 
 // Widget reutilizável para exibir um item da lista de espera em um card
 class ListaEsperaCard extends StatelessWidget {

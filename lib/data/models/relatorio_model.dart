@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/relatorio.dart';
+import 'package:agenda_treinamento/domain/entities/relatorio.dart';
 
 // Modelo de dados para a entidade Relatorio, com métodos para serialização/desserialização do Firestore
 class RelatorioModel extends Relatorio {

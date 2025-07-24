@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/agenda_disponibilidade.dart';
+import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
 
 // Modelo de dados para a entidade AgendaDisponibilidade, com métodos para serialização/desserialização do Firestore
 class AgendaDisponibilidadeModel extends AgendaDisponibilidade {

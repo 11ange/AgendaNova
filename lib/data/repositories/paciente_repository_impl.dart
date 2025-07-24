@@ -1,8 +1,8 @@
-import 'package:agendanova/data/datasources/firebase_datasource.dart';
-import 'package:agendanova/data/models/paciente_model.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/core/constants/firestore_collections.dart';
+import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
+import 'package:agenda_treinamento/data/models/paciente_model.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/core/constants/firestore_collections.dart';
 
 // Implementação concreta do PacienteRepository que usa o FirebaseDatasource
 class PacienteRepositoryImpl implements PacienteRepository {

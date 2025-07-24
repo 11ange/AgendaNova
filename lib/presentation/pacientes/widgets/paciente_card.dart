@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
 
 // Widget reutilizável para exibir informações de um paciente em um card
 class PacienteCard extends StatelessWidget {

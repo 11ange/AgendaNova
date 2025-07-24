@@ -1,24 +1,24 @@
 // lib/app/app_router.dart
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/auth/pages/login_page.dart';
-import 'package:agendanova/presentation/home/pages/home_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/pacientes_ativos_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/paciente_form_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/pacientes_inativos_page.dart';
-import 'package:agendanova/presentation/pacientes/pages/historico_paciente_page.dart';
-import 'package:agendanova/presentation/agenda/pages/agenda_page.dart';
-import 'package:agendanova/presentation/sessoes/pages/sessoes_page.dart';
-import 'package:agendanova/presentation/pagamentos/pages/pagamentos_page.dart';
-import 'package:agendanova/presentation/relatorios/pages/relatorios_page.dart';
-import 'package:agendanova/presentation/lista_espera/pages/lista_espera_page.dart';
+import 'package:agenda_treinamento/presentation/auth/pages/login_page.dart';
+import 'package:agenda_treinamento/presentation/home/pages/home_page.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_ativos_page.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/paciente_form_page.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_inativos_page.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/historico_paciente_page.dart';
+import 'package:agenda_treinamento/presentation/agenda/pages/agenda_page.dart';
+import 'package:agenda_treinamento/presentation/sessoes/pages/sessoes_page.dart';
+import 'package:agenda_treinamento/presentation/pagamentos/pages/pagamentos_page.dart';
+import 'package:agenda_treinamento/presentation/relatorios/pages/relatorios_page.dart';
+import 'package:agenda_treinamento/presentation/lista_espera/pages/lista_espera_page.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
-import 'package:agendanova/presentation/agenda/viewmodels/agenda_viewmodel.dart';
-import 'package:agendanova/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
-import 'package:agendanova/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
-import 'package:agendanova/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/agenda/viewmodels/agenda_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(

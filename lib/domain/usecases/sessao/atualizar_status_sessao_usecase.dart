@@ -1,9 +1,9 @@
-import 'package:agendanova/domain/entities/sessao.dart';
-import 'package:agendanova/domain/repositories/sessao_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart';
-import 'package:agendanova/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/core/utils/date_time_helper.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/core/utils/date_time_helper.dart';
 
 // Use case para atualizar o status de uma sessão e o treinamento relacionado
 class AtualizarStatusSessaoUseCase {

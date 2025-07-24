@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/pagamento.dart';
+import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 
 // Contrato (interface) para o repositório de Pagamentos
 abstract class PagamentoRepository {

@@ -1,5 +1,5 @@
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 
 // Use case para editar um paciente existente
 class EditarPacienteUseCase {

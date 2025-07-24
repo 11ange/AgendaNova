@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/relatorio.dart';
+import 'package:agenda_treinamento/domain/entities/relatorio.dart';
 
 // Contrato (interface) para o repositório de Relatórios
 abstract class RelatorioRepository {

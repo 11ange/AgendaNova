@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/treinamento.dart';
+import 'package:agenda_treinamento/domain/entities/treinamento.dart';
 
 // Contrato (interface) para o repositório de Treinamentos
 abstract class TreinamentoRepository {

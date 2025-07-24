@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:intl/intl.dart';
 
 // Modelo de dados para a entidade Sessão, com métodos para serialização/desserialização do Firestore

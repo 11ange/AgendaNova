@@ -1,7 +1,7 @@
 // lib/presentation/auth/viewmodels/login_viewmodel.dart
 
 import 'package:flutter/material.dart';
-import 'package:agendanova/core/services/firebase_service.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
 
 // ViewModel para a tela de Login
 class LoginViewModel extends ChangeNotifier {

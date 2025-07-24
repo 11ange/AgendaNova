@@ -3,9 +3,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:agendanova/domain/entities/paciente.dart';
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
+import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
 
 // Importa o arquivo que será gerado pelo Mockito
 import 'cadastrar_paciente_usecase_test.mocks.dart';

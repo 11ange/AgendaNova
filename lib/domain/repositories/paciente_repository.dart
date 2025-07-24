@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/paciente.dart'; // Importação adicionada/corrigida
+import 'package:agenda_treinamento/domain/entities/paciente.dart'; // Importação adicionada/corrigida
 
 // Contrato (interface) para o repositório de Pacientes
 abstract class PacienteRepository {

@@ -1,5 +1,5 @@
-import 'package:agendanova/domain/repositories/paciente_repository.dart';
-import 'package:agendanova/domain/repositories/treinamento_repository.dart'; // Import necessário
+import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart'; // Import necessário
 
 // Use case para inativar um paciente
 class InativarPacienteUseCase {

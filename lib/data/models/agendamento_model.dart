@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:agendanova/domain/entities/agendamento.dart'; // Importação da entidade Agendamento
+import 'package:agenda_treinamento/domain/entities/agendamento.dart'; // Importação da entidade Agendamento
 
 // Modelo de dados para a entidade Agendamento, com métodos para serialização/desserialização do Firestore
 class AgendamentoModel extends Agendamento {

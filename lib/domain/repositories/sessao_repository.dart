@@ -1,4 +1,4 @@
-import 'package:agendanova/domain/entities/sessao.dart';
+import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class SessaoRepository {

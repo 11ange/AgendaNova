@@ -2,9 +2,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:agendanova/presentation/auth/viewmodels/login_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/auth/viewmodels/login_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:agendanova/core/utils/snackbar_helper.dart';
+import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
