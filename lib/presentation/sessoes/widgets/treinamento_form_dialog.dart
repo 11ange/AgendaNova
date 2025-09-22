@@ -75,7 +75,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           DropdownButtonFormField<String>(
-                            value: _selectedPacienteId,
+                            initialValue: _selectedPacienteId,
                             decoration: const InputDecoration(labelText: 'Paciente *'),
                             items: viewModel.pacientes.map((paciente) {
                               return DropdownMenuItem<String>(
@@ -99,7 +99,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                           ),
                            const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _selectedFormaPagamento,
+                            initialValue: _selectedFormaPagamento,
                             decoration: const InputDecoration(labelText: 'Forma de Pagamento *'),
                             items: ['Dinheiro', 'Pix', 'Convenio']
                                 .map((forma) => DropdownMenuItem(value: forma, child: Text(forma)))
@@ -123,7 +123,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
                           if (_selectedFormaPagamento == 'Dinheiro' || _selectedFormaPagamento == 'Pix') ...[
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
-                              value: _selectedTipoParcelamento,
+                              initialValue: _selectedTipoParcelamento,
                               decoration: const InputDecoration(labelText: 'Tipo de Parcelamento *'),
                               items: ['Por sessão', '3x']
                                   .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))

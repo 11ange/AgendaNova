@@ -17,6 +17,7 @@ class PagamentoModel extends Pagamento {
     super.dataEnvioGuia,
     super.parcelaNumero,
     super.totalParcelas,
+    super.dataRecebimentoConvenio, // NOVO CAMPO
   });
 
   // Construtor para criar um PagamentoModel a partir de um DocumentSnapshot do Firestore (nível raiz)
@@ -40,6 +41,7 @@ class PagamentoModel extends Pagamento {
       dataEnvioGuia: (data['dataEnvioGuia'] as Timestamp?)?.toDate(),
       parcelaNumero: data['parcelaNumero'] as int?,
       totalParcelas: data['totalParcelas'] as int?,
+      dataRecebimentoConvenio: (data['dataRecebimentoConvenio'] as Timestamp?)?.toDate(), // NOVO CAMPO
     );
   }
 
@@ -60,6 +62,9 @@ class PagamentoModel extends Pagamento {
           : null,
       'parcelaNumero': parcelaNumero,
       'totalParcelas': totalParcelas,
+      'dataRecebimentoConvenio': dataRecebimentoConvenio != null // NOVO CAMPO
+          ? Timestamp.fromDate(dataRecebimentoConvenio!)
+          : null,
     };
   }
 
@@ -78,6 +83,7 @@ class PagamentoModel extends Pagamento {
       dataEnvioGuia: pagamento.dataEnvioGuia,
       parcelaNumero: pagamento.parcelaNumero,
       totalParcelas: pagamento.totalParcelas,
+      dataRecebimentoConvenio: pagamento.dataRecebimentoConvenio, // NOVO CAMPO
     );
   }
 }

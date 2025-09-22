@@ -32,7 +32,7 @@ class PagamentosPage extends StatelessWidget {
             }
 
             if (viewModel.treinamentosAtivos.isEmpty) {
-              return const Center(child: Text('Nenhum treinamento ativo encontrado.'));
+              return const Center(child: Text('Nenhum treinamento ativo ou com pagamento pendente encontrado.'));
             }
 
             return ListView.builder(
@@ -45,10 +45,14 @@ class PagamentosPage extends StatelessWidget {
                 final String statusGeral;
                 final Color statusColor;
 
-                if (treinamento.tipoParcelamento == '3x') {
+                if (treinamento.formaPagamento == 'Convenio') {
+                  final bool isPago = pagamentos.any((p) => p.status == 'Realizado' && p.dataEnvioGuia != null);
+                  statusGeral = isPago ? 'Liquidado' : 'Pendente';
+                  statusColor = isPago ? Colors.green : Colors.red;
+                } else if (treinamento.tipoParcelamento == '3x') {
                   final parcelasPagas = pagamentos.where((p) => p.status == 'Realizado').length;
                   if (parcelasPagas == 3) {
-                    statusGeral = 'Pago';
+                    statusGeral = 'Liquidado';
                     statusColor = Colors.green;
                   } else if (parcelasPagas > 0) {
                     statusGeral = 'Parcial';
@@ -59,7 +63,7 @@ class PagamentosPage extends StatelessWidget {
                   }
                 } else {
                    final bool isPago = pagamentos.any((p) => p.status == 'Realizado');
-                   statusGeral = isPago ? 'Pago' : 'Pendente';
+                   statusGeral = isPago ? 'Liquidado' : 'Pendente';
                    statusColor = isPago ? Colors.green : Colors.red;
                 }
 
@@ -115,19 +119,38 @@ class PagamentosPage extends StatelessWidget {
 
   Widget _buildConvenioDetails(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) {
     final textStyle = Theme.of(context).textTheme.bodyMedium;
-    final bool isPaga = pagamento?.status == 'Realizado';
+    final bool guiaEnviada = pagamento?.dataEnvioGuia != null;
+    final bool pagamentoRecebido = pagamento?.dataRecebimentoConvenio != null;
 
-    return ListTile(
-      dense: true,
-      title: Text('Data envio da guia', style: textStyle),
-      trailing: Text(
-        isPaga ? 'Pago - ${DateFormatter.formatDate(pagamento!.dataPagamento)}' : 'Pendente',
-        style: textStyle?.copyWith(
-          color: isPaga ? Colors.green : Colors.orange,
-          fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        ListTile(
+          dense: true,
+          title: Text('Envio da Guia', style: textStyle),
+          trailing: Text(
+            guiaEnviada ? DateFormatter.formatDate(pagamento!.dataEnvioGuia!) : 'Pendente',
+            style: textStyle?.copyWith(
+              color: guiaEnviada ? Colors.green : Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onTap: () => _showConvenioEnvioDialog(context, viewModel, treinamento, pagamento),
         ),
-      ),
-      onTap: () => _showConvenioDateEntryDialog(context, viewModel, treinamento, pagamento),
+        ListTile(
+          dense: true,
+          title: Text('Pagamento do Convênio', style: textStyle),
+          trailing: Text(
+            pagamentoRecebido ? DateFormatter.formatDate(pagamento!.dataRecebimentoConvenio!) : 'Pendente',
+            style: textStyle?.copyWith(
+              color: pagamentoRecebido ? Colors.green : Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onTap: guiaEnviada 
+            ? () => _showConvenioRecebimentoDialog(context, viewModel, treinamento, pagamento) 
+            : null,
+        ),
+      ],
     );
   }
 
@@ -170,10 +193,10 @@ class PagamentosPage extends StatelessWidget {
     );
   }
 
-   Future<void> _showConvenioDateEntryDialog(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) async {
-    final dataPagamentoController = TextEditingController();
-    DateTime? dataPagamentoSelecionada = pagamento?.status == 'Realizado' ? pagamento!.dataPagamento : DateTime.now();
-    dataPagamentoController.text = DateFormatter.formatDate(dataPagamentoSelecionada);
+  Future<void> _showConvenioEnvioDialog(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) async {
+    final dataEnvioController = TextEditingController();
+    DateTime? dataSelecionada = pagamento?.dataEnvioGuia ?? DateTime.now();
+    dataEnvioController.text = DateFormatter.formatDate(dataSelecionada);
 
     await showDialog(
       context: context,
@@ -181,27 +204,27 @@ class PagamentosPage extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Pagamento do Convênio'),
+              title: const Text('Envio da Guia do Convênio'),
               content: GestureDetector(
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
                     context: context,
-                    initialDate: dataPagamentoSelecionada ?? DateTime.now(),
+                    initialDate: dataSelecionada ?? DateTime.now(),
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
                   if (picked != null) {
                     setState(() {
-                      dataPagamentoSelecionada = picked;
-                      dataPagamentoController.text = DateFormatter.formatDate(picked);
+                      dataSelecionada = picked;
+                      dataEnvioController.text = DateFormatter.formatDate(picked);
                     });
                   }
                 },
                 child: AbsorbPointer(
                   child: TextFormField(
-                    controller: dataPagamentoController,
+                    controller: dataEnvioController,
                     decoration: const InputDecoration(
-                      labelText: 'Data do Pagamento',
+                      labelText: 'Data de Envio',
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
                   ),
@@ -209,7 +232,7 @@ class PagamentosPage extends StatelessWidget {
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar')),
-                if (pagamento?.status == 'Realizado') ...[
+                if (pagamento?.dataEnvioGuia != null) ...[
                   TextButton(
                     onPressed: () async {
                       try {
@@ -220,12 +243,13 @@ class PagamentosPage extends StatelessWidget {
                          ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
                       }
                     },
-                    child: const Text('Reverter Pagamento', style: TextStyle(color: Colors.red)),
+                    child: const Text('Reverter Envio', style: TextStyle(color: Colors.red)),
                   ),
                   ElevatedButton(
                     onPressed: () async {
                       try {
-                        await viewModel.updateDataPagamentoConvenio(treinamento.id!, dataPagamentoSelecionada!);
+                        // --- CORREÇÃO APLICADA AQUI ---
+                        await viewModel.updateDataEnvioGuiaConvenio(treinamento.id!, dataSelecionada!);
                         if (!dialogContext.mounted) return;
                         Navigator.of(dialogContext).pop();
                       } catch (e) {
@@ -238,16 +262,75 @@ class PagamentosPage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () async {
                        try {
-                        await viewModel.confirmarPagamentoConvenio(treinamento, dataPagamentoSelecionada!);
+                        await viewModel.confirmarPagamentoConvenio(treinamento, dataSelecionada!);
                         if (!dialogContext.mounted) return;
                         Navigator.of(dialogContext).pop();
                       } catch (e) {
                          ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
                       }
                     },
-                    child: const Text('Confirmar'),
+                    child: const Text('Confirmar Envio'),
                   )
                 ]
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showConvenioRecebimentoDialog(BuildContext context, PagamentosViewModel viewModel, Treinamento treinamento, Pagamento? pagamento) async {
+    final dataRecebimentoController = TextEditingController();
+    DateTime? dataSelecionada = pagamento?.dataRecebimentoConvenio ?? DateTime.now();
+    dataRecebimentoController.text = DateFormatter.formatDate(dataSelecionada);
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Pagamento do Convênio'),
+              content: GestureDetector(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: dataSelecionada ?? DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      dataSelecionada = picked;
+                      dataRecebimentoController.text = DateFormatter.formatDate(picked);
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: dataRecebimentoController,
+                    decoration: const InputDecoration(
+                      labelText: 'Data de Pagamento',
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Fechar')),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await viewModel.confirmarRecebimentoConvenio(treinamento.id!, dataSelecionada!);
+                      if (!dialogContext.mounted) return;
+                      Navigator.of(dialogContext).pop();
+                    } catch (e) {
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(SnackBar(content: Text('Erro: $e')));
+                    }
+                  },
+                  child: Text(pagamento?.dataRecebimentoConvenio != null ? 'Atualizar Data' : 'Confirmar Pagamento'),
+                )
               ],
             );
           },

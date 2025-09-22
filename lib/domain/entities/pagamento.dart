@@ -9,10 +9,11 @@ class Pagamento {
   final String status; // "Pendente", "Realizado"
   final DateTime dataPagamento;
   final String? observacoes;
-  final String? guiaConvenio; // --- NOVO CAMPO ---
-  final DateTime? dataEnvioGuia; // --- NOVO CAMPO ---
+  final String? guiaConvenio;
+  final DateTime? dataEnvioGuia;
   final int? parcelaNumero;
   final int? totalParcelas;
+  final DateTime? dataRecebimentoConvenio; // NOVO CAMPO
 
   Pagamento({
     this.id,
@@ -27,6 +28,7 @@ class Pagamento {
     this.dataEnvioGuia,
     this.parcelaNumero,
     this.totalParcelas,
+    this.dataRecebimentoConvenio, // NOVO CAMPO
   });
 
   // Método para criar uma cópia da entidade com campos atualizados
@@ -43,6 +45,7 @@ class Pagamento {
     DateTime? dataEnvioGuia,
     int? parcelaNumero,
     int? totalParcelas,
+    DateTime? dataRecebimentoConvenio, // NOVO CAMPO
   }) {
     return Pagamento(
       id: id ?? this.id,
@@ -57,6 +60,7 @@ class Pagamento {
       dataEnvioGuia: dataEnvioGuia ?? this.dataEnvioGuia,
       parcelaNumero: parcelaNumero ?? this.parcelaNumero,
       totalParcelas: totalParcelas ?? this.totalParcelas,
+      dataRecebimentoConvenio: dataRecebimentoConvenio ?? this.dataRecebimentoConvenio, // NOVO CAMPO
     );
   }
 }

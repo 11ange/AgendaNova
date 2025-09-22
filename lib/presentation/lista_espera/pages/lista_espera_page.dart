@@ -86,7 +86,7 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
-                        value: _selectedConvenio,
+                        initialValue: _selectedConvenio,
                         decoration: const InputDecoration(labelText: 'Tipo de Atendimento'),
                         style: Theme.of(context).textTheme.bodyLarge,
                         items: ['Particular', 'Convênio', 'SOBAM']
@@ -203,7 +203,7 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? theme.primaryColor.withOpacity(0.15) : Colors.transparent,
+          color: isSelected ? theme.primaryColor.withAlpha(38) : Colors.transparent,
           borderRadius: BorderRadius.circular(8.0),
           border: Border.all(
             color: isSelected ? theme.primaryColor : Colors.grey.shade300,

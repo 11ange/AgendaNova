@@ -46,7 +46,7 @@ class PagamentosViewModel extends ChangeNotifier {
     try {
       _pacientes = await _pacienteRepository.getPacientes().first;
       _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => 
-          list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento').toList()
+          list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado').toList()
       );
       
       _pagamentosPorTreinamento.clear();
@@ -71,14 +71,14 @@ class PagamentosViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> confirmarPagamentoConvenio(Treinamento treinamento, DateTime dataPagamento) async {
+  Future<void> confirmarPagamentoConvenio(Treinamento treinamento, DateTime dataEnvio) async {
     final novoPagamento = Pagamento(
       treinamentoId: treinamento.id!,
       pacienteId: treinamento.pacienteId,
       formaPagamento: treinamento.formaPagamento,
       status: 'Realizado',
-      dataPagamento: dataPagamento,
-      dataEnvioGuia: dataPagamento,
+      dataPagamento: dataEnvio,
+      dataEnvioGuia: dataEnvio,
     );
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [novoPagamento]);
@@ -87,7 +87,7 @@ class PagamentosViewModel extends ChangeNotifier {
     await loadData();
   }
 
-  Future<void> updateDataPagamentoConvenio(String treinamentoId, DateTime novaData) async {
+  Future<void> updateDataEnvioGuiaConvenio(String treinamentoId, DateTime novaData) async {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null || treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty) return;
 
@@ -97,7 +97,6 @@ class PagamentosViewModel extends ChangeNotifier {
     );
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamentoAtualizado]);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
-    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }
 
@@ -107,6 +106,18 @@ class PagamentosViewModel extends ChangeNotifier {
 
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: []);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
+    await loadData();
+  }
+
+  Future<void> confirmarRecebimentoConvenio(String treinamentoId, DateTime dataRecebimento) async {
+    final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
+    if (treinamento == null || treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty) return;
+
+    final pagamentoAtualizado = treinamento.pagamentos!.first.copyWith(dataRecebimentoConvenio: dataRecebimento);
+    final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamentoAtualizado]);
+    await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+    // --- VERIFICAÇÃO ADICIONADA AQUI ---
     await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }

@@ -184,7 +184,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          value: _afinandoCerebro,
+                          initialValue: _afinandoCerebro,
                           decoration: InputDecoration(
                             labelText: 'Afinando o Cérebro',
                             labelStyle: Theme.of(context).textTheme.bodyLarge,

@@ -60,7 +60,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              value: _selectedMonth,
+                              initialValue: _selectedMonth,
                               decoration: const InputDecoration(labelText: 'Mês'),
                               items: List.generate(12, (index) {
                                 final month = index + 1;
@@ -79,7 +79,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: DropdownButtonFormField<int>(
-                              value: _selectedYear,
+                              initialValue: _selectedYear,
                               decoration: const InputDecoration(labelText: 'Ano'),
                               items: List.generate(5, (index) {
                                 final year = DateTime.now().year - 2 + index;
@@ -145,7 +145,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
                       Consumer<RelatoriosViewModel>(
                         builder: (context, viewModel, child) {
                           return DropdownButtonFormField<Paciente>(
-                            value: _selectedPaciente,
+                            initialValue: _selectedPaciente,
                             decoration: const InputDecoration(labelText: 'Selecionar Paciente *'),
                             items: viewModel.pacientes.map((paciente) {
                               return DropdownMenuItem<Paciente>(

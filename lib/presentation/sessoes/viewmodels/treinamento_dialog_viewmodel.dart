@@ -39,8 +39,9 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
       }
 
       _treinamentosSubscription = _treinamentoRepository.getTreinamentos().listen((treinamentos) {
+        // --- LÓGICA DE FILTRO ATUALIZADA AQUI ---
         final pacientesOcupados = treinamentos
-            .where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento')
+            .where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado')
             .map((t) => t.pacienteId)
             .toSet();
 

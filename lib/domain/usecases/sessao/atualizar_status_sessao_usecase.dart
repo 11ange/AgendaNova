@@ -37,30 +37,39 @@ class AtualizarStatusSessaoUseCase {
     final originalStatus = sessao.status;
     Sessao sessaoAtualizada = sessao.copyWith(status: novoStatus);
 
+    if (novoStatus == 'Cancelada' && desmarcarTodasFuturas == true) {
+      final allSessions = await _sessaoRepository.getSessoesByTreinamentoIdOnce(sessao.treinamentoId);
+      final sessionsToDelete = allSessions
+          .where((s) => s.dataHora.isAfter(sessao.dataHora) || s.dataHora.isAtSameMomentAs(sessao.dataHora))
+          .map((s) => s.id!)
+          .toList();
+      
+      if (sessionsToDelete.isNotEmpty) {
+        await _sessaoRepository.deleteMultipleSessoes(sessionsToDelete);
+      }
+      
+      final treinamento = await _treinamentoRepository.getTreinamentoById(sessao.treinamentoId);
+      if (treinamento != null) {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'cancelado'));
+      }
+      await verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+      return;
+    }
+
     if ((novoStatus == 'Cancelada' || novoStatus == 'Bloqueada') && originalStatus == 'Agendada') {
-      if (novoStatus == 'Cancelada' && desmarcarTodasFuturas == true) {
-        final allSessions = await _sessaoRepository.getSessoesByTreinamentoId(sessao.treinamentoId).first;
-        final sessionsToCancel = allSessions.where((s) => s.numeroSessao >= sessao.numeroSessao && s.status == 'Agendada').toList();
-        for (var s in sessionsToCancel) {
-          await _sessaoRepository.updateSessao(s.copyWith(status: 'Cancelada'));
-        }
-      } else {
         if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
           await _gerarSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.pacienteId, sessao.numeroSessao);
         }
-      }
     } else if (novoStatus == 'Agendada' && (originalStatus == 'Cancelada' || originalStatus == 'Bloqueada')) {
       if (sessao.treinamentoId != 'dia_bloqueado_completo' && sessao.treinamentoId != 'bloqueio_manual') {
         await _removerSessaoExtraEReajustarNumeracao(sessao.treinamentoId, sessao.numeroSessao);
       }
     }
 
-    // Lógica para "Falta" com pagamento diferente de convênio
     if (novoStatus == 'Falta' &&
         originalStatus == 'Agendada' &&
         sessao.statusPagamento != 'Convenio') {
       sessaoAtualizada = sessaoAtualizada.copyWith(statusPagamento: 'Pendente', dataPagamento: null);
-      // Sessão extra não é mais criada para 'Falta', conforme regra de negócio.
     }
 
     await _sessaoRepository.updateSessao(sessaoAtualizada);
@@ -69,36 +78,44 @@ class AtualizarStatusSessaoUseCase {
 
   Future<void> verificarEAtualizarStatusTreinamento(String treinamentoId) async {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
-    if (treinamento == null || treinamento.status == 'cancelado') return;
+    if (treinamento == null) return;
 
     final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamentoId);
-    final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
-
-    if (sessoesConcluidas >= treinamento.numeroSessoesTotal) {
-      bool pagamentosPendentes = false;
-
-      // Verifica o status do pagamento com base no tipo
-      if (treinamento.formaPagamento == 'Convenio') {
-        pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty || treinamento.pagamentos!.any((p) => p.status != 'Realizado');
-      } else if (treinamento.tipoParcelamento == '3x') {
-        pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.where((p) => p.status == 'Realizado').length < 3;
-      } else { // Pagamento 'Por sessão'
-        pagamentosPendentes = todasSessoes.any((s) => s.statusPagamento == 'Pendente' && s.status != 'Cancelada');
-      }
-
-      if (pagamentosPendentes) {
-        if (treinamento.status != 'Pendente Pagamento') {
-          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Pendente Pagamento'));
-        }
-      } else {
-        if (treinamento.status != 'Finalizado') {
-          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
-        }
-      }
+    
+    bool pagamentosPendentes = false;
+    
+    if (treinamento.formaPagamento == 'Convenio') {
+      pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.isEmpty || treinamento.pagamentos!.any((p) => p.dataRecebimentoConvenio == null);
+    } else if (treinamento.tipoParcelamento == '3x') {
+      pagamentosPendentes = treinamento.pagamentos == null || treinamento.pagamentos!.where((p) => p.status == 'Realizado').length < 3;
     } else {
-      if (treinamento.status == 'Finalizado' || treinamento.status == 'Pendente Pagamento') {
-        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'ativo'));
+      pagamentosPendentes = todasSessoes.any((s) => (s.status == 'Realizada' || s.status == 'Falta') && s.statusPagamento == 'Pendente');
+    }
+
+    if (treinamento.status == 'ativo') {
+      final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
+      if (sessoesConcluidas >= treinamento.numeroSessoesTotal) {
+        if (pagamentosPendentes) {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Pendente Pagamento'));
+        } else {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+          await _pacienteRepository.inativarPaciente(treinamento.pacienteId);
+        }
       }
+    } 
+    else if (treinamento.status == 'cancelado') {
+      if (!pagamentosPendentes) {
+        await _pacienteRepository.inativarPaciente(treinamento.pacienteId);
+      }
+    }
+    else if (treinamento.status == 'Finalizado' || treinamento.status == 'Pendente Pagamento') {
+       final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
+       if (sessoesConcluidas < treinamento.numeroSessoesTotal) {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'ativo'));
+       } else if (!pagamentosPendentes) {
+          await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+          await _pacienteRepository.inativarPaciente(treinamento.pacienteId);
+       }
     }
   }
 
@@ -114,6 +131,7 @@ class AtualizarStatusSessaoUseCase {
     if (paciente == null) throw Exception('Paciente não encontrado para gerar sessão extra.');
 
     final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoId(treinamentoId).first;
+    // --- CORREÇÃO DO ERRO DE DIGITAÇÃO AQUI ---
     final ultimaSessao = todasSessoes.reduce((a, b) => a.numeroSessao > b.numeroSessao ? a : b);
 
     for (var sessao in todasSessoes) {

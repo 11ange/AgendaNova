@@ -27,7 +27,7 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   Paciente? get paciente => _paciente;
   List<Treinamento> get treinamentos => _treinamentos;
   Map<String, List<Sessao>> get sessoesPorTreinamento => _sessoesPorTreinamento;
-  Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento; // Getter corrigido
+  Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
