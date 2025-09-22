@@ -32,5 +32,17 @@ class ListaEsperaRepositoryImpl implements ListaEsperaRepository {
   Future<void> removerListaEspera(String id) async {
     await _firebaseDatasource.deleteDocument(FirestoreCollections.listaEspera, id);
   }
-}
 
+  @override
+  Future<void> updateListaEspera(ListaEspera item) async {
+    if (item.id == null) {
+      throw Exception('ID do item da lista de espera é obrigatório para atualização.');
+    }
+    final itemModel = ListaEsperaModel.fromEntity(item);
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.listaEspera,
+      item.id!,
+      itemModel.toFirestore(),
+    );
+  }
+}

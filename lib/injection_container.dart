@@ -18,6 +18,7 @@ import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/agenda/definir_agenda_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
+import 'package:agenda_treinamento/domain/usecases/lista_espera/editar_lista_espera_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/paciente/editar_paciente_usecase.dart';
@@ -67,7 +68,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ReativarPacienteUseCase(sl()));
   sl.registerLazySingleton(() => AdicionarListaEsperaUseCase(sl()));
   sl.registerLazySingleton(() => RemoverListaEsperaUseCase(sl()));
-  sl.registerLazySingleton(() => DefinirAgendaUseCase(sl(), sl())); // CORRIGIDO AQUI
+  sl.registerLazySingleton(() => EditarListaEsperaUseCase(sl())); // NOVO USE CASE
+  sl.registerLazySingleton(() => DefinirAgendaUseCase(sl(), sl()));
   sl.registerLazySingleton(() => CriarTreinamentoUseCase(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton(() => AtualizarStatusSessaoUseCase(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton(() => RegistrarPagamentoUseCase(sl()));

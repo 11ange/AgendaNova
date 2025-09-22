@@ -112,16 +112,12 @@ class _PacientesListPageBodyState extends State<PacientesListPageBody> {
                       // **A CORREÇÃO DEFINITIVA ESTÁ AQUI**
                       // Capturamos a referência ao ScaffoldMessenger ANTES de qualquer `await`.
                       final scaffoldMessenger = ScaffoldMessenger.of(context);
-
                       final confirm = await _showConfirmationDialog(context,
                           widget.confirmationTitle, '${widget.confirmationContent} ${paciente.nome}?');
                       
                       if (confirm == true) {
                         try {
                           await widget.onAction(paciente.id!);
-                          
-                          // Usamos a referência `scaffoldMessenger` que ainda é válida,
-                          // mesmo que o widget original tenha desaparecido da tela.
                           scaffoldMessenger.showSnackBar(
                             SnackBar(
                               content: Text(widget.successMessage),
@@ -131,7 +127,6 @@ class _PacientesListPageBodyState extends State<PacientesListPageBody> {
                             ),
                           );
                         } catch (e) {
-                          // O mesmo se aplica ao tratamento de erros.
                           final errorMessage = SnackBarHelper.parseErrorMessage(e);
                           scaffoldMessenger.showSnackBar(
                             SnackBar(

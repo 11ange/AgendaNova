@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // <<< IMPORTE O FIREBASE AUTH
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:agenda_treinamento/app/app_widget.dart';
 import 'package:agenda_treinamento/firebase_options.dart';
 import 'package:agenda_treinamento/injection_container.dart' as di;
@@ -15,7 +15,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // --- CORREÇÃO AQUI ---
   // Esta linha garante que o app espere o Firebase Auth inicializar
   // e carregar a sessão do usuário antes de continuar.
   await FirebaseAuth.instance.authStateChanges().first;

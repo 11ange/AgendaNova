@@ -5,6 +5,7 @@ import 'package:agenda_treinamento/data/repositories/lista_espera_repository_imp
 import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
 import 'package:agenda_treinamento/domain/repositories/lista_espera_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
+import 'package:agenda_treinamento/domain/usecases/lista_espera/editar_lista_espera_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'dart:async';
 import 'package:agenda_treinamento/core/utils/logger.dart'; // Importa o logger
@@ -14,6 +15,7 @@ class ListaEsperaViewModel extends ChangeNotifier {
   final ListaEsperaRepository _listaEsperaRepository;
   final AdicionarListaEsperaUseCase _adicionarListaEsperaUseCase;
   final RemoverListaEsperaUseCase _removerListaEsperaUseCase;
+  final EditarListaEsperaUseCase _editarListaEsperaUseCase;
 
   List<ListaEspera> _listaEspera = [];
   List<ListaEspera> get listaEspera => _listaEspera;
@@ -43,6 +45,12 @@ class ListaEsperaViewModel extends ChangeNotifier {
             ListaEsperaRepositoryImpl(
               FirebaseDatasource(FirebaseService.instance),
             ),
+      ),
+      _editarListaEsperaUseCase = EditarListaEsperaUseCase(
+        listaEsperaRepository ??
+            ListaEsperaRepositoryImpl(
+              FirebaseDatasource(FirebaseService.instance),
+            ),
       ) {
     _listenToListaEspera();
   }
@@ -50,15 +58,15 @@ class ListaEsperaViewModel extends ChangeNotifier {
   void _listenToListaEspera() {
     _listaEsperaRepository.getListaEspera().listen(
       (items) {
-        // Ordena a lista pelo mais antigo primeiro (dataCadastro ascendente)
-        items.sort((a, b) => a.dataCadastro.compareTo(b.dataCadastro));
-        _listaEspera = items;
+        // Filtra para mostrar apenas quem está aguardando
+        final aguardando = items.where((item) => item.status == 'aguardando').toList();
+        aguardando.sort((a, b) => a.dataCadastro.compareTo(b.dataCadastro));
+        _listaEspera = aguardando;
         _listaEsperaStreamController.add(_listaEspera);
         notifyListeners();
       },
-      onError: (error, stackTrace) { // Captura o erro e o stack trace
+      onError: (error, stackTrace) {
         _listaEsperaStreamController.addError(error);
-        // CORREÇÃO: Usa o logger para registrar o erro
         logger.e('Erro ao carregar lista de espera', error: error, stackTrace: stackTrace);
       },
     );
@@ -79,6 +87,30 @@ class ListaEsperaViewModel extends ChangeNotifier {
     _setLoading(true);
     try {
       await _removerListaEsperaUseCase.call(id);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> editarItem(ListaEspera item) async {
+    _setLoading(true);
+    try {
+      await _editarListaEsperaUseCase.call(item);
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+  
+  // NOVO MÉTODO: Marca um item como "saiu"
+  Future<void> sairDaLista(ListaEspera item) async {
+    _setLoading(true);
+    try {
+      final itemAtualizado = item.copyWith(status: 'saiu');
+      await _editarListaEsperaUseCase.call(itemAtualizado);
     } catch (e) {
       rethrow;
     } finally {

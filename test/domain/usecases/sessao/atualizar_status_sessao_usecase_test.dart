@@ -116,11 +116,10 @@ void main() {
             s.id == id &&
             s.status == status &&
             (numeroSessao == null || s.numeroSessao == numeroSessao))),
-      )).called(atLeast(1));
+      )).called(greaterThanOrEqualTo(1));
     }
 
-    // ... (O resto dos testes permanece o mesmo da resposta anterior)
-     test('deve atualizar o status para Realizada e verificar o status do treinamento', () async {
+        test('deve atualizar o status para Realizada e verificar o status do treinamento', () async {
       setupDefaultMocks();
 
       final sessoesQuaseConcluidas = [

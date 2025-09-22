@@ -10,5 +10,7 @@ abstract class ListaEsperaRepository {
 
   // Remove um item da lista de espera pelo ID
   Future<void> removerListaEspera(String id);
-}
 
+  // ATUALIZA UM ITEM EXISTENTE NA LISTA DE ESPERA
+  Future<void> updateListaEspera(ListaEspera item);
+}

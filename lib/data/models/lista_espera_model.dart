@@ -9,12 +9,13 @@ class ListaEsperaModel extends ListaEspera {
     super.telefone,
     super.observacoes,
     required super.dataCadastro,
+    super.tipoConvenio,
+    required super.status,
   });
 
   // Construtor para criar um ListaEsperaModel a partir de um DocumentSnapshot do Firestore
   factory ListaEsperaModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    // Lê do campo 'timestamp' no Firestore, tratando como opcional
     final dataCadastro = (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     return ListaEsperaModel(
       id: doc.id,
@@ -22,6 +23,8 @@ class ListaEsperaModel extends ListaEspera {
       telefone: data['telefone'] as String?,
       observacoes: data['observacoes'] as String?,
       dataCadastro: dataCadastro,
+      tipoConvenio: data['tipoConvenio'] as String?,
+      status: data['status'] as String? ?? 'aguardando', // Garante um valor padrão
     );
   }
 
@@ -31,7 +34,9 @@ class ListaEsperaModel extends ListaEspera {
       'nome': nome,
       'telefone': telefone,
       'observacoes': observacoes,
-      'timestamp': Timestamp.fromDate(dataCadastro), // Salva no campo 'timestamp'
+      'timestamp': Timestamp.fromDate(dataCadastro),
+      'tipoConvenio': tipoConvenio,
+      'status': status,
     };
   }
 
@@ -43,6 +48,8 @@ class ListaEsperaModel extends ListaEspera {
       telefone: listaEspera.telefone,
       observacoes: listaEspera.observacoes,
       dataCadastro: listaEspera.dataCadastro,
+      tipoConvenio: listaEspera.tipoConvenio,
+      status: listaEspera.status,
     );
   }
 }

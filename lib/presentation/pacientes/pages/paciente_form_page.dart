@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
 import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:agenda_treinamento/core/utils/input_validators.dart';
+import 'package:agenda_treinamento/core/utils/phone_input_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 
@@ -55,7 +57,10 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
       setState(() {
         _nomeController.text = paciente.nome;
         _nomeResponsavelController.text = paciente.nomeResponsavel;
-        _telefoneResponsavelController.text = paciente.telefoneResponsavel ?? '';
+        // --- CORREÇÃO APLICADA AQUI ---
+        _telefoneResponsavelController.text = paciente.telefoneResponsavel != null
+            ? PhoneInputFormatter.formatPhoneNumber(paciente.telefoneResponsavel!)
+            : '';
         _emailResponsavelController.text = paciente.emailResponsavel ?? '';
         _observacoesController.text = paciente.observacoes ?? '';
         _dataNascimento = paciente.dataNascimento;
@@ -156,10 +161,18 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _telefoneResponsavelController,
-                          decoration: const InputDecoration(labelText: 'Telefone do Responsável'),
+                          decoration: const InputDecoration(
+                            labelText: 'Telefone do Responsável',
+                            counterText: '',
+                          ),
                           keyboardType: TextInputType.phone,
                           validator: (value) => InputValidators.phone(value),
                           style: Theme.of(context).textTheme.bodyLarge,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            PhoneInputFormatter(),
+                          ],
+                          maxLength: 15,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -212,14 +225,16 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                         ? null
                         : () async {
                             if (_formKey.currentState!.validate()) {
+                              final telefoneApenasDigitos = _telefoneResponsavelController.text.replaceAll(RegExp(r'\D'), '');
+
                               final newPaciente = Paciente(
                                 id: widget.pacienteId,
                                 nome: _nomeController.text,
                                 dataNascimento: _dataNascimento!,
                                 nomeResponsavel: _nomeResponsavelController.text,
-                                telefoneResponsavel: _telefoneResponsavelController.text.isEmpty
+                                telefoneResponsavel: telefoneApenasDigitos.isEmpty
                                     ? null
-                                    : _telefoneResponsavelController.text,
+                                    : telefoneApenasDigitos,
                                 emailResponsavel: _emailResponsavelController.text.isEmpty
                                     ? null
                                     : _emailResponsavelController.text,

@@ -5,6 +5,8 @@ class ListaEspera {
   final String? telefone;
   final String? observacoes;
   final DateTime dataCadastro;
+  final String? tipoConvenio;
+  final String status; // NOVO CAMPO: "aguardando" ou "saiu"
 
   ListaEspera({
     this.id,
@@ -12,6 +14,8 @@ class ListaEspera {
     this.telefone,
     this.observacoes,
     required this.dataCadastro,
+    this.tipoConvenio,
+    this.status = 'aguardando', // Valor padrão
   });
 
   // Método para criar uma cópia da entidade com campos atualizados
@@ -21,6 +25,8 @@ class ListaEspera {
     String? telefone,
     String? observacoes,
     DateTime? dataCadastro,
+    String? tipoConvenio,
+    String? status,
   }) {
     return ListaEspera(
       id: id ?? this.id,
@@ -28,7 +34,8 @@ class ListaEspera {
       telefone: telefone ?? this.telefone,
       observacoes: observacoes ?? this.observacoes,
       dataCadastro: dataCadastro ?? this.dataCadastro,
+      tipoConvenio: tipoConvenio ?? this.tipoConvenio,
+      status: status ?? this.status,
     );
   }
 }
-
