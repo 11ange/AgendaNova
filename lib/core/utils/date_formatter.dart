@@ -34,5 +34,11 @@ class DateFormatter {
       throw FormatException('Erro ao parsear data "$dateString". Formato esperado: dd/MM/yyyy. Erro: $e');
     }
   }
+  
+  static String getCapitalizedWeekdayName(DateTime date) {
+    String weekday = getWeekdayName(date); // ex: "segunda-feira"
+    if (weekday.isEmpty) return "";
+    return weekday[0].toUpperCase() + weekday.substring(1); // -> "Segunda-feira"
+  }
 }
 

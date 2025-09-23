@@ -7,10 +7,22 @@ plugins {
 
 android {
     // Adicionado ndkVersion para compatibilidade com Firebase
-    ndkVersion = "27.0.12077973" // CORREÇÃO: Adicione esta linha
+    ndkVersion = "27.0.12077973"
 
     namespace = "com.example.agendanova"
     compileSdk = 34 // Ou a versão mais recente que você está usando
+
+    flavorDimensions += "environment"
+    productFlavors {
+        create("prod") {
+            dimension = "environment"
+            applicationId = "com.example.agendanova"
+        }
+        create("qa") {
+            dimension = "environment"
+            applicationId = "com.example.agenda_treinamento"
+        }
+    }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/tools/publishing/app-signing#application-id)
