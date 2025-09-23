@@ -5,16 +5,16 @@
     version: 1.0.0+1
 
     environment:
-      sdk: ^3.8.1 # Ou a versão do SDK que você está usando (conforme flutter doctor)
+      sdk: ^3.9.2 #^3.8.1 # Ou a versão do SDK que você está usando (conforme flutter doctor)
 
     dependencies:
       flutter:
         sdk: flutter
       cupertino_icons: ^1.0.8
-      go_router: ^16.0.0
-      firebase_core: ^4.1.0
-      cloud_firestore: ^6.0.1
-      firebase_auth: ^6.0.2
+      go_router: ^16.2.2
+      firebase_core: ^4.1.1
+      cloud_firestore: ^6.0.2
+      firebase_auth: ^6.1.0
       provider: ^6.1.5
       intl: ^0.20.2
       table_calendar: ^3.2.0
@@ -26,8 +26,8 @@
         sdk: flutter
       flutter_lints: ^6.0.0
       flutter_launcher_icons: ^0.14.4
-      mockito: ^5.4.4
-      build_runner: ^2.4.9
+      mockito: ^5.5.0
+      build_runner: ^2.7.1
       test: ^1.26.2
     flutter:
       uses-material-design: true
