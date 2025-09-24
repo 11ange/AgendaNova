@@ -28,7 +28,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/tools/publishing/app-signing#application-id)
         applicationId = "com.example.agendanova"
         // minSdk aumentado para 23 para compatibilidade com Firebase Auth
-        minSdk = 23 // CORREÇÃO: Altere de 21 para 23
+        minSdk = flutter.minSdkVersion // CORREÇÃO: Altere de 21 para 23
         targetSdk = 34 // Ou a versão mais recente que você está usando
         versionCode = 1
         versionName = "1.0"

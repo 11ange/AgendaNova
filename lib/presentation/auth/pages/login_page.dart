@@ -67,6 +67,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 24.0),
                           TextFormField(
+                            key: const Key('email_field'),
                             controller: _emailController,
                             decoration: const InputDecoration(
                               labelText: 'Usuário (E-mail)',
@@ -82,6 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 16.0),
                           TextFormField(
+                            key: const Key('password_field'),
                             controller: _passwordController,
                             decoration: const InputDecoration(
                               labelText: 'Senha',
@@ -109,6 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
+                                      key: const Key('login_button'),
                                       onPressed: () async {
                                         if (kDebugMode && _emailController.text.isEmpty && _passwordController.text.isEmpty) {
                                            context.go('/home');

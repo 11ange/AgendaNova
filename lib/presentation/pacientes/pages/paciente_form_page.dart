@@ -119,6 +119,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextFormField(
+                          key: const Key('paciente_nome_field'),
                           controller: _nomeController,
                           decoration: const InputDecoration(labelText: 'Nome do Paciente *'),
                           validator: (value) => InputValidators.requiredField(value, 'Nome do Paciente'),
@@ -126,6 +127,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          key: const Key('paciente_responsavel_field'),
                           controller: _nomeResponsavelController,
                           decoration: const InputDecoration(labelText: 'Nome do Responsável *'),
                           validator: (value) => InputValidators.requiredField(value, 'Nome do Responsável'),
@@ -136,6 +138,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                           onTap: () => _selectDate(context),
                           child: AbsorbPointer(
                             child: TextFormField(
+                              key: const Key('paciente_data_nascimento_field'),
                               controller: _dataNascimentoController,
                               decoration: InputDecoration(
                                 labelText: 'Data de Nascimento *',
@@ -221,6 +224,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    key: const Key('cadastrar_paciente_button'),
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {

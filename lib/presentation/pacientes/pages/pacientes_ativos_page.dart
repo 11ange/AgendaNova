@@ -39,6 +39,7 @@ class _PacientesAtivosPageState extends State<PacientesAtivosPage> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
+                    key: const Key('novo_paciente_button'),
                     onPressed: () => context.go('/pacientes-ativos/novo'),
                     icon: const Icon(Icons.add),
                     label: const Text(
