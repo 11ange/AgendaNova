@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
                               labelText: 'Usuário (E-mail)',
                               prefixIcon: Icon(Icons.person),
                             ),
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.text,//TextInputType.emailAddress,
                              validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor, insira um e-mail.';

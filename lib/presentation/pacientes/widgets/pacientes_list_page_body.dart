@@ -14,6 +14,7 @@ class PacientesListPageBody extends StatefulWidget {
   final String confirmationContent;
   final String emptyListMessage;
   final String successMessage;
+  final Key? scrollableKey;
 
   const PacientesListPageBody({
     super.key,
@@ -25,6 +26,7 @@ class PacientesListPageBody extends StatefulWidget {
     required this.confirmationContent,
     required this.emptyListMessage,
     required this.successMessage,
+    this.scrollableKey,
   });
 
   @override
