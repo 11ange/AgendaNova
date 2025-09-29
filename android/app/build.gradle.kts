@@ -10,7 +10,7 @@ android {
     ndkVersion = "27.0.12077973"
 
     namespace = "com.example.agendanova"
-    compileSdk = 34 // Ou a versão mais recente que você está usando
+    compileSdk = 36 // Ou a versão mais recente que você está usando
 
     flavorDimensions += "environment"
     productFlavors {
