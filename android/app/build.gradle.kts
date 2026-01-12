@@ -20,7 +20,7 @@ android {
         }
         create("qa") {
             dimension = "environment"
-            applicationId = "com.example.agenda_treinamento"
+            applicationId = "com.example.agendanova"
         }
     }
 
