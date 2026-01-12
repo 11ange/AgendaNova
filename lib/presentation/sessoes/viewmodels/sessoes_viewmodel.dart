@@ -8,6 +8,7 @@ import 'package:agenda_treinamento/domain/repositories/treinamento_repository.da
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 
@@ -232,9 +233,111 @@ class SessoesViewModel extends ChangeNotifier {
      await onPageChanged(date);
   }
 
+ // Substitua o método unblockEntireDay existente por este:
   Future<void> unblockEntireDay(DateTime date) async {
-     await _sessaoRepository.setDayBlockedStatus(date, false);
-     await onPageChanged(date);
+    _setLoading(true);
+    try {
+      // 1. Desbloqueia o dia no repositório (Banco de Dados)
+      await _sessaoRepository.setDayBlockedStatus(date, false);
+
+      // 2. Realoca as sessões futuras para ocupar o espaço que abriu
+      await _reajustarSessoesFuturas(date);
+
+      // 3. Atualiza a tela
+      await onPageChanged(date);
+    } catch (e) {
+      debugPrint('Erro ao desbloquear dia: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Adicione este novo método privado na classe:
+  Future<void> _reajustarSessoesFuturas(DateTime dataDesbloqueada) async {
+    final weekdayName = DateFormatter.getCapitalizedWeekdayName(dataDesbloqueada);
+
+    // 1. Busca treinamentos ativos do dia
+    final allTreinamentos = await _treinamentoRepository.getTreinamentos().first;
+    final treinamentosAfetados = allTreinamentos.where((t) => 
+      (t.status == 'ativo' || t.status == 'Pendente Pagamento') && 
+      t.diaSemana == weekdayName
+    ).toList();
+
+    // Cache para evitar consultas repetidas (já marcamos o dia atual como livre)
+    final Map<String, bool> blockedDaysCache = {
+      DateFormat('yyyy-MM-dd').format(dataDesbloqueada): false
+    };
+
+    for (var treinamento in treinamentosAfetados) {
+      if (treinamento.id == null) continue;
+
+      final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamento.id!);
+      
+      // Filtra sessões futuras agendadas
+      final sessoesFuturas = todasSessoes.where((s) => 
+        (DateUtils.isSameDay(s.dataHora, dataDesbloqueada) || s.dataHora.isAfter(dataDesbloqueada)) &&
+        s.status == 'Agendada'
+      ).toList();
+
+      if (sessoesFuturas.isEmpty) continue;
+
+      sessoesFuturas.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+
+      // Configura a data inicial para o dia que acabou de ser desbloqueado
+      final horaParts = treinamento.horario.split(':');
+      final horaTreino = int.parse(horaParts[0]);
+      final minutoTreino = int.parse(horaParts[1]);
+
+      DateTime dataCandidata = DateTime(
+        dataDesbloqueada.year, 
+        dataDesbloqueada.month, 
+        dataDesbloqueada.day, 
+        horaTreino, 
+        minutoTreino
+      );
+
+      for (var sessao in sessoesFuturas) {
+        bool diaValido = false;
+
+        // Encontra o próximo dia livre
+        while (!diaValido) {
+          final dataKey = DateFormat('yyyy-MM-dd').format(dataCandidata);
+          
+          if (!blockedDaysCache.containsKey(dataKey)) {
+             final sessoesDoDia = await _sessaoRepository.getSessoesByDate(dataCandidata).first;
+             final isBlocked = sessoesDoDia.any((s) => s.status == 'Bloqueada');
+             blockedDaysCache[dataKey] = isBlocked;
+          }
+
+          if (blockedDaysCache[dataKey] == true) {
+             dataCandidata = dataCandidata.add(const Duration(days: 7));
+          } else {
+             diaValido = true;
+          }
+        }
+
+        // Se a data mudou, precisamos MOVER a sessão (Delete + Add)
+        if (!DateUtils.isSameDay(sessao.dataHora, dataCandidata)) {
+          // 1. Remove a sessão do dia antigo (Documento antigo)
+          if (sessao.id != null) {
+            await _sessaoRepository.deleteSessao(sessao.id!);
+          }
+
+          // 2. Cria a nova sessão com a nova data
+          final novaSessao = sessao.copyWith(
+            id: null, // Limpa o ID para gerar um novo baseado na nova data
+            dataHora: dataCandidata,
+          );
+
+          // 3. Adiciona a sessão no novo dia (Documento novo)
+          await _sessaoRepository.addSessao(novaSessao);
+        }
+
+        // Avança para a próxima semana para a próxima sessão da lista
+        dataCandidata = dataCandidata.add(const Duration(days: 7));
+      }
+    }
   }
 
   Future<void> updateSessaoStatus(Sessao sessao, String novoStatus, {bool? desmarcarTodasFuturas}) async {

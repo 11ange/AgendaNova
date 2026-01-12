@@ -28,7 +28,7 @@ class CriarTreinamentoUseCase {
     required DateTime dataInicio,
     required String formaPagamento,
     String? tipoParcelamento,
-    String? nomeConvenio, // --- NOVO CAMPO ---
+    String? nomeConvenio,
   }) async {
     // 1. Regra de Negócio: Um paciente só pode ter um treinamento em andamento.
     final hasActive = await _treinamentoRepository.hasActiveTreinamento(pacienteId);
@@ -64,6 +64,20 @@ class CriarTreinamentoUseCase {
     while (sessionsCreated < numeroSessoesTotal) {
       // Ajusta a data para o dia da semana correto (se dataInicio não for o dia certo)
       currentSessionDate = DateTimeHelper.getNextWeekday(currentSessionDate, diaSemana);
+
+      // --- VERIFICAÇÃO DE DIA BLOQUEADO ---
+      // Consulta o repositório para ver se existe bloqueio nesta data específica
+      final sessoesDoDia = await _sessaoRepository.getSessoesByDate(currentSessionDate).first;
+      final isDiaBloqueado = sessoesDoDia.any((s) => s.status == 'Bloqueada');
+
+      if (isDiaBloqueado) {
+        // Se o dia está bloqueado, pulamos esta data.
+        // Adicionamos 7 dias para tentar na próxima semana.
+        // NÃO incrementamos sessionsCreated nem sessionNumber, para que a sessão seja jogada para o final.
+        currentSessionDate = currentSessionDate.add(const Duration(days: 7));
+        continue;
+      }
+      // -------------------------------------
 
       // Combina a data com o horário fixo
       final DateTime sessionDateTime = DateTime(
@@ -109,7 +123,7 @@ class CriarTreinamentoUseCase {
       status: 'ativo',
       formaPagamento: formaPagamento,
       tipoParcelamento: tipoParcelamento,
-      nomeConvenio: nomeConvenio, // --- NOVO CAMPO ---
+      nomeConvenio: nomeConvenio,
       dataCadastro: DateTime.now(),
     );
 

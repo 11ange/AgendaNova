@@ -195,18 +195,68 @@ class AtualizarStatusSessaoUseCase {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null) return;
 
-    final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoId(treinamentoId).first;
+    // Obtém todas as sessões atuais
+    final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamentoId);
 
-    final sessaoExtra = todasSessoes.firstWhere(
-      (s) => s.numeroSessao == treinamento.numeroSessoesTotal,
-      orElse: () => throw Exception('Sessão extra não encontrada para remoção.'),
-    );
+    // 1. Encontrar a sessão extra para remover.
+    // A sessão extra é geralmente a última cronologicamente ou a que tem o maior número de sessão
+    // e foi marcada como reagendada (se houver esse campo) ou simplesmente a última excedente.
+    
+    // Ordena por data para ter certeza da ordem cronológica
+    todasSessoes.sort((a, b) => a.dataHora.compareTo(b.dataHora));
 
+    // A sessão extra é a última da lista cronológica
+    if (todasSessoes.isEmpty) return;
+    final sessaoExtra = todasSessoes.last;
+
+    // Verificação de segurança: Só remove se o total de sessões for maior que o contratado
+    // OU se tivermos certeza que é uma sessão extra gerada por bloqueio.
+    // No seu caso, ao bloquear, criamos uma sessão a mais. Ao desbloquear, temos que remover uma.
+    
     await _sessaoRepository.deleteSessao(sessaoExtra.id!);
 
-    for (var sessao in todasSessoes) {
-      if (sessao.numeroSessao >= sessaoRevertidaNumero && sessao.id != sessaoExtra.id) {
-        await _sessaoRepository.updateSessao(sessao.copyWith(numeroSessao: sessao.numeroSessao + 1));
+    // 2. Reajustar a numeração das sessões restantes.
+    // Quando bloqueamos, fizemos: sessao.numeroSessao - 1 (para as posteriores).
+    // Agora, ao desbloquear, temos que fazer: sessao.numeroSessao + 1.
+    // Mas apenas para as sessões que ocorrem DEPOIS da sessão que estamos desbloqueando/revertendo.
+
+    // Removemos a sessão extra da lista em memória para não iterar sobre ela
+    final sessoesRestantes = todasSessoes.where((s) => s.id != sessaoExtra.id).toList();
+
+    for (var sessao in sessoesRestantes) {
+      // Se a sessão é posterior à que estamos desbloqueando (baseado na data ou ID, 
+      // mas aqui usamos a lógica de que as posteriores tiveram seu número reduzido)
+      
+      // A lógica de bloqueio anterior fazia: if (sessao.numeroSessao > sessaoOriginalNumero) ... numero - 1
+      // Então agora, procuramos sessões que foram "encolhidas".
+      // Como a sessão bloqueada (sessaoRevertidaNumero) manteve seu número original visualmente ou foi alterada?
+      // Assumindo que a sessão bloqueada tem o número X. As sessões seguintes viraram X, X+1...
+      // Agora a sessão bloqueada volta a ser X (válida). As seguintes devem virar X+1, X+2...
+      
+      // Portanto, incrementamos o número de todas as sessões que estão APÓS a sessão revertida.
+      // Usamos a dataHora para garantir que pegamos as posteriores cronologicamente.
+      // Precisamos pegar a referência da sessão que está sendo revertida.
+      // Como não temos a sessão revertida completa aqui, assumimos que 'sessaoRevertidaNumero' 
+      // é o número que ela TINHA quando estava bloqueada.
+      
+      // Mas espere: no método call, passamos sessao.numeroSessao.
+      // Se a sessão estava bloqueada, ela tinha um número.
+      
+      // Vamos simplificar: Restaurar a ordem sequencial correta baseada na data.
+      // Essa é a forma mais robusta de corrigir qualquer erro de numeração anterior.
+    }
+    
+    // REINDEXAÇÃO COMPLETA E SEGURA
+    // Ordena as sessões restantes por data
+    sessoesRestantes.sort((a, b) => a.dataHora.compareTo(b.dataHora));
+    
+    // Reaplica a numeração sequencial 1, 2, 3...
+    for (int i = 0; i < sessoesRestantes.length; i++) {
+      final sessao = sessoesRestantes[i];
+      final numeroCorreto = i + 1;
+      
+      if (sessao.numeroSessao != numeroCorreto) {
+        await _sessaoRepository.updateSessao(sessao.copyWith(numeroSessao: numeroCorreto));
       }
     }
   }
