@@ -228,9 +228,43 @@ class SessoesViewModel extends ChangeNotifier {
     _processDataAndNotify();
   }
 
-  Future<void> blockEntireDay(DateTime date) async {
-     await _sessaoRepository.setDayBlockedStatus(date, true);
-     await onPageChanged(date);
+Future<void> blockEntireDay(DateTime date) async {
+    _setLoading(true); // Indica processamento na UI
+    try {
+      // 1. Busca as sessões que já existem nesse dia (antes de bloquear o dia)
+      final sessoesDoDia = await _sessaoRepository.getSessoesByDate(date).first;
+
+      // 2. Filtra apenas as sessões 'Agendada' que são de treinamentos reais
+      // (Ignora bloqueios manuais ou placeholders)
+      final sessoesParaBloquear = sessoesDoDia.where((s) => 
+        s.status == 'Agendada' && 
+        s.treinamentoId != 'dia_bloqueado_completo' && 
+        s.treinamentoId != 'bloqueio_manual'
+      ).toList();
+
+      // 3. Aplica a lógica de bloqueio individual para cada sessão encontrada.
+      // Isso aciona o AtualizarStatusSessaoUseCase, que faz:
+      // - Muda status para 'Bloqueada'
+      // - Renumera as sessões futuras (n -> n-1)
+      // - Gera uma sessão extra no final do treinamento
+      for (var sessao in sessoesParaBloquear) {
+        await _atualizarStatusSessaoUseCase.call(
+          sessao: sessao, 
+          novoStatus: 'Bloqueada'
+        );
+      }
+
+      // 4. Por fim, define o dia como bloqueado globalmente no repositório.
+      // Isso fará com que o dia apareça cinza/bloqueado na UI.
+      await _sessaoRepository.setDayBlockedStatus(date, true);
+      
+      await onPageChanged(date);
+    } catch (e) {
+      debugPrint('Erro ao bloquear dia inteiro: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
   }
 
  // Substitua o método unblockEntireDay existente por este:

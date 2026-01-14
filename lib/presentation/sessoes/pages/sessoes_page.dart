@@ -97,7 +97,40 @@ class _SessoesPageState extends State<SessoesPage> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_selectedDay == null) return;
-                          final confirm = await _showConfirmationDialog(context, 'Bloquear Dia Inteiro', 'Tem certeza que deseja bloquear o dia inteiro?');
+
+                          // 1. Normaliza a data para usar como chave no mapa de status
+                          final normalizedDate = DateUtils.dateOnly(_selectedDay!);
+                          
+                          // 2. Verifica o status atual do dia
+                          final statusDoDia = viewModel.dailyStatus[normalizedDate];
+
+                          // 3. Se já estiver indisponível (bloqueado ou sem horários na agenda), mostra o aviso
+                          if (statusDoDia == 'indisponivel') {
+                            await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Dia Indisponível'),
+                                  content: const Text('Este dia já se encontra bloqueado ou não possui horários disponíveis na agenda.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(),
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                            return; // Interrompe a execução para não mostrar a confirmação de bloqueio
+                          }
+
+                          // 4. Se estiver livre ou parcial, prossegue com o fluxo normal de confirmação
+                          final confirm = await _showConfirmationDialog(
+                            context, 
+                            'Bloquear Dia Inteiro', 
+                            'Tem certeza que deseja bloquear o dia inteiro? Isso afetará todas as sessões agendadas.'
+                          );
+                          
                           if (confirm == true) {
                             await viewModel.blockEntireDay(_selectedDay!);
                           }
