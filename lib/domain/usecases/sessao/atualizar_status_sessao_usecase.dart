@@ -223,29 +223,6 @@ class AtualizarStatusSessaoUseCase {
     // Removemos a sessão extra da lista em memória para não iterar sobre ela
     final sessoesRestantes = todasSessoes.where((s) => s.id != sessaoExtra.id).toList();
 
-    for (var sessao in sessoesRestantes) {
-      // Se a sessão é posterior à que estamos desbloqueando (baseado na data ou ID, 
-      // mas aqui usamos a lógica de que as posteriores tiveram seu número reduzido)
-      
-      // A lógica de bloqueio anterior fazia: if (sessao.numeroSessao > sessaoOriginalNumero) ... numero - 1
-      // Então agora, procuramos sessões que foram "encolhidas".
-      // Como a sessão bloqueada (sessaoRevertidaNumero) manteve seu número original visualmente ou foi alterada?
-      // Assumindo que a sessão bloqueada tem o número X. As sessões seguintes viraram X, X+1...
-      // Agora a sessão bloqueada volta a ser X (válida). As seguintes devem virar X+1, X+2...
-      
-      // Portanto, incrementamos o número de todas as sessões que estão APÓS a sessão revertida.
-      // Usamos a dataHora para garantir que pegamos as posteriores cronologicamente.
-      // Precisamos pegar a referência da sessão que está sendo revertida.
-      // Como não temos a sessão revertida completa aqui, assumimos que 'sessaoRevertidaNumero' 
-      // é o número que ela TINHA quando estava bloqueada.
-      
-      // Mas espere: no método call, passamos sessao.numeroSessao.
-      // Se a sessão estava bloqueada, ela tinha um número.
-      
-      // Vamos simplificar: Restaurar a ordem sequencial correta baseada na data.
-      // Essa é a forma mais robusta de corrigir qualquer erro de numeração anterior.
-    }
-    
     // REINDEXAÇÃO COMPLETA E SEGURA
     // Ordena as sessões restantes por data
     sessoesRestantes.sort((a, b) => a.dataHora.compareTo(b.dataHora));
