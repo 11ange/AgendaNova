@@ -6,9 +6,17 @@
 import 'dart:async' as _i3;
 
 import 'package:agenda_treinamento/domain/entities/paciente.dart' as _i4;
+import 'package:agenda_treinamento/domain/entities/sessao.dart' as _i9;
+import 'package:agenda_treinamento/domain/entities/treinamento.dart' as _i6;
 import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart'
     as _i2;
+import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart'
+    as _i8;
+import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart'
+    as _i5;
+import 'package:cloud_firestore/cloud_firestore.dart' as _i10;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -112,4 +120,218 @@ class MockPacienteRepository extends _i1.Mock
             returnValue: _i3.Future<bool>.value(false),
           )
           as _i3.Future<bool>);
+}
+
+/// A class which mocks [TreinamentoRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTreinamentoRepository extends _i1.Mock
+    implements _i5.TreinamentoRepository {
+  MockTreinamentoRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Stream<List<_i6.Treinamento>> getTreinamentos() =>
+      (super.noSuchMethod(
+            Invocation.method(#getTreinamentos, []),
+            returnValue: _i3.Stream<List<_i6.Treinamento>>.empty(),
+          )
+          as _i3.Stream<List<_i6.Treinamento>>);
+
+  @override
+  _i3.Future<_i6.Treinamento?> getTreinamentoById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTreinamentoById, [id]),
+            returnValue: _i3.Future<_i6.Treinamento?>.value(),
+          )
+          as _i3.Future<_i6.Treinamento?>);
+
+  @override
+  _i3.Stream<List<_i6.Treinamento>> getTreinamentosByPacienteId(
+    String? pacienteId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTreinamentosByPacienteId, [pacienteId]),
+            returnValue: _i3.Stream<List<_i6.Treinamento>>.empty(),
+          )
+          as _i3.Stream<List<_i6.Treinamento>>);
+
+  @override
+  _i3.Future<String> addTreinamento(_i6.Treinamento? treinamento) =>
+      (super.noSuchMethod(
+            Invocation.method(#addTreinamento, [treinamento]),
+            returnValue: _i3.Future<String>.value(
+              _i7.dummyValue<String>(
+                this,
+                Invocation.method(#addTreinamento, [treinamento]),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
+
+  @override
+  _i3.Future<void> updateTreinamento(_i6.Treinamento? treinamento) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateTreinamento, [treinamento]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<bool> hasActiveTreinamento(String? pacienteId) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasActiveTreinamento, [pacienteId]),
+            returnValue: _i3.Future<bool>.value(false),
+          )
+          as _i3.Future<bool>);
+
+  @override
+  _i3.Future<bool> hasOverlap(
+    String? diaSemana,
+    String? horario, {
+    String? excludeTreinamentoId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #hasOverlap,
+              [diaSemana, horario],
+              {#excludeTreinamentoId: excludeTreinamentoId},
+            ),
+            returnValue: _i3.Future<bool>.value(false),
+          )
+          as _i3.Future<bool>);
+}
+
+/// A class which mocks [SessaoRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSessaoRepository extends _i1.Mock implements _i8.SessaoRepository {
+  MockSessaoRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Stream<List<_i9.Sessao>> getSessoes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessoes, []),
+            returnValue: _i3.Stream<List<_i9.Sessao>>.empty(),
+          )
+          as _i3.Stream<List<_i9.Sessao>>);
+
+  @override
+  _i3.Stream<List<_i9.Sessao>> getSessoesByTreinamentoId(
+    String? treinamentoId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessoesByTreinamentoId, [treinamentoId]),
+            returnValue: _i3.Stream<List<_i9.Sessao>>.empty(),
+          )
+          as _i3.Stream<List<_i9.Sessao>>);
+
+  @override
+  _i3.Future<List<_i9.Sessao>> getSessoesByTreinamentoIdOnce(
+    String? treinamentoId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessoesByTreinamentoIdOnce, [treinamentoId]),
+            returnValue: _i3.Future<List<_i9.Sessao>>.value(<_i9.Sessao>[]),
+          )
+          as _i3.Future<List<_i9.Sessao>>);
+
+  @override
+  _i3.Stream<List<_i9.Sessao>> getSessoesByDate(DateTime? date) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessoesByDate, [date]),
+            returnValue: _i3.Stream<List<_i9.Sessao>>.empty(),
+          )
+          as _i3.Stream<List<_i9.Sessao>>);
+
+  @override
+  _i3.Stream<List<_i9.Sessao>> getSessoesByMonth(DateTime? monthDate) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSessoesByMonth, [monthDate]),
+            returnValue: _i3.Stream<List<_i9.Sessao>>.empty(),
+          )
+          as _i3.Stream<List<_i9.Sessao>>);
+
+  @override
+  _i3.Future<void> setDayBlockedStatus(DateTime? date, bool? isBlocked) =>
+      (super.noSuchMethod(
+            Invocation.method(#setDayBlockedStatus, [date, isBlocked]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<String> addSessao(_i9.Sessao? sessao) =>
+      (super.noSuchMethod(
+            Invocation.method(#addSessao, [sessao]),
+            returnValue: _i3.Future<String>.value(
+              _i7.dummyValue<String>(
+                this,
+                Invocation.method(#addSessao, [sessao]),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
+
+  @override
+  _i3.Future<void> addMultipleSessoes(List<_i9.Sessao>? sessoes) =>
+      (super.noSuchMethod(
+            Invocation.method(#addMultipleSessoes, [sessoes]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> updateSessao(_i9.Sessao? sessao) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateSessao, [sessao]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> deleteSessao(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteSessao, [id]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> deleteMultipleSessoes(List<String>? sessaoIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteMultipleSessoes, [sessaoIds]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  void addSessaoInBatch(_i10.WriteBatch? batch, _i9.Sessao? sessao) =>
+      super.noSuchMethod(
+        Invocation.method(#addSessaoInBatch, [batch, sessao]),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void updateSessaoInBatch(_i10.WriteBatch? batch, _i9.Sessao? sessao) =>
+      super.noSuchMethod(
+        Invocation.method(#updateSessaoInBatch, [batch, sessao]),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void deleteSessaoInBatch(_i10.WriteBatch? batch, String? sessaoId) =>
+      super.noSuchMethod(
+        Invocation.method(#deleteSessaoInBatch, [batch, sessaoId]),
+        returnValueForMissingStub: null,
+      );
 }
