@@ -49,6 +49,12 @@ class PagamentosViewModel extends ChangeNotifier {
           list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado').toList()
       );
       
+      _treinamentosAtivos.sort((a, b) {
+        final nomeA = getPacienteById(a.pacienteId)?.nome.toLowerCase() ?? '';
+        final nomeB = getPacienteById(b.pacienteId)?.nome.toLowerCase() ?? '';
+        return nomeA.compareTo(nomeB);
+      });
+      
       _pagamentosPorTreinamento.clear();
       for (var treinamento in _treinamentosAtivos) {
         if (treinamento.pagamentos != null) {
