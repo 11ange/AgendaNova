@@ -41,19 +41,25 @@ class PagamentosViewModel extends ChangeNotifier {
     loadData();
   }
 
-  Future<void> loadData() async {
+Future<void> loadData() async {
     _setLoading(true);
     try {
+      // 1. Carrega os pacientes primeiro (necessário para pegar os nomes)
       _pacientes = await _pacienteRepository.getPacientes().first;
+      
+      // 2. Carrega e filtra os treinamentos
       _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => 
           list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado').toList()
       );
-      
+
+      // 3. --- NOVA ORDENAÇÃO ALFABÉTICA ---
       _treinamentosAtivos.sort((a, b) {
+        // Busca o nome do paciente usando o ID guardado no treinamento
         final nomeA = getPacienteById(a.pacienteId)?.nome.toLowerCase() ?? '';
         final nomeB = getPacienteById(b.pacienteId)?.nome.toLowerCase() ?? '';
         return nomeA.compareTo(nomeB);
       });
+      // ------------------------------------
       
       _pagamentosPorTreinamento.clear();
       for (var treinamento in _treinamentosAtivos) {
