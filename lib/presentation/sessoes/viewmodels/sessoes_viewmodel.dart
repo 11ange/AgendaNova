@@ -200,20 +200,39 @@ class SessoesViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
+Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
     _setLoading(true);
     try {
       final DateTime blockedDateTime = DateTime(
         date.year, date.month, date.day, int.parse(timeSlot.split(':')[0]), int.parse(timeSlot.split(':')[1]),
       );
-      final blockedSession = Sessao(
-        id: null, treinamentoId: 'bloqueio_manual', pacienteId: 'bloqueio_manual',
-        pacienteNome: 'Horário Bloqueado', dataHora: blockedDateTime, numeroSessao: 0, status: 'Bloqueada',
-        statusPagamento: 'N/A', formaPagamento: 'N/A', agendamentoStartDate: blockedDateTime,
-        totalSessoes: 0, observacoes: 'Bloqueado manualmente', reagendada: false
+      
+      // Cria o objeto inicial (ainda sem ID)
+      final blockedSessionInicial = Sessao(
+        id: null, 
+        treinamentoId: 'bloqueio_manual', 
+        pacienteId: 'bloqueio_manual',
+        pacienteNome: 'Horário Bloqueado', 
+        dataHora: blockedDateTime, 
+        numeroSessao: 0, 
+        status: 'Bloqueada',
+        statusPagamento: 'N/A', 
+        formaPagamento: 'N/A', 
+        agendamentoStartDate: blockedDateTime,
+        totalSessoes: 0, 
+        observacoes: 'Bloqueado manualmente', 
+        reagendada: false
       );
-      await _sessaoRepository.addSessao(blockedSession);
-      _sessoesDoMes.add(blockedSession);
+
+      // 1. Envia para o banco e CAPTURA o ID retornado
+      final newId = await _sessaoRepository.addSessao(blockedSessionInicial);
+      
+      // 2. Cria uma cópia da sessão agora com o ID correto
+      final blockedSessionComId = blockedSessionInicial.copyWith(id: newId);
+
+      // 3. Adiciona a sessão COM ID à lista local
+      _sessoesDoMes.add(blockedSessionComId);
+      
       _processDataAndNotify();
     } catch (e) {
       rethrow;
