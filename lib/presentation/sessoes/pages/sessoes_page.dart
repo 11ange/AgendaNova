@@ -9,18 +9,17 @@ import 'package:provider/provider.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:intl/intl.dart';
 
-// Enum para tornar as ações do menu mais seguras e legíveis
 enum AcaoSessao {
   agendar,
   bloquear,
-  desbloquear, // Para bloqueios manuais
+  desbloquear,
   realizar,
   faltar,
   cancelar,
-  reverter, // Para reverter status (incluindo desbloqueio de sessão de paciente)
+  reverter,
   confirmarPagamento,
   reverterPagamento,
-  trocarHorario,
+  trocarHorario, 
 }
 
 class SessoesPage extends StatefulWidget {
@@ -98,43 +97,25 @@ class _SessoesPageState extends State<SessoesPage> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_selectedDay == null) return;
-
-                          // 1. Normaliza a data para usar como chave no mapa de status
                           final normalizedDate = DateUtils.dateOnly(_selectedDay!);
-                          
-                          // 2. Verifica o status atual do dia
                           final statusDoDia = viewModel.dailyStatus[normalizedDate];
 
-                          // 3. Se já estiver indisponível (bloqueado ou sem horários na agenda), mostra o aviso
                           if (statusDoDia == 'indisponivel') {
                             await showDialog(
                               context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Dia Indisponível'),
-                                  content: const Text('Este dia já se encontra bloqueado ou não possui horários disponíveis na agenda.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: const Text('OK'),
-                                    ),
-                                  ],
-                                );
-                              },
+                              builder: (context) => AlertDialog(
+                                title: const Text('Dia Indisponível'),
+                                content: const Text('Este dia já se encontra bloqueado ou não possui horários disponíveis na agenda.'),
+                                actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK'))],
+                              ),
                             );
-                            return; // Interrompe a execução para não mostrar a confirmação de bloqueio
+                            return;
                           }
 
-                          // 4. Se estiver livre ou parcial, prossegue com o fluxo normal de confirmação
                           final confirm = await _showConfirmationDialog(
-                            context, 
-                            'Bloquear Dia Inteiro', 
-                            'Tem certeza que deseja bloquear o dia inteiro? Isso afetará todas as sessões agendadas.'
+                            context, 'Bloquear Dia Inteiro', 'Tem certeza que deseja bloquear o dia inteiro?'
                           );
-                          
-                          if (confirm == true) {
-                            await viewModel.blockEntireDay(_selectedDay!);
-                          }
+                          if (confirm == true) await viewModel.blockEntireDay(_selectedDay!);
                         },
                         child: const Text('Bloquear Dia'),
                       ),
@@ -145,9 +126,7 @@ class _SessoesPageState extends State<SessoesPage> {
                         onPressed: () async {
                           if (_selectedDay == null) return;
                            final confirm = await _showConfirmationDialog(context, 'Desbloquear Dia Inteiro', 'Tem certeza que deseja desbloquear o dia inteiro?');
-                           if (confirm == true) {
-                            await viewModel.unblockEntireDay(_selectedDay!);
-                           }
+                           if (confirm == true) await viewModel.unblockEntireDay(_selectedDay!);
                         },
                         child: const Text('Desbloquear Dia'),
                       ),
@@ -163,42 +142,50 @@ class _SessoesPageState extends State<SessoesPage> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
+              
+              // ALTERAÇÃO IMPORTANTE AQUI: Usamos Stack para não desmontar a lista durante o loading
               Expanded(
-                child: _selectedDay == null
-                    ? const Center(child: Text('Selecione um dia no calendário.'))
-                    : Builder(
-                        builder: (context) {
-                          if (viewModel.isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          
-                          final isDailyBlocked = viewModel.dailyStatus[DateUtils.dateOnly(_selectedDay!)] == 'indisponivel';
-                          
-                          if (viewModel.horariosCompletos.isEmpty && !isDailyBlocked) {
-                            return const Center(child: Text('Nenhum horário disponível para este dia.'));
-                          }
-
-                          final Map<String, Sessao?> horarios = viewModel.horariosCompletos;
-                          final List<String> sortedTimes = horarios.keys.toList()..sort();
-
-                          return ListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                            itemCount: sortedTimes.length,
-                            itemBuilder: (context, index) {
-                              final timeSlot = sortedTimes[index];
-                              final sessao = horarios[timeSlot];
+                child: Stack(
+                  children: [
+                    _selectedDay == null
+                        ? const Center(child: Text('Selecione um dia no calendário.'))
+                        : Builder(
+                            builder: (context) {
+                              final isDailyBlocked = viewModel.dailyStatus[DateUtils.dateOnly(_selectedDay!)] == 'indisponivel';
                               
-                              return SessaoListItem(
-                                timeSlot: timeSlot, 
-                                sessao: sessao, 
-                                isDailyBlocked: isDailyBlocked, 
-                                viewModel: viewModel,
-                                selectedDay: _selectedDay!,
+                              if (viewModel.horariosCompletos.isEmpty && !isDailyBlocked && !viewModel.isLoading) {
+                                return const Center(child: Text('Nenhum horário disponível para este dia.'));
+                              }
+
+                              final Map<String, Sessao?> horarios = viewModel.horariosCompletos;
+                              final List<String> sortedTimes = horarios.keys.toList()..sort();
+
+                              return ListView.builder(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                itemCount: sortedTimes.length,
+                                itemBuilder: (context, index) {
+                                  final timeSlot = sortedTimes[index];
+                                  final sessao = horarios[timeSlot];
+                                  
+                                  return SessaoListItem(
+                                    timeSlot: timeSlot, 
+                                    sessao: sessao, 
+                                    isDailyBlocked: isDailyBlocked, 
+                                    viewModel: viewModel,
+                                    selectedDay: _selectedDay!,
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
+                          ),
+                    // O Loader fica por cima, mas não remove a lista da árvore de widgets
+                    if (viewModel.isLoading)
+                      Container(
+                        color: Colors.white.withOpacity(0.5),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
+                  ],
+                ),
               ),
             ],
           );

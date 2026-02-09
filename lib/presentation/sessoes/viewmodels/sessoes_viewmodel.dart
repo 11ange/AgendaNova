@@ -1,3 +1,4 @@
+// lib/presentation/sessoes/viewmodels/sessoes_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
@@ -11,6 +12,7 @@ import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessa
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:collection/collection.dart'; // Pacote correto para firstWhereOrNull
 
 class SessoesViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
@@ -35,7 +37,6 @@ class SessoesViewModel extends ChangeNotifier {
   final Map<String, List<Treinamento>> _treinamentosPorPaciente = {};
   List<Treinamento> _treinamentosDoPacienteSelecionado = [];
 
-  // State properties for initial data
   Map<DateTime, String> dailyStatus = {};
   Map<String, Sessao?> horariosCompletos = {};
 
@@ -43,7 +44,7 @@ class SessoesViewModel extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   List<Treinamento> get treinamentosDoPacienteSelecionado => _treinamentosDoPacienteSelecionado;
   AgendaDisponibilidade? get agendaDisponibilidade => _agendaDisponibilidade;
-  
+
   SessoesViewModel()
       : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
           GetIt.instance<SessaoRepository>(),
@@ -76,7 +77,7 @@ class SessoesViewModel extends ChangeNotifier {
       _isInitialized = true;
       _processDataAndNotify();
     } catch (e) {
-      // Handle error
+      debugPrint('Erro init: $e');
     } finally {
       _setLoading(false);
     }
@@ -84,20 +85,13 @@ class SessoesViewModel extends ChangeNotifier {
 
   void _processDataAndNotify() {
     if (!_isInitialized) return;
-
-    if (_currentFocusedMonth != null) {
-      _calculateAndEmitDailyStatus(_currentFocusedMonth!);
-    }
-    if (_currentSelectedDate != null) {
-      _combineAndEmitSchedule(_currentSelectedDate!);
-    }
+    if (_currentFocusedMonth != null) _calculateAndEmitDailyStatus(_currentFocusedMonth!);
+    if (_currentSelectedDate != null) _combineAndEmitSchedule(_currentSelectedDate!);
   }
 
   void loadSessoesForDay(DateTime date) {
     _currentSelectedDate = date;
-    if (_isInitialized) {
-      _combineAndEmitSchedule(date);
-    }
+    if (_isInitialized) _combineAndEmitSchedule(date);
   }
   
   Future<void> onPageChanged(DateTime focusedMonth) async {
@@ -106,8 +100,6 @@ class SessoesViewModel extends ChangeNotifier {
     try {
        _sessoesDoMes = await _sessaoRepository.getSessoesByMonth(focusedMonth).first;
        _processDataAndNotify();
-    } catch(e) {
-       // Handle error
     } finally {
        _setLoading(false);
     }
@@ -181,6 +173,7 @@ class SessoesViewModel extends ChangeNotifier {
       final List<String> sortedTimesToDisplay = timesToDisplay.toList()..sort();
 
       for (String timeSlot in sortedTimesToDisplay) {
+        // Uso correto do firstWhereOrNull do pacote collection
         final sessaoExistente = sessionsForSelectedDay.firstWhereOrNull(
           (sessao) => DateFormat('HH:mm').format(sessao.dataHora) == timeSlot,
         );
@@ -189,7 +182,6 @@ class SessoesViewModel extends ChangeNotifier {
     }
     horariosCompletos = scheduleMap;
     
-    // Atualiza a lista de treinamentos para o paciente do dia selecionado
     if (sessionsForSelectedDay.isNotEmpty) {
       final pacienteId = sessionsForSelectedDay.first.pacienteId;
       _treinamentosDoPacienteSelecionado = _treinamentosPorPaciente[pacienteId] ?? [];
@@ -201,14 +193,13 @@ class SessoesViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
+  Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
     _setLoading(true);
     try {
       final DateTime blockedDateTime = DateTime(
         date.year, date.month, date.day, int.parse(timeSlot.split(':')[0]), int.parse(timeSlot.split(':')[1]),
       );
       
-      // Cria o objeto inicial (ainda sem ID)
       final blockedSessionInicial = Sessao(
         id: null, 
         treinamentoId: 'bloqueio_manual', 
@@ -225,18 +216,10 @@ Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
         reagendada: false
       );
 
-      // 1. Envia para o banco e CAPTURA o ID retornado
       final newId = await _sessaoRepository.addSessao(blockedSessionInicial);
-      
-      // 2. Cria uma cópia da sessão agora com o ID correto
       final blockedSessionComId = blockedSessionInicial.copyWith(id: newId);
-
-      // 3. Adiciona a sessão COM ID à lista local
       _sessoesDoMes.add(blockedSessionComId);
-      
       _processDataAndNotify();
-    } catch (e) {
-      rethrow;
     } finally {
       _setLoading(false);
     }
@@ -248,122 +231,69 @@ Future<void> blockTimeSlot(String timeSlot, DateTime date) async {
     _processDataAndNotify();
   }
 
-Future<void> blockEntireDay(DateTime date) async {
-    _setLoading(true); // Indica processamento na UI
+  Future<void> blockEntireDay(DateTime date) async {
+    _setLoading(true); 
     try {
-      // 1. Busca as sessões que já existem nesse dia (antes de bloquear o dia)
       final sessoesDoDia = await _sessaoRepository.getSessoesByDate(date).first;
-
-      // 2. Filtra apenas as sessões 'Agendada' que são de treinamentos reais
-      // (Ignora bloqueios manuais ou placeholders)
       final sessoesParaBloquear = sessoesDoDia.where((s) => 
-        s.status == 'Agendada' && 
-        s.treinamentoId != 'dia_bloqueado_completo' && 
-        s.treinamentoId != 'bloqueio_manual'
+        s.status == 'Agendada' && s.treinamentoId != 'dia_bloqueado_completo' && s.treinamentoId != 'bloqueio_manual'
       ).toList();
 
-      // 3. Aplica a lógica de bloqueio individual para cada sessão encontrada.
-      // Isso aciona o AtualizarStatusSessaoUseCase, que faz:
-      // - Muda status para 'Bloqueada'
-      // - Renumera as sessões futuras (n -> n-1)
-      // - Gera uma sessão extra no final do treinamento
       for (var sessao in sessoesParaBloquear) {
-        await _atualizarStatusSessaoUseCase.call(
-          sessao: sessao, 
-          novoStatus: 'Bloqueada'
-        );
+        await _atualizarStatusSessaoUseCase.call(sessao: sessao, novoStatus: 'Bloqueada');
       }
 
-      // 4. Por fim, define o dia como bloqueado globalmente no repositório.
-      // Isso fará com que o dia apareça cinza/bloqueado na UI.
       await _sessaoRepository.setDayBlockedStatus(date, true);
-      
       await onPageChanged(date);
-    } catch (e) {
-      debugPrint('Erro ao bloquear dia inteiro: $e');
-      rethrow;
     } finally {
       _setLoading(false);
     }
   }
 
- // Substitua o método unblockEntireDay existente por este:
   Future<void> unblockEntireDay(DateTime date) async {
     _setLoading(true);
     try {
-      // 1. Desbloqueia o dia no repositório (Banco de Dados)
       await _sessaoRepository.setDayBlockedStatus(date, false);
-
-      // 2. Realoca as sessões futuras para ocupar o espaço que abriu
       await _reajustarSessoesFuturas(date);
-
-      // 3. Atualiza a tela
       await onPageChanged(date);
-    } catch (e) {
-      debugPrint('Erro ao desbloquear dia: $e');
-      rethrow;
     } finally {
       _setLoading(false);
     }
   }
 
-  // Adicione este novo método privado na classe:
   Future<void> _reajustarSessoesFuturas(DateTime dataDesbloqueada) async {
     final weekdayName = DateFormatter.getCapitalizedWeekdayName(dataDesbloqueada);
-
-    // 1. Busca treinamentos ativos do dia
     final allTreinamentos = await _treinamentoRepository.getTreinamentos().first;
     final treinamentosAfetados = allTreinamentos.where((t) => 
-      (t.status == 'ativo' || t.status == 'Pendente Pagamento') && 
-      t.diaSemana == weekdayName
+      (t.status == 'ativo' || t.status == 'Pendente Pagamento') && t.diaSemana == weekdayName
     ).toList();
 
-    // Cache para evitar consultas repetidas (já marcamos o dia atual como livre)
-    final Map<String, bool> blockedDaysCache = {
-      DateFormat('yyyy-MM-dd').format(dataDesbloqueada): false
-    };
+    final Map<String, bool> blockedDaysCache = {DateFormat('yyyy-MM-dd').format(dataDesbloqueada): false};
 
     for (var treinamento in treinamentosAfetados) {
       if (treinamento.id == null) continue;
-
       final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(treinamento.id!);
-      
-      // Filtra sessões futuras agendadas
       final sessoesFuturas = todasSessoes.where((s) => 
-        (DateUtils.isSameDay(s.dataHora, dataDesbloqueada) || s.dataHora.isAfter(dataDesbloqueada)) &&
-        s.status == 'Agendada'
+        (DateUtils.isSameDay(s.dataHora, dataDesbloqueada) || s.dataHora.isAfter(dataDesbloqueada)) && s.status == 'Agendada'
       ).toList();
 
       if (sessoesFuturas.isEmpty) continue;
-
       sessoesFuturas.sort((a, b) => a.dataHora.compareTo(b.dataHora));
 
-      // Configura a data inicial para o dia que acabou de ser desbloqueado
       final horaParts = treinamento.horario.split(':');
       final horaTreino = int.parse(horaParts[0]);
       final minutoTreino = int.parse(horaParts[1]);
-
-      DateTime dataCandidata = DateTime(
-        dataDesbloqueada.year, 
-        dataDesbloqueada.month, 
-        dataDesbloqueada.day, 
-        horaTreino, 
-        minutoTreino
-      );
+      DateTime dataCandidata = DateTime(dataDesbloqueada.year, dataDesbloqueada.month, dataDesbloqueada.day, horaTreino, minutoTreino);
 
       for (var sessao in sessoesFuturas) {
         bool diaValido = false;
-
-        // Encontra o próximo dia livre
         while (!diaValido) {
           final dataKey = DateFormat('yyyy-MM-dd').format(dataCandidata);
-          
           if (!blockedDaysCache.containsKey(dataKey)) {
              final sessoesDoDia = await _sessaoRepository.getSessoesByDate(dataCandidata).first;
              final isBlocked = sessoesDoDia.any((s) => s.status == 'Bloqueada');
              blockedDaysCache[dataKey] = isBlocked;
           }
-
           if (blockedDaysCache[dataKey] == true) {
              dataCandidata = dataCandidata.add(const Duration(days: 7));
           } else {
@@ -371,24 +301,11 @@ Future<void> blockEntireDay(DateTime date) async {
           }
         }
 
-        // Se a data mudou, precisamos MOVER a sessão (Delete + Add)
         if (!DateUtils.isSameDay(sessao.dataHora, dataCandidata)) {
-          // 1. Remove a sessão do dia antigo (Documento antigo)
-          if (sessao.id != null) {
-            await _sessaoRepository.deleteSessao(sessao.id!);
-          }
-
-          // 2. Cria a nova sessão com a nova data
-          final novaSessao = sessao.copyWith(
-            id: null, // Limpa o ID para gerar um novo baseado na nova data
-            dataHora: dataCandidata,
-          );
-
-          // 3. Adiciona a sessão no novo dia (Documento novo)
+          if (sessao.id != null) await _sessaoRepository.deleteSessao(sessao.id!);
+          final novaSessao = sessao.copyWith(id: null, dataHora: dataCandidata);
           await _sessaoRepository.addSessao(novaSessao);
         }
-
-        // Avança para a próxima semana para a próxima sessão da lista
         dataCandidata = dataCandidata.add(const Duration(days: 7));
       }
     }
@@ -398,55 +315,14 @@ Future<void> blockEntireDay(DateTime date) async {
     await _atualizarStatusSessaoUseCase.call(
       sessao: sessao, novoStatus: novoStatus, desmarcarTodasFuturas: desmarcarTodasFuturas,
     );
-    if(_currentFocusedMonth != null) {
-      await onPageChanged(_currentFocusedMonth!);
-    }
+    if(_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
   }
 
-  Future<void> confirmarPagamentoSessao(Sessao sessao, DateTime dataPagamento) async {
-    _setLoading(true);
-    try {
-      final sessaoAtualizada = sessao.copyWith(
-        statusPagamento: 'Realizado',
-        dataPagamento: dataPagamento,
-      );
-      await _sessaoRepository.updateSessao(sessaoAtualizada);
-      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
-      if (_currentFocusedMonth != null) {
-        await onPageChanged(_currentFocusedMonth!);
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<void> reverterPagamentoSessao(Sessao sessao) async {
-    _setLoading(true);
-    try {
-      final sessaoAtualizada = sessao.copyWith(
-        statusPagamento: 'Pendente',
-        dataPagamento: null,
-      );
-      await _sessaoRepository.updateSessao(sessaoAtualizada);
-      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
-      if (_currentFocusedMonth != null) {
-        await onPageChanged(_currentFocusedMonth!);
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Adicione o parâmetro booleano 'ignorarBloqueios'
   Future<void> trocarHorarioSessoesRestantes({
     required Sessao sessaoBase,
     required DateTime novaDataInicio,
     required String novoHorario,
-    bool ignorarBloqueios = false, // Novo parâmetro
+    bool ignorarBloqueios = false,
   }) async {
     _setLoading(true);
     try {
@@ -464,66 +340,77 @@ Future<void> blockEntireDay(DateTime date) async {
       List<DateTime> novasDatasCalculadas = [];
       DateTime dataCandidata = novaDataInicio;
 
-      // Lógica de verificação e cálculo de datas (similar ao CriarTreinamentoUseCase)
       for (int i = 0; i < sessoesParaMover.length; i++) {
         bool dataValida = false;
+        
         while (!dataValida) {
           final sessoesNoDia = await _sessaoRepository.getSessoesByDate(dataCandidata).first;
           
-          // Verifica se há bloqueio (manual ou de dia inteiro)
           final temBloqueio = sessoesNoDia.any((s) => 
             (s.status == 'Bloqueada') && 
-            (s.dataHora.hour == h && s.dataHora.minute == m || s.treinamentoId == 'dia_bloqueado_completo')
+            (s.treinamentoId == 'dia_bloqueado_completo' || (s.dataHora.hour == h && s.dataHora.minute == m))
           );
 
           if (temBloqueio) {
             if (!ignorarBloqueios) {
-              // Lança um erro específico que capturaremos na View para mostrar o diálogo
               throw 'BLOQUEIO_DETECTADO'; 
             }
-            // Se ignorarBloqueios for true, pula para a próxima semana (comportamento solicitado)
             dataCandidata = dataCandidata.add(const Duration(days: 7));
-            continue;
+            continue; 
           }
 
-          // Verifica se há outro paciente agendado (conflito real)
           final temConflitoPaciente = sessoesNoDia.any((s) => 
             s.dataHora.hour == h && s.dataHora.minute == m && 
             s.status != 'Cancelada' && s.status != 'Bloqueada'
           );
 
           if (temConflitoPaciente) {
-            throw 'Conflito em ${DateFormat('dd/MM').format(dataCandidata)}: Horário já ocupado por outro paciente.';
+            throw 'Conflito em ${DateFormat('dd/MM').format(dataCandidata)}: Horário já ocupado.';
           }
 
           dataValida = true;
         }
         
-        novasDatasCalculadas.add(DateTime(
-          dataCandidata.year, dataCandidata.month, dataCandidata.day, h, m
-        ));
+        novasDatasCalculadas.add(DateTime(dataCandidata.year, dataCandidata.month, dataCandidata.day, h, m));
         dataCandidata = dataCandidata.add(const Duration(days: 7));
       }
 
-      // Execução da troca (Apagar antigas e criar novas)
       for (int i = 0; i < sessoesParaMover.length; i++) {
         final sOld = sessoesParaMover[i];
         if (sOld.id != null) await _sessaoRepository.deleteSessao(sOld.id!);
         
-        await _sessaoRepository.addSessao(sOld.copyWith(
-          id: null,
-          dataHora: novasDatasCalculadas[i],
-          reagendada: true,
-        ));
+        final novaSessao = sOld.copyWith(id: null, dataHora: novasDatasCalculadas[i], reagendada: true);
+        await _sessaoRepository.addSessao(novaSessao);
       }
+      
+      if (_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
 
-      await onPageChanged(_currentFocusedMonth ?? novaDataInicio);
-    } on String catch (e) {
-      // Re-lança a string para que a View a capture
-      rethrow; 
     } catch (e) {
-      debugPrint('Erro genérico na ViewModel: $e');
       rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> confirmarPagamentoSessao(Sessao sessao, DateTime dataPagamento) async {
+    _setLoading(true);
+    try {
+      final sessaoAtualizada = sessao.copyWith(statusPagamento: 'Realizado', dataPagamento: dataPagamento);
+      await _sessaoRepository.updateSessao(sessaoAtualizada);
+      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+      if (_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> reverterPagamentoSessao(Sessao sessao) async {
+    _setLoading(true);
+    try {
+      final sessaoAtualizada = sessao.copyWith(statusPagamento: 'Pendente', dataPagamento: null);
+      await _sessaoRepository.updateSessao(sessaoAtualizada);
+      await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
+      if (_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
     } finally {
       _setLoading(false);
     }
@@ -541,16 +428,5 @@ Future<void> blockEntireDay(DateTime date) async {
     _horariosCompletosStreamController.close();
     _dailyStatusMapStreamController.close();
     super.dispose();
-  }
-}
-
-extension IterableExtension<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T element) test) {
-    for (var element in this) {
-      if (test(element)) {
-        return element;
-      }
-    }
-    return null;
   }
 }
