@@ -237,20 +237,61 @@ class SessaoListItem extends StatelessWidget {
 
       // 5. Executar a lógica de troca se confirmado
       if (confirmou == true && context.mounted) {
-        try {
-          await viewModel.trocarHorarioSessoesRestantes(
-            sessaoBase: sessao,
-            novaDataInicio: novaData,
-            novoHorario: novoHorario,
-          );
-          if (context.mounted) {
-            SnackBarHelper.showSuccess(context, 'Horário atualizado com sucesso!');
-          }
-        } catch (e) {
-          if (context.mounted) {
-            SnackBarHelper.showError(context, e.toString());
-          }
-        }
+// ... dentro do método _showTrocarHorarioDialog em sessao_list_item.dart
+
+try {
+  await viewModel.trocarHorarioSessoesRestantes(
+    sessaoBase: sessao,
+    novaDataInicio: novaData,
+    novoHorario: novoHorario,
+  );
+  if (context.mounted) SnackBarHelper.showSuccess(context, 'Horário atualizado!');
+} catch (e) {
+  if (!context.mounted) return;
+
+  // Debug para você ver no console o que está chegando
+  debugPrint('Erro capturado na View: $e');
+
+  if (e.toString().contains('BLOQUEIO_DETECTADO')) {
+    final prosseguir = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // Força o usuário a escolher
+      builder: (context) => AlertDialog(
+        title: const Text('Horário Bloqueado Detectado'),
+        content: const Text(
+          'Algumas datas futuras possuem bloqueios. Deseja pular essas datas e continuar o agendamento?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sim, Continuar'),
+          ),
+        ],
+      ),
+    );
+
+    if (prosseguir == true && context.mounted) {
+      try {
+        await viewModel.trocarHorarioSessoesRestantes(
+          sessaoBase: sessao,
+          novaDataInicio: novaData,
+          novoHorario: novoHorario,
+          ignorarBloqueios: true, // Segunda tentativa ignorando bloqueios
+        );
+        if (context.mounted) SnackBarHelper.showSuccess(context, 'Reagendamento concluído!');
+      } catch (e2) {
+        if (context.mounted) SnackBarHelper.showError(context, e2.toString());
+      }
+    }
+  } else {
+    // Mostra qualquer outro erro (ex: conflito de paciente)
+    SnackBarHelper.showError(context, e.toString());
+  }
+}
       }
     }
   }
