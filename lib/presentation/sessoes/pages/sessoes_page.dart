@@ -20,6 +20,7 @@ enum AcaoSessao {
   reverter, // Para reverter status (incluindo desbloqueio de sessão de paciente)
   confirmarPagamento,
   reverterPagamento,
+  trocarHorario,
 }
 
 class SessoesPage extends StatefulWidget {

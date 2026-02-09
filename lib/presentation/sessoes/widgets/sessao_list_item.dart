@@ -1,5 +1,6 @@
 // lib/presentation/sessoes/widgets/sessao_list_item.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:agenda_treinamento/domain/entities/treinamento.dart';
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
@@ -159,6 +160,99 @@ class SessaoListItem extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _showTrocarHorarioDialog(BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
+    // 1. Selecionar a nova data de início
+    final DateTime? novaData = await showDatePicker(
+      context: context,
+      initialDate: sessao.dataHora,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      helpText: 'Selecione a data da primeira sessão',
+    );
+
+    if (novaData == null || !context.mounted) return;
+
+    // 2. Buscar horários disponíveis na agenda para o dia da semana escolhido
+    final diaSemana = DateFormatter.getCapitalizedWeekdayName(novaData);
+    final agendaMap = viewModel.agendaDisponibilidade?.agenda ?? {};
+    final List<String> horariosDisponiveis = List<String>.from(agendaMap[diaSemana] ?? []);
+
+    if (horariosDisponiveis.isEmpty) {
+      if (!context.mounted) return;
+      SnackBarHelper.showError(context, 'Não existem horários cadastrados na agenda para $diaSemana.');
+      return;
+    }
+
+    // 3. Selecionar o horário
+    if (!context.mounted) return;
+    final String? novoHorario = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Horários para $diaSemana'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: horariosDisponiveis.length,
+            itemBuilder: (context, index) {
+              final h = horariosDisponiveis[index];
+              return ListTile(
+                title: Text(h),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.pop(context, h),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    // 4. Janela de Confirmação antes de executar a troca
+    if (novoHorario != null && context.mounted) {
+      final dataFormatada = DateFormat('dd/MM/yyyy').format(novaData);
+      final horarioOriginal = timeSlot; // Já disponível na classe SessaoListItem
+
+      final confirmou = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Reagendamento'),
+          content: Text(
+            'Confirma a mudança de $horarioOriginal para $novoHorario a partir de $dataFormatada?\n\n'
+            'As sessões restantes deste treinamento serão movidas para este novo horário.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        ),
+      );
+
+      // 5. Executar a lógica de troca se confirmado
+      if (confirmou == true && context.mounted) {
+        try {
+          await viewModel.trocarHorarioSessoesRestantes(
+            sessaoBase: sessao,
+            novaDataInicio: novaData,
+            novoHorario: novoHorario,
+          );
+          if (context.mounted) {
+            SnackBarHelper.showSuccess(context, 'Horário atualizado com sucesso!');
+          }
+        } catch (e) {
+          if (context.mounted) {
+            SnackBarHelper.showError(context, e.toString());
+          }
+        }
+      }
+    }
   }
 
   Color _getCardBackgroundColor(Sessao? sessao, bool isDailyBlocked) {
@@ -327,6 +421,9 @@ class SessaoListItem extends StatelessWidget {
           case AcaoSessao.reverterPagamento:
             await viewModel.reverterPagamentoSessao(sessao!);
             break;
+          case AcaoSessao.trocarHorario:
+            _showTrocarHorarioDialog(context, viewModel, sessao!);
+            break;
         }
       },
       itemBuilder: (BuildContext context) {
@@ -358,6 +455,7 @@ class SessaoListItem extends StatelessWidget {
               const PopupMenuItem<AcaoSessao>(value: AcaoSessao.realizar, child: Text('Marcar como Realizada')),
               const PopupMenuItem<AcaoSessao>(value: AcaoSessao.faltar, child: Text('Marcar como Falta')),
               const PopupMenuItem<AcaoSessao>(value: AcaoSessao.cancelar, child: Text('Marcar como Cancelada')),
+              const PopupMenuItem<AcaoSessao>(value: AcaoSessao.trocarHorario, child: Text('Trocar Horário')),
             ]);
           }
 

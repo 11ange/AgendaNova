@@ -42,7 +42,8 @@ class SessoesViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
   List<Treinamento> get treinamentosDoPacienteSelecionado => _treinamentosDoPacienteSelecionado;
-
+  AgendaDisponibilidade? get agendaDisponibilidade => _agendaDisponibilidade;
+  
   SessoesViewModel()
       : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
           GetIt.instance<SessaoRepository>(),
@@ -433,6 +434,87 @@ Future<void> blockEntireDay(DateTime date) async {
       if (_currentFocusedMonth != null) {
         await onPageChanged(_currentFocusedMonth!);
       }
+    } catch (e) {
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> trocarHorarioSessoesRestantes({
+    required Sessao sessaoBase,
+    required DateTime novaDataInicio,
+    required String novoHorario,
+  }) async {
+    _setLoading(true);
+    try {
+      // 1. Verificar se o novo horário está disponível na agenda para aquele dia da semana
+      final diaSemana = DateFormatter.getCapitalizedWeekdayName(novaDataInicio);
+      final agenda = await _agendaDisponibilidadeRepository.getAgendaDisponibilidade().first;
+      final horariosDisponiveis = agenda?.agenda[diaSemana] ?? [];
+
+      if (!horariosDisponiveis.contains(novoHorario)) {
+        throw Exception('Este horário não está disponível na agenda para $diaSemana.');
+      }
+
+      // 2. Buscar todas as sessões do treinamento que ainda são "Agendadas" 
+      // a partir da sessão selecionada (inclusive ela)
+      final todasSessoes = await _sessaoRepository.getSessoesByTreinamentoIdOnce(sessaoBase.treinamentoId);
+      final sessoesParaMover = todasSessoes.where((s) => 
+        (s.numeroSessao >= sessaoBase.numeroSessao) && s.status == 'Agendada'
+      ).toList();
+
+      // 3. Verificar conflitos no novo horário/data para as novas datas previstas
+      DateTime dataCandidata = novaDataInicio;
+      final horaParts = novoHorario.split(':');
+      final h = int.parse(horaParts[0]);
+      final m = int.parse(horaParts[1]);
+
+      for (int i = 0; i < sessoesParaMover.length; i++) {
+        final dataVerificacao = dataCandidata.add(Duration(days: 7 * i));
+        final sessoesNoDia = await _sessaoRepository.getSessoesByDate(dataVerificacao).first;
+        
+        final conflito = sessoesNoDia.any((s) => 
+          s.dataHora.hour == h && 
+          s.dataHora.minute == m && 
+          s.status != 'Cancelada'
+        );
+
+        if (conflito) {
+          throw Exception('Conflito no dia ${DateFormat('dd/MM').format(dataVerificacao)}: Horário já ocupado.');
+        }
+      }
+
+      // 4. Executar a troca: Apagar as antigas e criar as novas
+      for (var s in sessoesParaMover) {
+        if (s.id != null) await _sessaoRepository.deleteSessao(s.id!);
+      }
+
+      List<Sessao> novasSessoes = [];
+      for (int i = 0; i < sessoesParaMover.length; i++) {
+        final novaDataHora = DateTime(
+          dataCandidata.year, dataCandidata.month, dataCandidata.day, h, m
+        ).add(Duration(days: 7 * i));
+
+        novasSessoes.add(sessoesParaMover[i].copyWith(
+          id: null, // Novo ID será gerado
+          dataHora: novaDataHora,
+          reagendada: true,
+        ));
+      }
+
+      await _sessaoRepository.addMultipleSessoes(novasSessoes);
+      
+      // 5. Atualizar o treinamento (opcional: atualizar diaSemana e horario no TreinamentoRepository)
+      final treinamento = await _treinamentoRepository.getTreinamentoById(sessaoBase.treinamentoId);
+      if (treinamento != null) {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(
+          diaSemana: diaSemana,
+          horario: novoHorario,
+        ));
+      }
+
+      await onPageChanged(_currentFocusedMonth ?? novaDataInicio);
     } catch (e) {
       rethrow;
     } finally {
