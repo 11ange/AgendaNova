@@ -90,13 +90,21 @@ class SessaoListItem extends StatelessWidget {
                         labelText: 'Data do Pagamento *',
                         suffixIcon: Icon(Icons.calendar_today),
                       ),
-                      validator: (value) => (value == null || value.isEmpty) ? 'Selecione uma data' : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Selecione uma data';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ),
               ),
               actions: <Widget>[
-                TextButton(child: const Text('Cancelar'), onPressed: () => Navigator.of(dialogContext).pop()),
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                ),
                 ElevatedButton(
                   child: const Text('Confirmar'),
                   onPressed: () async {
@@ -130,8 +138,14 @@ class SessaoListItem extends StatelessWidget {
           title: const Text('Confirmar Cancelamento'),
           content: const Text('Deseja cancelar apenas esta sessão ou esta e todas as futuras (encerrando o treinamento)?'),
           actions: <Widget>[
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(null), child: const Text('Voltar')),
-            ElevatedButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Apenas esta')),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(null),
+              child: const Text('Voltar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Apenas esta'),
+            ),
              ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -144,7 +158,6 @@ class SessaoListItem extends StatelessWidget {
   }
 
   Future<void> _showTrocarHorarioDialog(BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
-    // 1. Seleção de Data
     final DateTime? novaData = await showDatePicker(
       context: context,
       initialDate: sessao.dataHora,
@@ -153,15 +166,18 @@ class SessaoListItem extends StatelessWidget {
       helpText: 'Data da primeira nova sessão',
     );
 
-    if (novaData == null || !context.mounted) return;
+    if (novaData == null || !context.mounted) {
+      return;
+    }
 
-    // 2. Seleção de Horário
     final diaSemana = DateFormatter.getCapitalizedWeekdayName(novaData);
     final agendaMap = viewModel.agendaDisponibilidade?.agenda ?? {};
     final List<String> horariosDisponiveis = List<String>.from(agendaMap[diaSemana] ?? []);
 
     if (horariosDisponiveis.isEmpty) {
-      if (context.mounted) SnackBarHelper.showError(context, 'Sem horários na agenda para $diaSemana.');
+      if (context.mounted) {
+        SnackBarHelper.showError(context, 'Sem horários na agenda para $diaSemana.');
+      }
       return;
     }
 
@@ -187,9 +203,10 @@ class SessaoListItem extends StatelessWidget {
       ),
     );
 
-    if (novoHorario == null || !context.mounted) return;
+    if (novoHorario == null || !context.mounted) {
+      return;
+    }
 
-    // 3. Confirmação Inicial (FONTE AUMENTADA AQUI)
     final dataFormatada = DateFormat('dd/MM/yyyy').format(novaData);
     final confirmou = await showDialog<bool>(
       context: context,
@@ -197,7 +214,7 @@ class SessaoListItem extends StatelessWidget {
         title: const Text('Confirmar Troca'),
         content: Text(
           'Mudar de ${sessao.dataHora.hour}:${sessao.dataHora.minute.toString().padLeft(2,'0')} para $novoHorario a partir de $dataFormatada?\n\nAs sessões futuras deste treinamento serão movidas.',
-          style: const TextStyle(fontSize: 16), // Fonte maior
+          style: const TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
@@ -206,21 +223,25 @@ class SessaoListItem extends StatelessWidget {
       ),
     );
 
-    if (confirmou != true || !context.mounted) return;
+    if (confirmou != true || !context.mounted) {
+      return;
+    }
 
-    // 4. Execução
     try {
       await viewModel.trocarHorarioSessoesRestantes(
         sessaoBase: sessao,
         novaDataInicio: novaData,
         novoHorario: novoHorario,
       );
-      if (context.mounted) SnackBarHelper.showSuccess(context, 'Troca realizada com sucesso!');
+      if (context.mounted) {
+        SnackBarHelper.showSuccess(context, 'Troca realizada com sucesso!');
+      }
     } catch (e) {
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        return;
+      }
 
       if (e.toString().contains('BLOQUEIO_DETECTADO')) {
-        // Diálogo de Bloqueio (FONTE AUMENTADA AQUI)
         final pular = await showDialog<bool>(
           context: context,
           barrierDismissible: false,
@@ -228,7 +249,7 @@ class SessaoListItem extends StatelessWidget {
             title: const Text('Bloqueio Detectado'),
             content: const Text(
               'Existem datas bloqueadas (feriados ou folgas) no período futuro.\n\nDeseja pular esses dias e jogar as sessões para o final do contrato?',
-              style: TextStyle(fontSize: 16), // Fonte maior
+              style: TextStyle(fontSize: 16),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
@@ -245,9 +266,13 @@ class SessaoListItem extends StatelessWidget {
               novoHorario: novoHorario,
               ignorarBloqueios: true,
             );
-            if (context.mounted) SnackBarHelper.showSuccess(context, 'Reagendado com sucesso (bloqueios pulados)!');
+            if (context.mounted) {
+              SnackBarHelper.showSuccess(context, 'Reagendado com sucesso (bloqueios pulados)!');
+            }
           } catch (e2) {
-            if (context.mounted) SnackBarHelper.showError(context, 'Erro final: $e2');
+            if (context.mounted) {
+              SnackBarHelper.showError(context, 'Erro final: $e2');
+            }
           }
         }
       } else {
@@ -257,8 +282,12 @@ class SessaoListItem extends StatelessWidget {
   }
 
   Color _getCardBackgroundColor(Sessao? sessao, bool isDailyBlocked) {
-    if (isDailyBlocked) return Colors.grey.shade200;
-    if (sessao == null) return Colors.green.shade50;
+    if (isDailyBlocked) {
+      return Colors.grey.shade200;
+    }
+    if (sessao == null) {
+      return Colors.green.shade50;
+    }
     
     switch (sessao.status) {
       case 'Agendada': return Colors.blue.shade50;
@@ -271,14 +300,20 @@ class SessaoListItem extends StatelessWidget {
   }
 
   Widget _buildSessionInfo(BuildContext context, Sessao? sessao, bool isDailyBlocked) {
-    if (isDailyBlocked) return Text('Dia bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
-    if (sessao == null) return Text('Horário Disponível', style: TextStyle(color: Colors.green.shade800));
+    if (isDailyBlocked) {
+      return Text('Dia bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
+    }
+    if (sessao == null) {
+      return Text('Horário Disponível', style: TextStyle(color: Colors.green.shade800));
+    }
 
     final sessaoNaoNula = sessao;
     final isPatientSessionBlocked = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId != 'bloqueio_manual';
     final isManualBlock = sessaoNaoNula.status == 'Bloqueada' && sessaoNaoNula.treinamentoId == 'bloqueio_manual';
 
-    if (isManualBlock) return Text('Horário bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
+    if (isManualBlock) {
+      return Text('Horário bloqueado', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.bold));
+    }
 
     final patientNameStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
       fontWeight: FontWeight.w500,
@@ -330,42 +365,72 @@ class SessaoListItem extends StatelessWidget {
       Treinamento? parentTraining;
       try {
         parentTraining = treinamentosDoPaciente.firstWhere((t) => t.id == sessao.treinamentoId);
-      } catch (e) { parentTraining = null; }
+      } catch (e) { 
+        parentTraining = null; 
+      }
 
-      if (parentTraining != null && parentTraining.status != 'ativo') isEditable = false;
+      if (parentTraining != null && parentTraining.status != 'ativo') {
+        isEditable = false;
+      }
     }
 
-    if (!isEditable) return Container();
+    if (!isEditable) {
+      return Container();
+    }
 
     return PopupMenuButton<AcaoSessao>(
       icon: const Icon(Icons.more_vert),
       onSelected: (AcaoSessao action) async {
-        if (!context.mounted) return;
+        if (!context.mounted) {
+          return;
+        }
         switch (action) {
           case AcaoSessao.agendar:
             final result = await showDialog<bool>(
               context: context,
               builder: (dialogContext) => TreinamentoFormDialog(selectedDay: selectedDay, timeSlot: timeSlot),
             );
-            if (result == true) await viewModel.onPageChanged(selectedDay);
+            if (result == true) {
+              await viewModel.onPageChanged(selectedDay);
+            }
             break;
           case AcaoSessao.bloquear:
-             if (isOccupied) await viewModel.updateSessaoStatus(sessao, 'Bloqueada');
-             else await viewModel.blockTimeSlot(timeSlot, selectedDay);
+             // CORREÇÃO: Adicionadas as chaves que faltavam
+             if (isOccupied) {
+               await viewModel.updateSessaoStatus(sessao, 'Bloqueada');
+             } else {
+               await viewModel.blockTimeSlot(timeSlot, selectedDay);
+             }
              break;
           case AcaoSessao.desbloquear:
-            if (sessao?.id != null) await viewModel.deleteBlockedTimeSlot(sessao!.id!);
+            if (sessao?.id != null) {
+              await viewModel.deleteBlockedTimeSlot(sessao!.id!);
+            }
             break;
-          case AcaoSessao.realizar: await viewModel.updateSessaoStatus(sessao!, 'Realizada'); break;
-          case AcaoSessao.faltar: await viewModel.updateSessaoStatus(sessao!, 'Falta'); break;
+          case AcaoSessao.realizar: 
+            await viewModel.updateSessaoStatus(sessao!, 'Realizada'); 
+            break;
+          case AcaoSessao.faltar: 
+            await viewModel.updateSessaoStatus(sessao!, 'Falta'); 
+            break;
           case AcaoSessao.cancelar:
             final bool? desmarcarTodas = await _showCancellationDialog(context);
-            if (desmarcarTodas != null && context.mounted) await viewModel.updateSessaoStatus(sessao!, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
+            if (desmarcarTodas != null && context.mounted) {
+              await viewModel.updateSessaoStatus(sessao!, 'Cancelada', desmarcarTodasFuturas: desmarcarTodas);
+            }
             break;
-          case AcaoSessao.reverter: await viewModel.updateSessaoStatus(sessao!, 'Agendada'); break;
-          case AcaoSessao.confirmarPagamento: await _showConfirmPaymentDialog(context, viewModel, sessao!); break;
-          case AcaoSessao.reverterPagamento: await viewModel.reverterPagamentoSessao(sessao!); break;
-          case AcaoSessao.trocarHorario: await _showTrocarHorarioDialog(context, viewModel, sessao!); break;
+          case AcaoSessao.reverter: 
+            await viewModel.updateSessaoStatus(sessao!, 'Agendada'); 
+            break;
+          case AcaoSessao.confirmarPagamento: 
+            await _showConfirmPaymentDialog(context, viewModel, sessao!); 
+            break;
+          case AcaoSessao.reverterPagamento: 
+            await viewModel.reverterPagamentoSessao(sessao!); 
+            break;
+          case AcaoSessao.trocarHorario: 
+            await _showTrocarHorarioDialog(context, viewModel, sessao!); 
+            break;
         }
       },
       itemBuilder: (BuildContext context) {
@@ -398,10 +463,14 @@ class SessaoListItem extends StatelessWidget {
           if (sessaoNaoNula.parcelamento == 'Por sessão') {
             bool needsDivider = items.isNotEmpty;
             if (sessaoNaoNula.statusPagamento == 'Pendente' && (sessaoNaoNula.status == 'Agendada' || sessaoNaoNula.status == 'Realizada')) {
-              if (needsDivider) items.add(const PopupMenuDivider());
+              if (needsDivider) {
+                items.add(const PopupMenuDivider());
+              }
               items.add(const PopupMenuItem<AcaoSessao>(value: AcaoSessao.confirmarPagamento, child: Text('Confirmar Pagamento')));
             } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
-              if (needsDivider) items.add(const PopupMenuDivider());
+              if (needsDivider) {
+                items.add(const PopupMenuDivider());
+              }
               items.add(const PopupMenuItem<AcaoSessao>(value: AcaoSessao.reverterPagamento, child: Text('Reverter Pagamento')));
             }
           }

@@ -181,7 +181,7 @@ class _SessoesPageState extends State<SessoesPage> {
                     // O Loader fica por cima, mas não remove a lista da árvore de widgets
                     if (viewModel.isLoading)
                       Container(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white,//.withValues(0.5),
                         child: const Center(child: CircularProgressIndicator()),
                       ),
                   ],

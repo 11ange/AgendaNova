@@ -17,10 +17,12 @@ abstract class TreinamentoRepository {
   // Atualiza um treinamento existente
   Future<void> updateTreinamento(Treinamento treinamento);
 
+  // Exclui um treinamento pelo ID (MÉTODO ADICIONADO)
+  Future<void> deleteTreinamento(String id);
+
   // Verifica se um paciente já possui um treinamento em andamento
   Future<bool> hasActiveTreinamento(String pacienteId);
 
   // Verifica se há sobreposição de treinamentos para um dado dia e horário
   Future<bool> hasOverlap(String diaSemana, String horario, {String? excludeTreinamentoId});
 }
-

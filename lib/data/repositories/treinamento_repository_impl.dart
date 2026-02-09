@@ -58,6 +58,12 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
     await _firebaseDatasource.updateDocument(FirestoreCollections.treinamentos, treinamento.id!, treinamentoModel.toFirestore());
   }
 
+  // IMPLEMENTAÇÃO ADICIONADA
+  @override
+  Future<void> deleteTreinamento(String id) async {
+    await _firebaseDatasource.deleteDocument(FirestoreCollections.treinamentos, id);
+  }
+
   @override
   Future<bool> hasActiveTreinamento(String pacienteId) async {
     final querySnapshot = await _firebaseDatasource.queryCollectionOnce(

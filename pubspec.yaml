@@ -20,6 +20,7 @@
       table_calendar: ^3.2.0
       get_it: ^9.2.0
       logger: ^2.6.1
+      collection: ^1.19.0
 
     dev_dependencies:
       flutter_test:
