@@ -27,6 +27,10 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
   String? _selectedConvenio;
   String? _activeTipoConvenioFilter;
 
+  // Otimização: Regex compilado apenas uma vez.
+  // ignore: deprecated_member_use
+  static final RegExp _digitsRegex = RegExp(r'\D');
+
   @override
   void initState() {
     super.initState();
@@ -122,7 +126,8 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
                   child: Text(isEditing ? 'Salvar' : 'Adicionar'),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      final telefoneApenasDigitos = _telefoneController.text.replaceAll(RegExp(r'\D'), '');
+                      // Usa a regex estática otimizada
+                      final telefoneApenasDigitos = _telefoneController.text.replaceAll(_digitsRegex, '');
                       final navigator = Navigator.of(dialogContext);
 
                       try {
@@ -234,7 +239,6 @@ class _ListaEsperaPageState extends State<ListaEsperaPage> {
           final convenioCount = viewModel.listaEspera.where((item) => item.tipoConvenio == 'Convênio').length;
           final sobamCount = viewModel.listaEspera.where((item) => item.tipoConvenio == 'SOBAM').length;
 
-          // --- LÓGICA DE FILTRO MOVIDA DIRETAMENTE PARA O BUILD ---
           List<ListaEspera> displayedList = viewModel.listaEspera;
           final searchQuery = _searchController.text.toLowerCase();
 

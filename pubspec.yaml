@@ -5,7 +5,7 @@
     version: 1.0.0+1
 
     environment:
-      sdk: ^3.9.2 #^3.8.1 # Ou a versão do SDK que você está usando (conforme flutter doctor)
+      sdk: ^3.9.3 #^3.8.1 # Ou a versão do SDK que você está usando (conforme flutter doctor)
 
     dependencies:
       flutter:
@@ -32,7 +32,8 @@
       flutter_launcher_icons: ^0.14.4
       mockito: ^5.5.0
       build_runner: ^2.7.1
-      test: ^1.26.2
+      test: ^1.26.3
+
     flutter:
       uses-material-design: true
 

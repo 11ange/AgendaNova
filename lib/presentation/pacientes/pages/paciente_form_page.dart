@@ -1,3 +1,4 @@
+// lib/presentation/pacientes/pages/paciente_form_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +35,10 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
   late PacienteFormViewModel _viewModel;
   bool _isInitialDataLoaded = false;
 
+  // Otimização: Regex compilado apenas uma vez.
+  // ignore: deprecated_member_use
+  static final RegExp _digitsRegex = RegExp(r'\D');
+
   @override
   void initState() {
     super.initState();
@@ -57,7 +62,6 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
       setState(() {
         _nomeController.text = paciente.nome;
         _nomeResponsavelController.text = paciente.nomeResponsavel;
-        // --- CORREÇÃO APLICADA AQUI ---
         _telefoneResponsavelController.text = paciente.telefoneResponsavel != null
             ? PhoneInputFormatter.formatPhoneNumber(paciente.telefoneResponsavel!)
             : '';
@@ -229,7 +233,8 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                         ? null
                         : () async {
                             if (_formKey.currentState!.validate()) {
-                              final telefoneApenasDigitos = _telefoneResponsavelController.text.replaceAll(RegExp(r'\D'), '');
+                              // Usa a regex estática otimizada
+                              final telefoneApenasDigitos = _telefoneResponsavelController.text.replaceAll(_digitsRegex, '');
 
                               final newPaciente = Paciente(
                                 id: widget.pacienteId,
