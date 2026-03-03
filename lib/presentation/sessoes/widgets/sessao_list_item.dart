@@ -157,19 +157,30 @@ class SessaoListItem extends StatelessWidget {
     );
   }
 
-  Future<void> _showTrocarHorarioDialog(BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
+Future<void> _showTrocarHorarioDialog(BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {
+    // 1. Configurar datas seguras para evitar erro de Assertion no Flutter
+    final DateTime hoje = DateTime.now();
+    // Zerar a hora para a comparação focar apenas no dia
+    final DateTime dataMinima = DateTime(hoje.year, hoje.month, hoje.day); 
+    
+    DateTime dataInicial = sessao.dataHora;
+    // Se a sessão antiga for de uma data no passado, abre o calendário no dia de hoje
+    if (dataInicial.isBefore(dataMinima)) {
+      dataInicial = dataMinima;
+    }
+
+    // 2. Seleção de Data
     final DateTime? novaData = await showDatePicker(
       context: context,
-      initialDate: sessao.dataHora,
-      firstDate: DateTime.now(),
+      initialDate: dataInicial, // Usando a data segura
+      firstDate: dataMinima,    // Mínimo é hoje
       lastDate: DateTime.now().add(const Duration(days: 365)),
       helpText: 'Data da primeira nova sessão',
     );
 
-    if (novaData == null || !context.mounted) {
-      return;
-    }
+    if (novaData == null || !context.mounted) return;
 
+    // 3. Seleção de Horário
     final diaSemana = DateFormatter.getCapitalizedWeekdayName(novaData);
     final agendaMap = viewModel.agendaDisponibilidade?.agenda ?? {};
     final List<String> horariosDisponiveis = List<String>.from(agendaMap[diaSemana] ?? []);
@@ -203,10 +214,9 @@ class SessaoListItem extends StatelessWidget {
       ),
     );
 
-    if (novoHorario == null || !context.mounted) {
-      return;
-    }
+    if (novoHorario == null || !context.mounted) return;
 
+    // 4. Confirmação Inicial
     final dataFormatada = DateFormat('dd/MM/yyyy').format(novaData);
     final confirmou = await showDialog<bool>(
       context: context,
@@ -223,10 +233,9 @@ class SessaoListItem extends StatelessWidget {
       ),
     );
 
-    if (confirmou != true || !context.mounted) {
-      return;
-    }
+    if (confirmou != true || !context.mounted) return;
 
+    // 5. Execução
     try {
       await viewModel.trocarHorarioSessoesRestantes(
         sessaoBase: sessao,
@@ -237,9 +246,7 @@ class SessaoListItem extends StatelessWidget {
         SnackBarHelper.showSuccess(context, 'Troca realizada com sucesso!');
       }
     } catch (e) {
-      if (!context.mounted) {
-        return;
-      }
+      if (!context.mounted) return;
 
       if (e.toString().contains('BLOQUEIO_DETECTADO')) {
         final pular = await showDialog<bool>(

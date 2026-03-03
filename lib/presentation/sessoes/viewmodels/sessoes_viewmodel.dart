@@ -12,7 +12,7 @@ import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessa
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
-import 'package:collection/collection.dart'; // Pacote correto para firstWhereOrNull
+import 'package:collection/collection.dart'; 
 
 class SessoesViewModel extends ChangeNotifier {
   final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
@@ -173,7 +173,6 @@ class SessoesViewModel extends ChangeNotifier {
       final List<String> sortedTimesToDisplay = timesToDisplay.toList()..sort();
 
       for (String timeSlot in sortedTimesToDisplay) {
-        // Uso correto do firstWhereOrNull do pacote collection
         final sessaoExistente = sessionsForSelectedDay.firstWhereOrNull(
           (sessao) => DateFormat('HH:mm').format(sessao.dataHora) == timeSlot,
         );
@@ -383,6 +382,18 @@ class SessoesViewModel extends ChangeNotifier {
         await _sessaoRepository.addSessao(novaSessao);
       }
       
+      // --- NOVO CÓDIGO AQUI: ATUALIZAR O CONTRATO (TREINAMENTO) ---
+      final treinamento = await _treinamentoRepository.getTreinamentoById(sessaoBase.treinamentoId);
+      if (treinamento != null) {
+        final novoDiaSemana = DateFormatter.getCapitalizedWeekdayName(novaDataInicio);
+        final treinamentoAtualizado = treinamento.copyWith(
+          diaSemana: novoDiaSemana,
+          horario: novoHorario,
+        );
+        await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
+      }
+      // -----------------------------------------------------------
+
       if (_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
 
     } catch (e) {
