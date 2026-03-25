@@ -37,9 +37,11 @@ class CriarTreinamentoUseCase {
     }
 
     // 2. Regra de Negócio: Não é permitido sobrepor treinamentos para o mesmo dia e horário.
-    final hasOverlap = await _treinamentoRepository.hasOverlap(diaSemana, horario, dataInicio, dataFimPrevista);
+        // --- NOVA POSIÇÃO DA REGRA DE SOBREPOSIÇÃO ---
+    // Agora que sabemos o início e o fim real (descontando bloqueios), verificamos conflitos.
+    final hasOverlap = await _treinamentoRepository.hasOverlap(diaSemana, horario);
     if (hasOverlap) {
-      throw Exception('Já existe um treinamento agendado para este dia e horário.');
+      throw Exception('Já existe um treinamento agendado para este dia, horário e período.');
     }
 
     // 3. Regra de Negócio: Não é permitido agendar sessões fora dos horários cadastrados como disponíveis.
