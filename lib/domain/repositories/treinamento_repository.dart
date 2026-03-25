@@ -24,5 +24,5 @@ abstract class TreinamentoRepository {
   Future<bool> hasActiveTreinamento(String pacienteId);
 
   // Verifica se há sobreposição de treinamentos para um dado dia e horário
-  Future<bool> hasOverlap(String diaSemana, String horario, {String? excludeTreinamentoId});
+  Future<bool> hasOverlap(String diaSemana, String horario, {String? excludeTreinamentoId, DateTime? novaDataInicio});
 }

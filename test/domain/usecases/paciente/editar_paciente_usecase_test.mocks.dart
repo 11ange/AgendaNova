@@ -192,6 +192,7 @@ class MockTreinamentoRepository extends _i1.Mock
     String? diaSemana,
     String? horario, {
     String? excludeTreinamentoId,
+    DateTime? novaDataInicio,
   }) =>
       (super.noSuchMethod(
             Invocation.method(

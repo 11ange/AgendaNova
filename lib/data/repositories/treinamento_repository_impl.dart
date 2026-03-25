@@ -13,7 +13,9 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
 
   @override
   Stream<List<Treinamento>> getTreinamentos() {
-    return _firebaseDatasource.getCollectionStream(FirestoreCollections.treinamentos).map(
+    return _firebaseDatasource
+        .getCollectionStream(FirestoreCollections.treinamentos)
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => TreinamentoModel.fromFirestore(doc))
               .toList(),
@@ -22,7 +24,10 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
 
   @override
   Future<Treinamento?> getTreinamentoById(String id) async {
-    final doc = await _firebaseDatasource.getDocumentById(FirestoreCollections.treinamentos, id);
+    final doc = await _firebaseDatasource.getDocumentById(
+      FirestoreCollections.treinamentos,
+      id,
+    );
     if (doc.exists) {
       return TreinamentoModel.fromFirestore(doc);
     }
@@ -31,11 +36,13 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
 
   @override
   Stream<List<Treinamento>> getTreinamentosByPacienteId(String pacienteId) {
-    return _firebaseDatasource.queryCollectionStream(
-      FirestoreCollections.treinamentos,
-      field: 'pacienteId',
-      isEqualTo: pacienteId,
-    ).map(
+    return _firebaseDatasource
+        .queryCollectionStream(
+          FirestoreCollections.treinamentos,
+          field: 'pacienteId',
+          isEqualTo: pacienteId,
+        )
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => TreinamentoModel.fromFirestore(doc))
               .toList(),
@@ -45,7 +52,10 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
   @override
   Future<String> addTreinamento(Treinamento treinamento) async {
     final treinamentoModel = TreinamentoModel.fromEntity(treinamento);
-    final docRef = await _firebaseDatasource.addDocument(FirestoreCollections.treinamentos, treinamentoModel.toFirestore());
+    final docRef = await _firebaseDatasource.addDocument(
+      FirestoreCollections.treinamentos,
+      treinamentoModel.toFirestore(),
+    );
     return docRef.id;
   }
 
@@ -55,13 +65,20 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
       throw Exception('ID do treinamento é obrigatório para atualização.');
     }
     final treinamentoModel = TreinamentoModel.fromEntity(treinamento);
-    await _firebaseDatasource.updateDocument(FirestoreCollections.treinamentos, treinamento.id!, treinamentoModel.toFirestore());
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.treinamentos,
+      treinamento.id!,
+      treinamentoModel.toFirestore(),
+    );
   }
 
   // IMPLEMENTAÇÃO ADICIONADA
   @override
   Future<void> deleteTreinamento(String id) async {
-    await _firebaseDatasource.deleteDocument(FirestoreCollections.treinamentos, id);
+    await _firebaseDatasource.deleteDocument(
+      FirestoreCollections.treinamentos,
+      id,
+    );
   }
 
   @override
@@ -78,6 +95,54 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
     });
   }
 
+  @override
+  Future<bool> hasOverlap(
+    String diaSemana,
+    String horario, {
+    String? excludeTreinamentoId,
+    DateTime? novaDataInicio,
+  }) async {
+    final querySnapshot = await _firebaseDatasource.queryCollectionOnce(
+      FirestoreCollections.treinamentos,
+      field: 'diaSemana',
+      isEqualTo: diaSemana,
+    );
+
+    return querySnapshot.docs.any((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final currentTreinamentoId = doc.id;
+      final currentHorario = data['horario'] as String;
+      final status = data['status'] as String;
+
+      // Condição básica que você já tinha: mesmo horário, ativo e não é o próprio treinamento sendo editado
+      bool isMesmoHorarioEAtivo =
+          status == 'ativo' &&
+          currentHorario == horario &&
+          (excludeTreinamentoId == null ||
+              currentTreinamentoId != excludeTreinamentoId);
+
+      // Se a condição básica for verdadeira, faremos a verificação extra de datas
+      if (isMesmoHorarioEAtivo && novaDataInicio != null) {
+        // Extrai a dataFimPrevista do Firestore (assumindo que seja armazenado como Timestamp)
+        DateTime? dataFimPrevistaAtual;
+        if (data['dataFimPrevista'] != null) {
+          dataFimPrevistaAtual = data['dataFimPrevista'].toDate();
+        }
+
+        if (dataFimPrevistaAtual != null) {
+          // Se a data que o treinamento atual acaba for ANTES da data que o novo começa,
+          // então NÃO há sobreposição no calendário (retorna false)
+          if (dataFimPrevistaAtual.isBefore(novaDataInicio)) {
+            return false;
+          }
+        }
+      }
+
+      return isMesmoHorarioEAtivo;
+    });
+  }
+
+  /*
   @override
   Future<bool> hasOverlap(String diaSemana, String horario, {String? excludeTreinamentoId}) async {
     // Esta verificação é um pouco mais complexa e pode exigir uma query composta
@@ -101,5 +166,5 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
              currentHorario == horario &&
              (excludeTreinamentoId == null || currentTreinamentoId != excludeTreinamentoId);
     });
-  }
+  }*/
 }
