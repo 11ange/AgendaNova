@@ -76,7 +76,7 @@ class AtualizarStatusSessaoUseCase {
     await verificarEAtualizarStatusTreinamento(sessao.treinamentoId);
   }
 
-  Future<void> verificarEAtualizarStatusTreinamento(String treinamentoId) async {
+Future<void> verificarEAtualizarStatusTreinamento(String treinamentoId) async {
     final treinamento = await _treinamentoRepository.getTreinamentoById(treinamentoId);
     if (treinamento == null) return;
 
@@ -104,13 +104,26 @@ class AtualizarStatusSessaoUseCase {
       }
     } 
     else if (treinamento.status == 'cancelado') {
-      if (!pagamentosPendentes) {
+      // --- NOVA REGRA ADICIONADA AQUI ---
+      bool temPagamentoConvenio = treinamento.formaPagamento == 'Convenio' && 
+                                 treinamento.pagamentos != null && 
+                                 treinamento.pagamentos!.isNotEmpty;
+
+      // Se for convênio e o pagamento foi registado (guia enviada), muda para Finalizado.
+      if (temPagamentoConvenio) {
+        await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
+        await _pacienteRepository.inativarPaciente(treinamento.pacienteId);
+      } else if (!pagamentosPendentes) {
         await _pacienteRepository.inativarPaciente(treinamento.pacienteId);
       }
     }
     else if (treinamento.status == 'Finalizado' || treinamento.status == 'Pendente Pagamento') {
        final sessoesConcluidas = todasSessoes.where((s) => s.status == 'Realizada' || s.status == 'Falta').length;
-       if (sessoesConcluidas < treinamento.numeroSessoesTotal) {
+       
+       // Impede a reversão acidental verificando se ainda existem sessões agendadas pendentes
+       bool temSessoesAgendadas = todasSessoes.any((s) => s.status == 'Agendada');
+       
+       if (sessoesConcluidas < treinamento.numeroSessoesTotal && temSessoesAgendadas) {
           await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'ativo'));
        } else if (!pagamentosPendentes) {
           await _treinamentoRepository.updateTreinamento(treinamento.copyWith(status: 'Finalizado'));
