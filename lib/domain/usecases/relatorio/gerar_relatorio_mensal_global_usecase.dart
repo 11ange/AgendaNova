@@ -3,11 +3,10 @@ import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 
-// Use case para gerar o relatório mensal global das sessões
 class GerarRelatorioMensalGlobalUseCase {
   final SessaoRepository _sessaoRepository;
   final TreinamentoRepository _treinamentoRepository;
-  final PacienteRepository _pacienteRepository;
+  final PacienteRepository _pacienteRepository; // Mantido no construtor para não quebrar dependências existentes
 
   GerarRelatorioMensalGlobalUseCase(
     this._sessaoRepository,
@@ -17,20 +16,17 @@ class GerarRelatorioMensalGlobalUseCase {
 
   Future<Relatorio> call(int year, int month) async {
     final startOfMonth = DateTime(year, month, 1, 0, 0, 0);
-    final endOfMonth = DateTime(year, month + 1, 0, 23, 59, 59); // Último dia do mês
+    final endOfMonth = DateTime(year, month + 1, 0, 23, 59, 59);
 
-    // Obter todas as sessões dentro do período do mês
-    final allSessoes = await _sessaoRepository.getSessoes().first; // Obter todas as sessões
+    final allSessoes = await _sessaoRepository.getSessoes().first;
     final sessoesNoMes = allSessoes.where((sessao) {
       return sessao.dataHora.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
              sessao.dataHora.isBefore(endOfMonth.add(const Duration(days: 1)));
     }).toList();
 
-    // Obter todos os treinamentos e pacientes para referência
+    // Obter todos os treinamentos
     final allTreinamentos = await _treinamentoRepository.getTreinamentos().first;
-    final allPacientes = await _pacienteRepository.getPacientes().first;
 
-    // Calcular resumo de ocupação
     int sessoesRealizadas = 0;
     int sessoesFalta = 0;
     int sessoesCanceladas = 0;
@@ -39,50 +35,45 @@ class GerarRelatorioMensalGlobalUseCase {
 
     for (var sessao in sessoesNoMes) {
       switch (sessao.status) {
-        case 'Realizada':
-          sessoesRealizadas++;
-          break;
-        case 'Falta':
-          sessoesFalta++;
-          break;
-        case 'Cancelada':
-          sessoesCanceladas++;
-          break;
-        case 'Bloqueada':
-          sessoesBloqueadas++;
-          break;
-        case 'Agendada':
-          sessoesAgendadas++;
-          break;
+        case 'Realizada': sessoesRealizadas++; break;
+        case 'Falta': sessoesFalta++; break;
+        case 'Cancelada': sessoesCanceladas++; break;
+        case 'Bloqueada': sessoesBloqueadas++; break;
+        case 'Agendada': sessoesAgendadas++; break;
       }
     }
 
-    // Você pode adicionar mais métricas aqui, como:
-    // - Total de horas de atendimento
-    // - Receita total (se houver integração com pagamentos)
-    // - Pacientes mais ativos/inativos
+    // Lógica para Treinamentos Iniciados e Finalizados por Forma de Pagamento
+    Map<String, int> iniciadosPorPagamento = {};
+    Map<String, int> finalizadosPorPagamento = {};
+
+    for (var treinamento in allTreinamentos) {
+      String pagamento = treinamento.formaPagamento; // Ex: Pix, Dinheiro, Convenio
+
+      // Checa se INICIOU no mês
+      if (treinamento.dataInicio.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
+          treinamento.dataInicio.isBefore(endOfMonth.add(const Duration(days: 1)))) {
+        iniciadosPorPagamento[pagamento] = (iniciadosPorPagamento[pagamento] ?? 0) + 1;
+      }
+
+      // Checa se FINALIZOU no mês (usando a dataFimPrevista)
+      if (treinamento.dataFimPrevista.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
+          treinamento.dataFimPrevista.isBefore(endOfMonth.add(const Duration(days: 1)))) {
+        finalizadosPorPagamento[pagamento] = (finalizadosPorPagamento[pagamento] ?? 0) + 1;
+      }
+    }
 
     final dadosRelatorio = {
-      'mes': month,
-      'ano': year,
-      'totalSessoesNoMes': sessoesNoMes.length,
-      'sessoesRealizadas': sessoesRealizadas,
-      'sessoesFalta': sessoesFalta,
-      'sessoesCanceladas': sessoesCanceladas,
-      'sessoesBloqueadas': sessoesBloqueadas,
-      'sessoesAgendadas': sessoesAgendadas,
-      // Detalhes das sessões (opcional, pode ser muito grande para o relatório)
-      'detalhesSessoes': sessoesNoMes.map((s) {
-        final paciente = allPacientes.firstWhere((p) => p.id == s.pacienteId, orElse: () => throw Exception('Paciente não encontrado'));
-        final treinamento = allTreinamentos.firstWhere((t) => t.id == s.treinamentoId, orElse: () => throw Exception('Treinamento não encontrado'));
-        return {
-          'dataHora': s.dataHora.toIso8601String(),
-          'pacienteNome': paciente.nome,
-          'treinamentoHorario': '${treinamento.diaSemana} ${treinamento.horario}',
-          'status': s.status,
-          'statusPagamento': s.statusPagamento,
-        };
-      }).toList(),
+      'Mês': month,
+      'Ano': year,
+      'Total de Sessões no Mês': sessoesNoMes.length,
+      'Sessões Realizadas': sessoesRealizadas,
+      'Sessões Falta': sessoesFalta,
+      'Sessões Canceladas': sessoesCanceladas,
+      'Sessões Bloqueadas': sessoesBloqueadas,
+      'Sessões Agendadas': sessoesAgendadas,
+      'Treinamentos Iniciados no mês': iniciadosPorPagamento.isEmpty ? {'Nenhum': 0} : iniciadosPorPagamento,
+      'Treinamentos Finalizados no mês': finalizadosPorPagamento.isEmpty ? {'Nenhum': 0} : finalizadosPorPagamento,
     };
 
     return Relatorio(
@@ -93,4 +84,3 @@ class GerarRelatorioMensalGlobalUseCase {
     );
   }
 }
-

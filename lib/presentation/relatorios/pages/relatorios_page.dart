@@ -20,13 +20,13 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
   int _selectedMonth = DateTime.now().month;
   Paciente? _selectedPaciente;
 
-  @override
+  /*@override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<RelatoriosViewModel>(context, listen: false).loadPacientes();
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +218,7 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
     );
   }
 
-  void _showRelatorioDialog(BuildContext context, String title, Map<String, dynamic> data) {
+void _showRelatorioDialog(BuildContext context, String title, Map<String, dynamic> data) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -228,19 +228,40 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: data.entries.map((entry) {
+                // Caso o dado seja uma Lista (mantido para compatibilidade com outros relatórios)
                 if (entry.value is List) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ...entry.value.map((item) => Padding(
+                      ...(entry.value as List).map((item) => Padding(
                         padding: const EdgeInsets.only(left: 8.0, top: 4.0),
                         child: Text(item.toString()),
-                      )).toList(),
+                      )),//.toList(),
+                      const SizedBox(height: 8),
+                    ],
+                  );
+                } 
+                // Caso o dado seja um Map (Novo: para agrupar os tipos de pagamento)
+                else if (entry.value is Map) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ...(entry.value as Map).entries.map((subEntry) => Padding(
+                        padding: const EdgeInsets.only(left: 16.0, top: 2.0),
+                        child: Text('- ${subEntry.key}: ${subEntry.value}'),
+                      )),//.toList(),
+                      const SizedBox(height: 8),
                     ],
                   );
                 }
-                return Text('${entry.key}: ${entry.value}');
+                
+                // Exibição padrão para dados simples (Int, String, etc)
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Text('${entry.key}: ${entry.value}'),
+                );
               }).toList(),
             ),
           ),
