@@ -1,0 +1,58 @@
+title: Pagamento
+type: object
+description: "Registro financeiro de uma sessão ou pacote de treinamentos"
+required:
+  - treinamentoId
+  - pacienteId
+  - formaPagamento
+  - status
+  - dataPagamento
+properties:
+  id:
+    type: string
+    description: "ID do documento no Firestore"
+  treinamentoId:
+    type: string
+    description: "Referência ao ID do agendamento ou pacote de treinamento"
+  pacienteId:
+    type: string
+    description: "Referência ao ID do paciente"
+  formaPagamento:
+    type: string
+    enum: [pix, cartao_credito, cartao_debito, dinheiro, convenio, transferencia]
+  tipoParcelamento:
+    type: string
+    nullable: true
+    description: "Ex: 'Mensal', 'Recorrente', ou 'Único'"
+  status:
+    type: string
+    enum: [pago, pendente, cancelado, reembolsado, enviado_convenio]
+  dataPagamento:
+    type: string
+    format: date-time
+    description: "Data da transação (Timestamp no Firestore)"
+  observacoes:
+    type: string
+    nullable: true
+  guiaConvenio:
+    type: string
+    nullable: true
+    description: "Número da guia de autorização, se aplicável"
+  dataEnvioGuia:
+    type: string
+    format: date-time
+    nullable: true
+    description: "Data em que a guia foi enviada ao convênio"
+  parcelaNumero:
+    type: integer
+    minimum: 1
+    nullable: true
+  totalParcelas:
+    type: integer
+    minimum: 1
+    nullable: true
+  dataRecebimentoConvenio:
+    type: string
+    format: date-time
+    nullable: true
+    description: "Data em que o valor foi efetivamente repassado pelo convênio"

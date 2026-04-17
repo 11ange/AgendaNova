@@ -1,0 +1,56 @@
+title: Treinamento
+type: object
+description: "Define o plano de sessões contratado por um paciente, incluindo horários e condições de pagamento."
+required:
+  - pacienteId
+  - diaSemana
+  - horario
+  - numeroSessoesTotal
+  - dataInicio
+  - dataFimPrevista
+  - status
+  - formaPagamento
+  - dataCadastro
+properties:
+  id:
+    type: string
+    description: "ID único do plano de treinamento no Firestore."
+  pacienteId:
+    type: string
+    description: "Referência ao ID do paciente (PacienteModel)."
+  diaSemana:
+    type: string
+    enum: [Segunda-feira, Terça-feira, Quarta-feira, Quinta-feira, Sexta-feira, Sábado, Domingo]
+  horario:
+    type: string
+    pattern: "^[0-9]{2}:[0-9]{2}$"
+    example: "14:30"
+  numeroSessoesTotal:
+    type: integer
+    minimum: 1
+  dataInicio:
+    type: string
+    format: date-time
+  dataFimPrevista:
+    type: string
+    format: date-time
+  status:
+    type: string
+    enum: [ativo, concluído, suspenso, cancelado]
+  formaPagamento:
+    type: string
+  tipoParcelamento:
+    type: string
+    nullable: true
+  nomeConvenio:
+    type: string
+    nullable: true
+    description: "Campo para registar o nome do convénio, se aplicável."
+  dataCadastro:
+    type: string
+    format: date-time
+  pagamentos:
+    type: array
+    description: "Lista de objetos de pagamento vinculados a este plano."
+    items:
+      $ref: 'pagamento.yaml'

@@ -1,0 +1,32 @@
+title: Agendamento
+type: object
+description: "Representa uma sessão de treinamento marcada para um paciente"
+required:
+  - pacienteId
+  - dataHora
+  - tipo
+  - status
+properties:
+  id:
+    type: string
+    description: "ID do documento no Firestore"
+  pacienteId:
+    type: string
+    description: "Referência (UID) ao documento do paciente na coleção de usuários/pacientes"
+  dataHora:
+    type: string
+    format: date-time
+    description: "Data e hora do agendamento (armazenado como Timestamp no Firestore)"
+  tipo:
+    type: string
+    description: "Tipo de sessão (ex: Avaliação, Retorno, Treinamento Regular)"
+    # Exemplo de SDD: definir os tipos permitidos
+    # enum: [avaliacao, treinamento, acompanhamento]
+  status:
+    type: string
+    description: "Estado atual do agendamento"
+    enum: [pendente, confirmado, realizado, cancelado, falta]
+  observacoes:
+    type: string
+    nullable: true
+    description: "Notas adicionais sobre a sessão ou necessidades do paciente"

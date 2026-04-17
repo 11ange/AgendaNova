@@ -1,0 +1,31 @@
+title: ListaEspera
+type: object
+description: "Representa um registro na lista de espera do app agenda_treinamento"
+required:
+  - nome
+  - dataCadastro
+  - status
+properties:
+  id:
+    type: string
+    description: "ID do documento no Firestore (auto-gerado)"
+  nome:
+    type: string
+    example: "João Silva"
+  telefone:
+    type: string
+    nullable: true
+  observacoes:
+    type: string
+    nullable: true
+  dataCadastro:
+    type: string
+    format: date-time
+    description: "Mapeado a partir do campo 'timestamp' no Firestore"
+  tipoConvenio:
+    type: string
+    nullable: true
+  status:
+    type: string
+    default: "aguardando"
+    enum: [aguardando, atendido, cancelado] # Exemplo de valores possíveis

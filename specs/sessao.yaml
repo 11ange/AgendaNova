@@ -1,0 +1,62 @@
+title: Sessao
+type: object
+description: "Representa um slot individual na agenda, podendo ser um atendimento ou um bloqueio."
+required:
+  - treinamentoId
+  - pacienteId
+  - dataHora
+  - status
+  - statusPagamento
+properties:
+  id:
+    type: string
+    description: "Composto por: {data}-{horario} (ex: 2026-04-17-08:00)"
+  treinamentoId:
+    type: string
+    description: "Referenciado no Firestore como 'agendamentoId'. Valor 'bloqueio_manual' para bloqueios."
+  pacienteId:
+    type: string
+    description: "ID do paciente ou 'bloqueio_manual'."
+  pacienteNome:
+    type: string
+    default: "Horário Bloqueado"
+  dataHora:
+    type: string
+    format: date-time
+    description: "Data e hora exata da sessão."
+  numeroSessao:
+    type: integer
+    description: "Mapeado como 'sessaoNumero' no Firestore."
+  totalSessoes:
+    type: integer
+    description: "Total de sessões previstas no contrato."
+  status:
+    type: string
+    enum: [Agendada, Bloqueada, Realizada, Faltou, Reagendada]
+  statusPagamento:
+    type: string
+    enum: [Pendente, Pago, N/A, Parcial]
+  dataPagamento:
+    type: string
+    format: date-time
+    nullable: true
+  formaPagamento:
+    type: string
+    default: "N/A"
+  agendamentoStartDate:
+    type: string
+    format: date-time
+    description: "Data de início do ciclo de agendamentos."
+  parcelamento:
+    type: string
+    nullable: true
+  pagamentosParcelados:
+    type: object
+    nullable: true
+    description: "Mapa contendo detalhes das parcelas vinculadas a esta sessão."
+  reagendada:
+    type: boolean
+    default: false
+  observacoes:
+    type: string
+    nullable: true

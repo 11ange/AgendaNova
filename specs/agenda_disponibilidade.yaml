@@ -1,0 +1,37 @@
+title: AgendaDisponibilidade
+type: object
+description: "Define os horários disponíveis para cada dia da semana"
+properties:
+  id:
+    type: string
+    description: "ID do documento (UID do instrutor ou ID da agenda)"
+  # No Firestore, as chaves abaixo ficam na raiz do documento
+  Segunda-feira:
+    type: array
+    items:
+      type: string
+    example: ["08:00", "09:00", "14:00"]
+  Terça-feira:
+    type: array
+    items:
+      type: string
+  Quarta-feira:
+    type: array
+    items:
+      type: string
+  Quinta-feira:
+    type: array
+    items:
+      type: string
+  Sexta-feira:
+    type: array
+    items:
+      type: string
+  Sábado:
+    type: array
+    items:
+      type: string
+  Domingo:
+    type: array
+    items:
+      type: string

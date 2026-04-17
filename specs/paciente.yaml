@@ -1,0 +1,45 @@
+title: Paciente
+type: object
+description: "Cadastro detalhado do paciente e seu responsável"
+required:
+  - nome
+  - dataNascimento
+  - nomeResponsavel
+  - dataCadastro
+  - status
+properties:
+  id:
+    type: string
+    description: "ID único do documento (UID do Firestore)"
+  nome:
+    type: string
+    example: "Enzo Silva"
+  dataNascimento:
+    type: string
+    pattern: "^[0-9]{2}/[0-9]{2}/[0-9]{4}$"
+    description: "Data de nascimento no formato DD/MM/AAAA (salva como String)"
+  nomeResponsavel:
+    type: string
+    description: "Nome do pai, mãe ou tutor legal"
+  telefoneResponsavel:
+    type: string
+    nullable: true
+  emailResponsavel:
+    type: string
+    format: email
+    nullable: true
+  afinandoCerebro:
+    type: string
+    nullable: true
+    description: "Informações ou status sobre o uso da plataforma Afinando o Cérebro"
+  observacoes:
+    type: string
+    nullable: true
+  dataCadastro:
+    type: string
+    format: date-time
+    description: "Data em que o paciente foi registrado (armazenado como Timestamp)"
+  status:
+    type: string
+    default: "ativo"
+    enum: [ativo, inativo, arquivado]
