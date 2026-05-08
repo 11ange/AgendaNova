@@ -19,47 +19,56 @@ class FirebaseDatasource {
     return _firebaseService.getDocumentRef(collectionPath, docId);
   }
 
-  // Obtém um stream de todos os documentos de uma coleção FILTRADOS por ownerId
+  // Obtém um stream de todos os documentos de uma coleção FILTRADOS por ownerId (exceto se for admin)
   Stream<QuerySnapshot> getCollectionStream(String collectionPath) {
-    return _firebaseService.getCollectionRef(collectionPath)
-        .where('ownerId', isEqualTo: currentUserId)
-        .snapshots();
+    Query query = _firebaseService.getCollectionRef(collectionPath);
+    if (!_firebaseService.isAdmin) {
+      query = query.where('ownerId', isEqualTo: currentUserId);
+    }
+    return query.snapshots();
   }
 
-  // Obtém um stream de documentos de uma coleção com uma query (isEqualTo) FILTRADOS por ownerId
+  // Obtém um stream de documentos de uma coleção com uma query (isEqualTo) FILTRADOS por ownerId (exceto se for admin)
   Stream<QuerySnapshot> queryCollectionStream(
     String collectionPath, {
     required String field,
     required dynamic isEqualTo,
   }) {
-    return _firebaseService.getCollectionRef(collectionPath)
-        .where('ownerId', isEqualTo: currentUserId)
-        .where(field, isEqualTo: isEqualTo)
-        .snapshots();
+    Query query = _firebaseService.getCollectionRef(collectionPath);
+    if (!_firebaseService.isAdmin) {
+      query = query.where('ownerId', isEqualTo: currentUserId);
+    }
+    return query.where(field, isEqualTo: isEqualTo).snapshots();
   }
 
-  // Obtém um stream de documentos de uma coleção com uma query de range (para datas) FILTRADOS por ownerId
+  // Obtém um stream de documentos de uma coleção com uma query de range (para datas) FILTRADOS por ownerId (exceto se for admin)
   Stream<QuerySnapshot> queryCollectionStreamWithRange(
     String collectionPath, {
     required String field,
     required dynamic startValue,
     required dynamic endValue,
   }) {
-    return _firebaseService.getCollectionRef(collectionPath)
-        .where('ownerId', isEqualTo: currentUserId)
+    Query query = _firebaseService.getCollectionRef(collectionPath);
+    if (!_firebaseService.isAdmin) {
+      query = query.where('ownerId', isEqualTo: currentUserId);
+    }
+    return query
         .where(field, isGreaterThanOrEqualTo: startValue)
         .where(field, isLessThanOrEqualTo: endValue)
         .snapshots();
   }
 
-  // Obtém um stream de documentos de uma coleção por range de IDs (datas) FILTRADOS por ownerId
+  // Obtém um stream de documentos de uma coleção por range de IDs (datas) FILTRADOS por ownerId (exceto se for admin)
   Stream<QuerySnapshot> queryCollectionStreamByDocIdRange(
     String collectionPath, {
     required String startDocId,
     required String endDocId,
   }) {
-    return _firebaseService.getCollectionRef(collectionPath)
-        .where('ownerId', isEqualTo: currentUserId)
+    Query query = _firebaseService.getCollectionRef(collectionPath);
+    if (!_firebaseService.isAdmin) {
+      query = query.where('ownerId', isEqualTo: currentUserId);
+    }
+    return query
         .orderBy(FieldPath.documentId)
         .startAt([startDocId])
         .endAt([endDocId])
@@ -98,15 +107,16 @@ class FirebaseDatasource {
     return _firebaseService.deleteDocument(collectionPath, docId);
   }
 
-  // Realiza uma busca única em uma coleção com uma query FILTRADA por ownerId
+  // Realiza uma busca única em uma coleção com uma query FILTRADA por ownerId (exceto se for admin)
   Future<QuerySnapshot> queryCollectionOnce(
     String collectionPath, {
     required String field,
     required dynamic isEqualTo,
   }) {
-    return _firebaseService.getCollectionRef(collectionPath)
-        .where('ownerId', isEqualTo: currentUserId)
-        .where(field, isEqualTo: isEqualTo)
-        .get();
+    Query query = _firebaseService.getCollectionRef(collectionPath);
+    if (!_firebaseService.isAdmin) {
+      query = query.where('ownerId', isEqualTo: currentUserId);
+    }
+    return query.where(field, isEqualTo: isEqualTo).get();
   }
 }

@@ -68,10 +68,13 @@ class AppRouter {
       
       GoRoute(
         path: '/paciente-form',
-        builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => sl<PacienteFormViewModel>(),
-          child: const PacienteFormPage(),
-        ),
+        builder: (context, state) {
+          final id = state.uri.queryParameters['id'];
+          return ChangeNotifierProvider(
+            create: (_) => sl<PacienteFormViewModel>(),
+            child: PacienteFormPage(pacienteId: id),
+          );
+        },
       ),
       GoRoute(
         path: '/paciente-historico/:id',

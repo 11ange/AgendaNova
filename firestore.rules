@@ -8,8 +8,23 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner(data) {
-      return isAuthenticated() && (data.ownerId == request.auth.uid || data == null);
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email != null && (
+        request.auth.token.email == 'luis.lange@gmail.com' ||
+        request.auth.token.email == 'admin@agendanova.com' || 
+        request.auth.token.email.matches('.*@admin\\.agendanova\\.com$')
+      );
+    }
+
+    // Verifica se o usuário logado é o dono do documento ou admin
+    // Útil para leitura (get/list) onde o resource pode ser null
+    function canAccess(res) {
+      return isAuthenticated() && (
+        res == null || 
+        isAdmin() || 
+        (res.data.keys().hasAll(['ownerId']) && res.data.ownerId == request.auth.uid)
+      );
     }
 
     function validateString(field, minLen) {
@@ -24,73 +39,56 @@ service cloud.firestore {
 
     // 1. Pacientes
     match /pacientes/{pacienteId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
       
-      // Validações adicionais de schema
       allow create, update: if 
         validateString('nome', 2) &&
         request.resource.data.dataNascimento is string &&
-        validateEnum('status', ['ativo', 'inativo', 'arquivado']) &&
-        request.resource.data.dataCadastro is timestamp;
+        validateEnum('status', ['ativo', 'inativo', 'arquivado']);
     }
 
     // 2. Lista de Espera
     match /lista_espera/{entryId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
-      
-      allow create, update: if 
-        validateString('nome', 2) &&
-        validateEnum('status', ['aguardando', 'atendido', 'cancelado']);
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
     }
 
     // 3. Disponibilidade (Agenda)
     match /disponibilidade/{docId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
     }
 
     // 4. Treinamentos
     match /treinamentos/{treinamentoId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
-      
-      allow create, update: if 
-        validateString('pacienteId', 1) &&
-        validateEnum('status', ['ativo', 'concluído', 'suspenso', 'cancelado', 'Pendente Pagamento', 'Finalizado']) &&
-        request.resource.data.dataInicio is timestamp &&
-        request.resource.data.numeroSessoesTotal is int;
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
     }
 
     // 5. Sessões Agendadas
     match /sessoes_agendadas/{sessaoId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
-      
-      allow create, update: if 
-        validateEnum('status', ['Agendada', 'Bloqueada', 'Realizada', 'Falta', 'Reagendada', 'Cancelada']) &&
-        validateEnum('statusPagamento', ['Pendente', 'Pago', 'N/A', 'Parcial', 'Realizado']) &&
-        request.resource.data.dataHora is timestamp;
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
     }
 
     // 6. Pagamentos
     match /pagamentos/{pagamentoId} {
-      allow read, delete: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      allow read, delete: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update: if canAccess(resource) && canAccess(request.resource);
     }
 
     // 7. Relatórios
     match /relatorios/{relatorioId} {
-      allow read: if isOwner(resource.data);
-      allow create: if isAuthenticated() && isOwner(request.resource.data);
-      allow update, delete: if false; // Imutáveis
+      allow read: if canAccess(resource);
+      allow create: if isAuthenticated() && canAccess(request.resource);
+      allow update, delete: if false;
     }
   }
 }

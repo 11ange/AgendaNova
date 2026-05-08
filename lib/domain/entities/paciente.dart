@@ -46,6 +46,11 @@ class Paciente {
     return age;
   }
 
+  // Retorna a data do aniversário do paciente no ano especificado
+  DateTime dataAniversarioEsteAno(int year) {
+    return DateTime(year, dataNascimento.month, dataNascimento.day);
+  }
+
   // Método para criar uma cópia da entidade com campos atualizados
   Paciente copyWith({
     String? id,

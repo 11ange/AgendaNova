@@ -28,15 +28,21 @@ class FirebaseService {
   // Realiza o login com e-mail e senha
   Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final credential = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      // ignore: avoid_print
+      print('LOGIN SUCESSO: ${credential.user?.email}');
+      return credential;
     } on FirebaseAuthException catch (e) {
-      // Trate as exceções específicas do Firebase Auth
+      // ignore: avoid_print
+      print('LOGIN ERRO (FirebaseAuthException): ${e.code} - ${e.message}');
       throw Exception('Erro de autenticação: ${e.message}');
     } catch (e) {
+      // ignore: avoid_print
+      print('LOGIN ERRO (Desconhecido): $e');
       throw Exception('Erro desconhecido ao fazer login: $e');
     }
   }
-  
+
   // NOVO MÉTODO: Cria um novo usuário com e-mail e senha
   Future<UserCredential> createUserWithEmailAndPassword(String email, String password) async {
     try {
@@ -48,7 +54,6 @@ class FirebaseService {
       throw Exception('Erro desconhecido ao criar usuário: $e');
     }
   }
-
 
   // Realiza o logout
   Future<void> signOut() async {
@@ -63,9 +68,24 @@ class FirebaseService {
   // Obtém o UID do usuário atualmente logado
   String? get currentUserId => _auth.currentUser?.uid;
 
+  // Verifica se o usuário atual tem privilégios de administrador
+  bool get isAdmin {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) return false;
+    
+    final email = user.email!.toLowerCase();
+    final adminEmails = [
+      'admin@agendanova.com',
+      'luis.lange@gmail.com',
+    ];
+    
+    return adminEmails.contains(email) || email.endsWith('@admin.agendanova.com');
+  }
+
   // --- Método de Migração ---
   // Atualiza todos os documentos existentes que não possuem ownerId
-  Future<void> migrarRegistrosAntigos() async {
+  // Se force for true, sobrescreve o ownerId de todos os registros para o usuário atual
+  Future<void> migrarRegistrosAntigos({bool force = false}) async {
     final uid = currentUserId;
     if (uid == null) throw Exception('Usuário precisa estar logado para migrar os dados.');
 
@@ -88,7 +108,14 @@ class FirebaseService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data();
-        if (!data.containsKey('ownerId') || data['ownerId'] == null) {
+        // Se force=true, atualiza se o ID for diferente do atual. 
+        // Se force=false, atualiza apenas se não houver ownerId.
+        if (force) {
+          if (data['ownerId'] != uid) {
+            batch.update(doc.reference, {'ownerId': uid});
+            count++;
+          }
+        } else if (!data.containsKey('ownerId') || data['ownerId'] == null) {
           batch.update(doc.reference, {'ownerId': uid});
           count++;
         }
@@ -97,7 +124,7 @@ class FirebaseService {
       if (count > 0) {
         await batch.commit();
         // ignore: avoid_print
-        print('MIGRAÇÃO: $count documentos atualizados na coleção [$colecaoPath]');
+        print('MIGRAÇÃO: $count documentos atualizados na coleção [$colecaoPath] (Force: $force)');
       }
     }
   }

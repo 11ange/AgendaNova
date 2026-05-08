@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:agenda_treinamento/core/utils/logger.dart';
 import 'package:agenda_treinamento/domain/usecases/auth/sign_out_usecase.dart';
-import 'package:agenda_treinamento/core/services/firebase_service.dart';
+//import 'package:agenda_treinamento/core/services/firebase_service.dart';
 import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
 
 class HomeViewModel extends ChangeNotifier {
@@ -26,7 +26,7 @@ class HomeViewModel extends ChangeNotifier {
   List<DateTime> _proximosHorariosDisponiveis = [];
   int _sessoesHojeCount = 0;
   int _pagamentosPendentesCount = 0;
-  int _aniversariantesMesCount = 0;
+  List<Paciente> _aniversariantesProximos = [];
   Sessao? _proximaSessao;
   
   bool _isLoading = true;
@@ -36,7 +36,8 @@ class HomeViewModel extends ChangeNotifier {
   List<DateTime> get proximosHorariosDisponiveis => _proximosHorariosDisponiveis;
   int get sessoesHojeCount => _sessoesHojeCount;
   int get pagamentosPendentesCount => _pagamentosPendentesCount;
-  int get aniversariantesMesCount => _aniversariantesMesCount;
+  int get aniversariantesMesCount => _aniversariantesProximos.length;
+  List<Paciente> get aniversariantesProximos => _aniversariantesProximos;
   Sessao? get proximaSessao => _proximaSessao;
   
   bool get isLoading => _isLoading;
@@ -59,8 +60,6 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await FirebaseService.instance.migrarRegistrosAntigos();
-
       final results = await Future.wait([
         _sessaoRepository.getSessoes().first,
         _agendaRepository.getAgendaDisponibilidade().first,
@@ -115,8 +114,23 @@ class HomeViewModel extends ChangeNotifier {
     // Pagamentos pendentes
     _pagamentosPendentesCount = pagamentos.where((p) => p.status == 'Pendente').length;
 
-    // Aniversariantes do mês
-    _aniversariantesMesCount = pacientes.where((p) => p.dataNascimento.month == agora.month).length;
+    // Aniversariantes dos próximos 7 dias
+    final proximaSemana = hoje.add(const Duration(days: 7));
+    _aniversariantesProximos = pacientes.where((p) {
+      final dataAniversarioEsteAno = DateTime(hoje.year, p.dataNascimento.month, p.dataNascimento.day);
+      final dataAniversarioProximoAno = DateTime(hoje.year + 1, p.dataNascimento.month, p.dataNascimento.day);
+      
+      return (dataAniversarioEsteAno.isAtSameMomentAs(hoje) || (dataAniversarioEsteAno.isAfter(hoje) && dataAniversarioEsteAno.isBefore(proximaSemana))) ||
+             (dataAniversarioProximoAno.isAfter(hoje) && dataAniversarioProximoAno.isBefore(proximaSemana));
+    }).toList();
+
+    _aniversariantesProximos.sort((a, b) {
+      final aAniv = DateTime(hoje.year, a.dataNascimento.month, a.dataNascimento.day);
+      final bAniv = DateTime(hoje.year, b.dataNascimento.month, b.dataNascimento.day);
+      final aAnivAdj = aAniv.isBefore(hoje) ? DateTime(hoje.year + 1, a.dataNascimento.month, a.dataNascimento.day) : aAniv;
+      final bAnivAdj = bAniv.isBefore(hoje) ? DateTime(hoje.year + 1, b.dataNascimento.month, b.dataNascimento.day) : bAniv;
+      return aAnivAdj.compareTo(bAnivAdj);
+    });
   }
 
   Future<void> marcarComoRealizada(Sessao sessao) async {

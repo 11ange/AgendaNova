@@ -7,7 +7,7 @@ plugins {
 
 android {
     // Adicionado ndkVersion para compatibilidade com Firebase
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     namespace = "com.example.agendanova"
     compileSdk = 36 // Ou a versão mais recente que você está usando
