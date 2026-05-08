@@ -2,9 +2,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:agenda_treinamento/presentation/auth/pages/login_page.dart';
 import 'package:agenda_treinamento/presentation/home/pages/home_page.dart';
-import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_ativos_page.dart';
 import 'package:agenda_treinamento/presentation/pacientes/pages/paciente_form_page.dart';
-import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_inativos_page.dart';
 import 'package:agenda_treinamento/presentation/pacientes/pages/historico_paciente_page.dart';
 import 'package:agenda_treinamento/presentation/agenda/pages/agenda_page.dart';
 import 'package:agenda_treinamento/presentation/sessoes/pages/sessoes_page.dart';
@@ -17,15 +15,13 @@ import 'package:agenda_treinamento/presentation/agenda/viewmodels/agenda_viewmod
 import 'package:agenda_treinamento/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/sessoes/viewmodels/sessoes_viewmodel.dart';
 import 'package:agenda_treinamento/core/services/firebase_service.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_arquivados_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_arquivados_page.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_page.dart';
 import 'package:agenda_treinamento/injection_container.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: '/login', // Pode iniciar no login, o redirect cuidará do resto
+    initialLocation: '/login',
     routes: <GoRoute>[
       GoRoute(
         path: '/login',
@@ -36,10 +32,10 @@ class AppRouter {
         builder: (context, state) => const HomePage(),
       ),
       GoRoute(
-        path: '/pacientes-ativos',
+        path: '/pacientes',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => sl<PacientesAtivosViewModel>(),
-          child: const PacientesAtivosPage(),
+          create: (_) => sl<PacientesViewModel>(),
+          child: const PacientesPage(),
         ),
         routes: [
           GoRoute(
@@ -65,19 +61,24 @@ class AppRouter {
           ),
         ],
       ),
+      // Redirecionamentos para compatibilidade
+      GoRoute(path: '/pacientes-ativos', redirect: (_, _) => '/pacientes'),
+      GoRoute(path: '/pacientes-inativos', redirect: (_, _) => '/pacientes'),
+      GoRoute(path: '/pacientes-arquivados', redirect: (_, _) => '/pacientes'),
+      
       GoRoute(
-        path: '/pacientes-inativos',
+        path: '/paciente-form',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => sl<PacientesInativosViewModel>(),
-          child: const PacientesInativosPage(),
+          create: (_) => sl<PacienteFormViewModel>(),
+          child: const PacienteFormPage(),
         ),
       ),
       GoRoute(
-        path: '/pacientes-arquivados',
-        builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => sl<PacientesArquivadosViewModel>(),
-          child: const PacientesArquivadosPage(),
-        ),
+        path: '/paciente-historico/:id',
+        builder: (context, state) {
+          final pacienteId = state.pathParameters['id']!;
+          return HistoricoPacientePage(pacienteId: pacienteId);
+        },
       ),
       GoRoute(
         path: '/agenda',

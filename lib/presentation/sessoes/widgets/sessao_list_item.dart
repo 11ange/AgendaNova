@@ -27,7 +27,22 @@ class SessaoListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    // Definimos as cores e ícones para o Swipe
+    final backgroundRealizada = Container(
+      color: Colors.green,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: const Icon(Icons.check_circle, color: Colors.white),
+    );
+
+    final backgroundFalta = Container(
+      color: Colors.red,
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: const Icon(Icons.cancel, color: Colors.white),
+    );
+
+    Widget cardContent = Card(
       margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
       color: _getCardBackgroundColor(sessao, isDailyBlocked),
       child: Padding(
@@ -50,6 +65,34 @@ class SessaoListItem extends StatelessWidget {
         ),
       ),
     );
+
+    // Se houver uma sessão agendada, permitimos o Swipe
+    if (sessao != null && sessao!.status == 'Agendada' && !isDailyBlocked) {
+      return Dismissible(
+        key: Key('sessao_${sessao!.id}_${sessao!.dataHora.millisecondsSinceEpoch}'),
+        background: backgroundRealizada,
+        secondaryBackground: backgroundFalta,
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            // Swipe para a direita: Realizada
+            await viewModel.updateSessaoStatus(sessao!, 'Realizada');
+            if (context.mounted) {
+              SnackBarHelper.showSuccess(context, 'Sessão de ${sessao!.pacienteNome} marcada como REALIZADA');
+            }
+          } else if (direction == DismissDirection.endToStart) {
+            // Swipe para a esquerda: Falta
+            await viewModel.updateSessaoStatus(sessao!, 'Falta');
+            if (context.mounted) {
+              SnackBarHelper.showError(context, 'Sessão de ${sessao!.pacienteNome} marcada como FALTA');
+            }
+          }
+          return false; // Não remove o widget da árvore, o ViewModel cuidará da atualização de estado
+        },
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 
   Future<void> _showConfirmPaymentDialog(BuildContext context, SessoesViewModel viewModel, Sessao sessao) async {

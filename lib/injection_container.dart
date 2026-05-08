@@ -39,9 +39,7 @@ import 'package:agenda_treinamento/domain/usecases/auth/sign_out_usecase.dart';
 import 'package:agenda_treinamento/presentation/auth/viewmodels/login_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/agenda/viewmodels/agenda_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/lista_espera/viewmodels/lista_espera_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
-import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_arquivados_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart';
@@ -95,13 +93,11 @@ Future<void> init() async {
   sl.registerFactory(() => AgendaViewModel(sl(), sl()));
   sl.registerFactory(() => ListaEsperaViewModel(sl(), sl(), sl(), sl()));
   sl.registerFactory(() => PagamentosViewModel(sl(), sl(), sl(), sl()));
-  sl.registerFactory(() => PacientesAtivosViewModel(sl(), sl()));
-  sl.registerFactory(() => PacientesInativosViewModel(sl(), sl(), sl()));
-  sl.registerFactory(() => PacientesArquivadosViewModel(sl(), sl()));
+  sl.registerFactory(() => PacientesViewModel(sl(), sl(), sl(), sl()));
   sl.registerFactory(() => PacienteFormViewModel(sl(), sl(), sl(), sl()));
   sl.registerFactory(() => HistoricoPacienteViewModel(sl(), sl(), sl()));
   sl.registerFactory(() => RelatoriosViewModel(sl(), sl(), sl()));
   sl.registerFactory(() => SessoesViewModel(sl(), sl(), sl(), sl()));
   sl.registerFactory(() => TreinamentoDialogViewModel(sl(), sl(), sl(), sl()));
-  sl.registerFactory(() => HomeViewModel(sl(), sl(), sl()));
-}
+  sl.registerFactory(() => HomeViewModel(sl(), sl(), sl(), sl(), sl(), sl()));
+  }

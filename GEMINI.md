@@ -18,7 +18,13 @@
   - Matches with Archived patients are also blocked.
   - Homonyms (same name, different birth date) trigger a UI warning.
 - **Archiving (Soft Delete)**: Inactive patients can be "Archived" to hide them from standard lists while preserving historical data.
-- **UI Consistency**: Payment status is labeled as "**PAGO**" across all screens to distinguish it from the "**REALIZADA**" session execution status.
+- **UI Consistency**: 
+  - Payment status is labeled as "**PAGO**" across all screens to distinguish it from the "**REALIZADA**" session execution status.
+  - **Patient Management**: The filter system has been simplified to focus on the three primary states: **Ativos**, **Inativos**, and **Arquivados**, removing redundant or overly specific views ("Todos", "Afinando").
+
+## Tech Stack Details
+- **Dependency Injection**: Fully implemented using `GetIt` with constructor injection for all ViewModels, ensuring testability and clean separation of concerns.
+- **Routing**: `GoRouter` with centralized path management and automated auth-based redirection.
 
 ## Documentation & Specs
 - **Entity Schemas**: Located in `specs/*.yaml`.
