@@ -10,6 +10,8 @@ import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:agenda_treinamento/data/models/pagamento_model.dart';
 
+import 'package:agenda_treinamento/injection_container.dart'; // Import sl
+
 class PagamentosPage extends StatelessWidget {
   const PagamentosPage({super.key});
 
@@ -19,7 +21,7 @@ class PagamentosPage extends StatelessWidget {
     final subtitleStyle = Theme.of(context).textTheme.bodyMedium;
 
     return ChangeNotifierProvider(
-      create: (_) => PagamentosViewModel(),
+      create: (_) => sl<PagamentosViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Controle de Pagamentos',
@@ -434,12 +436,39 @@ class PagamentosPage extends StatelessWidget {
       children: [
         ...sessoes.map((sessao) {
           final bool pago = sessao.statusPagamento == 'Realizado';
+          
+          // Define a cor baseada no status da sessão
+          Color statusColor;
+          switch (sessao.status) {
+            case 'Realizada':
+              statusColor = Colors.blue;
+              break;
+            case 'Falta':
+              statusColor = Colors.red;
+              break;
+            case 'Cancelada':
+              statusColor = Colors.grey;
+              break;
+            default:
+              statusColor = Colors.orange;
+          }
+
           return ListTile(
             dense: true,
             title: Text('Sessão #${sessao.numeroSessao} - ${DateFormatter.formatDate(sessao.dataHora)}', style: textStyle),
-            trailing: Text(
-              sessao.statusPagamento,
-              style: textStyle?.copyWith(color: pago ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  sessao.status,
+                  style: textStyle?.copyWith(color: statusColor, fontWeight: FontWeight.bold),
+                ),
+                Text(' | ', style: textStyle),
+                Text(
+                  pago ? 'PAGO' : sessao.statusPagamento,
+                  style: textStyle?.copyWith(color: pago ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           );
         }),

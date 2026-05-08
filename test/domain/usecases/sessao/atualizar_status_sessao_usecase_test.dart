@@ -122,14 +122,15 @@ void main() {
         test('deve atualizar o status para Realizada e verificar o status do treinamento', () async {
       setupDefaultMocks();
 
-      final sessoesQuaseConcluidas = [
+      // Simulamos que após a atualização, todas as 3 sessões estarão como 'Realizada'
+      final sessoesConcluidas = [
         sessaoAgendada1.copyWith(status: 'Realizada'),
         sessaoAgendada2.copyWith(status: 'Realizada'),
-        sessaoAgendada3,
+        sessaoAgendada3.copyWith(status: 'Realizada'),
       ];
 
       when(mockSessaoRepository.getSessoesByTreinamentoIdOnce(treinamentoId))
-          .thenAnswer((_) async => sessoesQuaseConcluidas);
+          .thenAnswer((_) async => sessoesConcluidas);
 
       await usecase.call(sessao: sessaoAgendada3, novoStatus: 'Realizada');
 
@@ -180,9 +181,10 @@ void main() {
       
       await usecase.call(sessao: sessaoAgendada1, novoStatus: 'Cancelada', desmarcarTodasFuturas: true);
       
-      verifySessaoAtualizada(sessaoAgendada1.id!, 'Cancelada');
-      verifySessaoAtualizada(sessaoAgendada2.id!, 'Cancelada');
-      verifySessaoAtualizada(sessaoAgendada3.id!, 'Cancelada');
+      verify(mockSessaoRepository.deleteMultipleSessoes(any)).called(1);
+      verify(mockTreinamentoRepository.updateTreinamento(
+              argThat(predicate((t) => t is Treinamento && t.status == 'cancelado'))))
+          .called(1);
       
       verifyNever(mockSessaoRepository.addSessao(any));
     });

@@ -65,11 +65,17 @@ void main() {
     test('deve criar o treinamento e as sessões com sucesso', () async {
       // ARRANGE
       when(mockTreinamentoRepository.hasActiveTreinamento(any)).thenAnswer((_) async => false);
-      when(mockTreinamentoRepository.hasOverlap(any, any)).thenAnswer((_) async => false);
+      when(mockTreinamentoRepository.hasOverlap(any, any, 
+        excludeTreinamentoId: anyNamed('excludeTreinamentoId'), 
+        novaDataInicio: anyNamed('novaDataInicio')))
+          .thenAnswer((_) async => false);
       when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => Stream.value(agendaDisponivel));
       when(mockPacienteRepository.getPacienteById(any)).thenAnswer((_) async => paciente);
       when(mockTreinamentoRepository.addTreinamento(any)).thenAnswer((_) async => 'novo-treinamento-id');
       when(mockSessaoRepository.addMultipleSessoes(any)).thenAnswer((_) async => Future.value());
+      
+      // Mock para verificação de dia bloqueado (sem bloqueios)
+      when(mockSessaoRepository.getSessoesByDate(any)).thenAnswer((_) => Stream.value([]));
 
       // ACT
       await usecase.call(
@@ -83,7 +89,7 @@ void main() {
 
       // ASSERT
       verify(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).called(1);
-      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario)).called(1);
+      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario, novaDataInicio: dataInicio)).called(1);
       verify(mockAgendaRepository.getAgendaDisponibilidade()).called(1);
       verify(mockPacienteRepository.getPacienteById(pacienteId)).called(1);
       verify(mockTreinamentoRepository.addTreinamento(any)).called(1);
@@ -95,17 +101,16 @@ void main() {
       when(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).thenAnswer((_) async => true);
 
       // ACT & ASSERT
-      await expectLater(
-        () async => await usecase.call(
-          pacienteId: pacienteId,
-          diaSemana: diaSemana,
-          horario: horario,
-          numeroSessoesTotal: numeroSessoesTotal,
-          dataInicio: dataInicio,
-          formaPagamento: formaPagamento,
-        ),
-        throwsA(isA<Exception>()),
+      final call = usecase.call(
+        pacienteId: pacienteId,
+        diaSemana: diaSemana,
+        horario: horario,
+        numeroSessoesTotal: numeroSessoesTotal,
+        dataInicio: dataInicio,
+        formaPagamento: formaPagamento,
       );
+      
+      await expectLater(call, throwsA(isA<Exception>()));
 
       verify(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).called(1);
       verifyNever(mockTreinamentoRepository.hasOverlap(any, any));
@@ -115,23 +120,25 @@ void main() {
     test('deve lançar uma exceção se já existe um treinamento agendado para o mesmo dia e horário', () async {
       // ARRANGE
       when(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).thenAnswer((_) async => false);
-      when(mockTreinamentoRepository.hasOverlap(diaSemana, horario)).thenAnswer((_) async => true);
+      when(mockTreinamentoRepository.hasOverlap(any, any, 
+        excludeTreinamentoId: anyNamed('excludeTreinamentoId'), 
+        novaDataInicio: anyNamed('novaDataInicio')))
+          .thenAnswer((_) async => true);
 
       // ACT & ASSERT
-      await expectLater(
-        () async => await usecase.call(
-          pacienteId: pacienteId,
-          diaSemana: diaSemana,
-          horario: horario,
-          numeroSessoesTotal: numeroSessoesTotal,
-          dataInicio: dataInicio,
-          formaPagamento: formaPagamento,
-        ),
-        throwsA(isA<Exception>()),
+      final call = usecase.call(
+        pacienteId: pacienteId,
+        diaSemana: diaSemana,
+        horario: horario,
+        numeroSessoesTotal: numeroSessoesTotal,
+        dataInicio: dataInicio,
+        formaPagamento: formaPagamento,
       );
+      
+      await expectLater(call, throwsA(isA<Exception>()));
 
       verify(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).called(1);
-      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario)).called(1);
+      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario, novaDataInicio: dataInicio)).called(1);
       verifyNever(mockAgendaRepository.getAgendaDisponibilidade());
       verifyNever(mockTreinamentoRepository.addTreinamento(any));
     });
@@ -139,24 +146,26 @@ void main() {
     test('deve lançar uma exceção se o horário selecionado não está disponível na agenda', () async {
       // ARRANGE
       when(mockTreinamentoRepository.hasActiveTreinamento(any)).thenAnswer((_) async => false);
-      when(mockTreinamentoRepository.hasOverlap(any, any)).thenAnswer((_) async => false);
+      when(mockTreinamentoRepository.hasOverlap(any, any, 
+        excludeTreinamentoId: anyNamed('excludeTreinamentoId'), 
+        novaDataInicio: anyNamed('novaDataInicio')))
+          .thenAnswer((_) async => false);
       when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => Stream.value(agendaIndisponivel));
 
       // ACT & ASSERT
-      await expectLater(
-        () async => await usecase.call(
-          pacienteId: pacienteId,
-          diaSemana: diaSemana,
-          horario: horario,
-          numeroSessoesTotal: numeroSessoesTotal,
-          dataInicio: dataInicio,
-          formaPagamento: formaPagamento,
-        ),
-        throwsA(isA<Exception>()),
+      final call = usecase.call(
+        pacienteId: pacienteId,
+        diaSemana: diaSemana,
+        horario: horario,
+        numeroSessoesTotal: numeroSessoesTotal,
+        dataInicio: dataInicio,
+        formaPagamento: formaPagamento,
       );
+      
+      await expectLater(call, throwsA(isA<Exception>()));
 
       verify(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).called(1);
-      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario)).called(1);
+      verify(mockTreinamentoRepository.hasOverlap(diaSemana, horario, novaDataInicio: dataInicio)).called(1);
       verify(mockAgendaRepository.getAgendaDisponibilidade()).called(1);
       verifyNever(mockTreinamentoRepository.addTreinamento(any));
     });

@@ -36,7 +36,7 @@ properties:
     format: date-time
   status:
     type: string
-    enum: [ativo, concluído, suspenso, cancelado]
+    enum: [ativo, concluido, suspenso, cancelado]
   formaPagamento:
     type: string
   tipoParcelamento:

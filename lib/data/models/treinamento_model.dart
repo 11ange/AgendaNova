@@ -7,6 +7,7 @@ import 'package:agenda_treinamento/data/models/pagamento_model.dart';
 class TreinamentoModel extends Treinamento {
   TreinamentoModel({
     super.id,
+    super.ownerId,
     required super.pacienteId,
     required super.diaSemana,
     required super.horario,
@@ -26,6 +27,7 @@ class TreinamentoModel extends Treinamento {
     final data = doc.data() as Map<String, dynamic>;
     return TreinamentoModel(
       id: doc.id,
+      ownerId: data['ownerId'] as String?,
       pacienteId: data['pacienteId'] as String,
       diaSemana: data['diaSemana'] as String,
       horario: data['horario'] as String,
@@ -46,6 +48,7 @@ class TreinamentoModel extends Treinamento {
   // Converte o TreinamentoModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'ownerId': ownerId,
       'pacienteId': pacienteId,
       'diaSemana': diaSemana,
       'horario': horario,
@@ -65,6 +68,7 @@ class TreinamentoModel extends Treinamento {
   factory TreinamentoModel.fromEntity(Treinamento treinamento) {
     return TreinamentoModel(
       id: treinamento.id,
+      ownerId: treinamento.ownerId,
       pacienteId: treinamento.pacienteId,
       diaSemana: treinamento.diaSemana,
       horario: treinamento.horario,

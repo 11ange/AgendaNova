@@ -1,7 +1,5 @@
-// lib/presentation/pagamentos/viewmodels/pagamentos_viewmodel.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
 import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
@@ -13,10 +11,10 @@ import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessa
 import 'package:agenda_treinamento/core/utils/logger.dart';
 
 class PagamentosViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
-  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
-  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
-  final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase = GetIt.instance<AtualizarStatusSessaoUseCase>();
+  final PacienteRepository _pacienteRepository;
+  final TreinamentoRepository _treinamentoRepository;
+  final SessaoRepository _sessaoRepository;
+  final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase;
 
   List<Paciente> _pacientes = [];
   List<Treinamento> _treinamentosAtivos = [];
@@ -37,29 +35,29 @@ class PagamentosViewModel extends ChangeNotifier {
     }
   }
 
-  PagamentosViewModel() {
+  PagamentosViewModel(
+    this._pacienteRepository,
+    this._treinamentoRepository,
+    this._sessaoRepository,
+    this._atualizarStatusSessaoUseCase,
+  ) {
     loadData();
   }
 
-Future<void> loadData() async {
+  Future<void> loadData() async {
     _setLoading(true);
     try {
-      // 1. Carrega os pacientes primeiro (necessário para pegar os nomes)
       _pacientes = await _pacienteRepository.getPacientes().first;
       
-      // 2. Carrega e filtra os treinamentos
       _treinamentosAtivos = await _treinamentoRepository.getTreinamentos().first.then((list) => 
           list.where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado').toList()
       );
 
-      // 3. --- NOVA ORDENAÇÃO ALFABÉTICA ---
       _treinamentosAtivos.sort((a, b) {
-        // Busca o nome do paciente usando o ID guardado no treinamento
         final nomeA = getPacienteById(a.pacienteId)?.nome.toLowerCase() ?? '';
         final nomeB = getPacienteById(b.pacienteId)?.nome.toLowerCase() ?? '';
         return nomeA.compareTo(nomeB);
       });
-      // ------------------------------------
       
       _pagamentosPorTreinamento.clear();
       for (var treinamento in _treinamentosAtivos) {
@@ -129,7 +127,6 @@ Future<void> loadData() async {
     final pagamentoAtualizado = treinamento.pagamentos!.first.copyWith(dataRecebimentoConvenio: dataRecebimento);
     final treinamentoAtualizado = treinamento.copyWith(pagamentos: [pagamentoAtualizado]);
     await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
-    // --- VERIFICAÇÃO ADICIONADA AQUI ---
     await _atualizarStatusSessaoUseCase.verificarEAtualizarStatusTreinamento(treinamento.id!);
     await loadData();
   }

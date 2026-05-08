@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
 import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
-import 'package:agenda_treinamento/core/utils/logger.dart'; // Importa o logger
+import 'package:agenda_treinamento/core/utils/logger.dart';
+import 'package:agenda_treinamento/domain/usecases/auth/sign_out_usecase.dart';
+import 'package:agenda_treinamento/core/services/firebase_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
-  final AgendaDisponibilidadeRepository _agendaRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
+  final SessaoRepository _sessaoRepository;
+  final AgendaDisponibilidadeRepository _agendaRepository;
+  final SignOutUseCase _signOutUseCase;
 
   List<Sessao> _proximosAgendamentos = [];
   List<DateTime> _proximosHorariosDisponiveis = [];
@@ -22,7 +24,11 @@ class HomeViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  HomeViewModel() {
+  HomeViewModel(
+    this._sessaoRepository,
+    this._agendaRepository,
+    this._signOutUseCase,
+  ) {
     loadInitialData();
   }
 
@@ -32,6 +38,10 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // --- CHAMADA TEMPORÁRIA DE MIGRAÇÃO ---
+      // Esta linha pode ser removida após os dados serem migrados com sucesso
+      await FirebaseService.instance.migrarRegistrosAntigos();
+
       final results = await Future.wait([
         _sessaoRepository.getSessoes().first,
         _agendaRepository.getAgendaDisponibilidade().first,
@@ -45,14 +55,17 @@ class HomeViewModel extends ChangeNotifier {
         _processarProximosHorarios(allSessoes, agenda);
       }
 
-    } catch (e, stackTrace) { // Captura o erro e o stack trace
+    } catch (e, stackTrace) {
       _errorMessage = "Erro ao carregar dados da tela inicial.";
-      // CORREÇÃO: Usa o logger para registrar o erro
       logger.e("Erro em HomeViewModel", error: e, stackTrace: stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> signOut() async {
+    await _signOutUseCase.call();
   }
 
   void _processarProximosAgendamentos(List<Sessao> sessoes) {

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
 import 'package:agenda_treinamento/data/models/paciente_model.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
@@ -52,6 +53,21 @@ class PacienteRepositoryImpl implements PacienteRepository {
   }
 
   @override
+  Stream<List<Paciente>> getPacientesArquivados() {
+    return _firebaseDatasource
+        .queryCollectionStream(
+          FirestoreCollections.pacientes,
+          field: 'status',
+          isEqualTo: 'arquivado',
+        )
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => PacienteModel.fromFirestore(doc))
+              .toList(),
+        );
+  }
+
+  @override
   Future<Paciente?> getPacienteById(String id) async {
     final doc = await _firebaseDatasource.getDocumentById(
       FirestoreCollections.pacientes,
@@ -65,7 +81,8 @@ class PacienteRepositoryImpl implements PacienteRepository {
 
   @override
   Future<void> addPaciente(Paciente paciente) async {
-    final pacienteModel = PacienteModel.fromEntity(paciente);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final pacienteModel = PacienteModel.fromEntity(paciente.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.addDocument(
       FirestoreCollections.pacientes,
       pacienteModel.toFirestore(),
@@ -77,7 +94,8 @@ class PacienteRepositoryImpl implements PacienteRepository {
     if (paciente.id == null) {
       throw Exception('ID do paciente é obrigatório para atualização.');
     }
-    final pacienteModel = PacienteModel.fromEntity(paciente);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final pacienteModel = PacienteModel.fromEntity(paciente.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.pacientes,
       paciente.id!,
@@ -90,7 +108,10 @@ class PacienteRepositoryImpl implements PacienteRepository {
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.pacientes,
       id,
-      {'status': 'inativo'},
+      {
+        'status': 'inativo',
+        'ownerId': _firebaseDatasource.currentUserId,
+      },
     );
   }
 
@@ -99,7 +120,24 @@ class PacienteRepositoryImpl implements PacienteRepository {
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.pacientes,
       id,
-      {'status': 'ativo'},
+      {
+        'status': 'ativo',
+        'dataArquivamento': null,
+        'ownerId': _firebaseDatasource.currentUserId,
+      },
+    );
+  }
+
+  @override
+  Future<void> arquivarPaciente(String id) async {
+    await _firebaseDatasource.updateDocument(
+      FirestoreCollections.pacientes,
+      id,
+      {
+        'status': 'arquivado',
+        'dataArquivamento': Timestamp.now(),
+        'ownerId': _firebaseDatasource.currentUserId,
+      },
     );
   }
 
@@ -112,5 +150,35 @@ class PacienteRepositoryImpl implements PacienteRepository {
     );
     // Verifica se existe algum documento com o nome, excluindo o próprio ID se estiver editando
     return querySnapshot.docs.any((doc) => doc.id != excludeId);
+  }
+
+  @override
+  Future<Paciente?> getPacienteByName(String nome) async {
+    // Busca exata pelo nome na coleção de pacientes do usuário atual
+    final querySnapshot = await _firebaseDatasource.queryCollectionOnce(
+      FirestoreCollections.pacientes,
+      field: 'nome',
+      isEqualTo: nome,
+    );
+    
+    if (querySnapshot.docs.isNotEmpty) {
+      // Retorna o primeiro encontrado (independente do status)
+      return PacienteModel.fromFirestore(querySnapshot.docs.first);
+    }
+    return null;
+  }
+
+  @override
+  Future<Paciente?> getPacienteByNormalizedName(String nomeNormalizado) async {
+    final querySnapshot = await _firebaseDatasource.queryCollectionOnce(
+      FirestoreCollections.pacientes,
+      field: 'nomeBusca',
+      isEqualTo: nomeNormalizado,
+    );
+    
+    if (querySnapshot.docs.isNotEmpty) {
+      return PacienteModel.fromFirestore(querySnapshot.docs.first);
+    }
+    return null;
   }
 }

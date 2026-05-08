@@ -1,14 +1,13 @@
 // lib/presentation/agenda/viewmodels/agenda_viewmodel.dart
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/agenda/definir_agenda_usecase.dart';
 import 'package:agenda_treinamento/core/utils/logger.dart';
 
 class AgendaViewModel extends ChangeNotifier {
-  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
-  final DefinirAgendaUseCase _definirAgendaUseCase = GetIt.instance<DefinirAgendaUseCase>();
+  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
+  final DefinirAgendaUseCase _definirAgendaUseCase;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -18,7 +17,10 @@ class AgendaViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Map<String, List<String>> get currentAgenda => _currentAgenda;
 
-  AgendaViewModel() {
+  AgendaViewModel(
+    this._agendaDisponibilidadeRepository,
+    this._definirAgendaUseCase,
+  ) {
     _listenToAgendaChanges();
   }
 
@@ -32,9 +34,6 @@ class AgendaViewModel extends ChangeNotifier {
           _currentAgenda = {};
         }
         
-        // **CORREÇÃO AQUI:**
-        // Só notifica se já houver widgets ouvindo. Isso evita a chamada
-        // durante a construção inicial do widget pelo router.
         if (hasListeners) {
           notifyListeners();
         }
@@ -43,7 +42,6 @@ class AgendaViewModel extends ChangeNotifier {
         _errorMessage = 'Falha ao carregar os dados da agenda.';
         logger.e('Erro ao carregar agenda', error: error, stackTrace: stackTrace);
         
-        // **CORREÇÃO AQUI TAMBÉM:**
         if (hasListeners) {
           notifyListeners();
         }
@@ -53,8 +51,6 @@ class AgendaViewModel extends ChangeNotifier {
 
   void loadAgenda() {
     _errorMessage = null;
-    // Não é mais necessário chamar notifyListeners() aqui,
-    // pois a própria construção do widget já vai ler o estado mais recente.
   }
 
   bool isTimeSelected(String day, String time) {

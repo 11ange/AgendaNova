@@ -6,18 +6,24 @@ class PacienteCard extends StatelessWidget {
   final Paciente paciente;
   final VoidCallback onEdit;
   final VoidCallback onAction;
+  final VoidCallback? onSecondaryAction;
   final VoidCallback onTap;
   final IconData? actionIcon;
   final String? actionTooltip;
+  final IconData? secondaryActionIcon;
+  final String? secondaryActionTooltip;
 
   const PacienteCard({
     super.key,
     required this.paciente,
     required this.onEdit,
     required this.onAction,
+    this.onSecondaryAction,
     required this.onTap,
     this.actionIcon,
     this.actionTooltip,
+    this.secondaryActionIcon,
+    this.secondaryActionTooltip,
   });
 
   @override
@@ -48,6 +54,12 @@ class PacienteCard extends StatelessWidget {
                         onPressed: onEdit,
                         tooltip: 'Editar Paciente',
                       ),
+                      if (onSecondaryAction != null)
+                        IconButton(
+                          icon: Icon(secondaryActionIcon ?? Icons.archive, color: Colors.orange),
+                          onPressed: onSecondaryAction,
+                          tooltip: secondaryActionTooltip ?? 'Arquivar Paciente',
+                        ),
                       IconButton(
                         icon: Icon(actionIcon ?? Icons.person_off, color: Colors.red),
                         onPressed: onAction,

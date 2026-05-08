@@ -24,7 +24,8 @@ class ListaEsperaRepositoryImpl implements ListaEsperaRepository {
 
   @override
   Future<void> adicionarListaEspera(ListaEspera item) async {
-    final itemModel = ListaEsperaModel.fromEntity(item);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final itemModel = ListaEsperaModel.fromEntity(item.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.addDocument(FirestoreCollections.listaEspera, itemModel.toFirestore());
   }
 
@@ -38,7 +39,8 @@ class ListaEsperaRepositoryImpl implements ListaEsperaRepository {
     if (item.id == null) {
       throw Exception('ID do item da lista de espera é obrigatório para atualização.');
     }
-    final itemModel = ListaEsperaModel.fromEntity(item);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final itemModel = ListaEsperaModel.fromEntity(item.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.listaEspera,
       item.id!,

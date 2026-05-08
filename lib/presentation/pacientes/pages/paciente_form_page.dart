@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
+import 'package:agenda_treinamento/domain/usecases/paciente/cadastrar_paciente_usecase.dart';
 import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/paciente_form_viewmodel.dart';
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
@@ -108,7 +109,7 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
         onBackButtonPressed: () => context.pop(),
       ),
       body: Consumer<PacienteFormViewModel>(
-        builder: (context, viewModel, child) {
+        builder: (_, viewModel, child) {
           if (viewModel.isLoading && widget.pacienteId != null && !_isInitialDataLoaded) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -260,17 +261,23 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
                               try {
                                 if (widget.pacienteId == null) {
                                   await viewModel.cadastrarPaciente(newPaciente);
-                                  if (!context.mounted) return;
+                                  if (!mounted) return;
                                   SnackBarHelper.showSuccess(context, 'Paciente cadastrado com sucesso!');
                                 } else {
                                   await viewModel.editarPaciente(newPaciente);
-                                  if (!context.mounted) return;
+                                  if (!mounted) return;
                                   SnackBarHelper.showSuccess(context, 'Paciente atualizado com sucesso!');
                                 }
-                                if (!context.mounted) return;
+                                if (!mounted) return;
                                 context.pop();
+                              } on DuplicatePacienteException catch (e) {
+                                if (!mounted) return;
+                                _showReactivationDialog(e.existingPaciente);
+                              } on HomonymPacienteException catch (e) {
+                                if (!mounted) return;
+                                _showHomonymWarningDialog(newPaciente, e.existingPaciente);
                               } catch (e) {
-                                if (!context.mounted) return;
+                                if (!mounted) return;
                                 SnackBarHelper.showError(context, e);
                               }
                             }
@@ -284,6 +291,77 @@ class _PacienteFormPageState extends State<PacienteFormPage> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showReactivationDialog(Paciente existing) {
+    final statusText = existing.status == 'inativo' ? 'inativo' : 'arquivado';
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Paciente já cadastrado'),
+        content: Text(
+          'O paciente ${existing.nome} já possui um cadastro com o status "$statusText".\n\n'
+          'Deseja reativar este cadastro ao invés de criar um novo?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext); // Fecha o diálogo
+              try {
+                await _viewModel.reativarPaciente(existing.id!);
+                if (!mounted) return;
+                SnackBarHelper.showSuccess(context, 'Paciente reativado com sucesso!');
+                context.pop(); // Volta para a listagem
+              } catch (e) {
+                if (!mounted) return;
+                SnackBarHelper.showError(context, e);
+              }
+            },
+            child: const Text('Reativar Cadastro'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHomonymWarningDialog(Paciente newPaciente, Paciente existing) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Possível Homônimo'),
+        content: Text(
+          'Já existe um paciente cadastrado com o nome "${existing.nome}".\n\n'
+          'No entanto, as datas de nascimento são diferentes.\n'
+          'Deseja cadastrar "${newPaciente.nome}" como um novo paciente?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext); // Fecha o diálogo
+              try {
+                await _viewModel.cadastrarPaciente(newPaciente, ignoreHomonym: true);
+                if (!mounted) return;
+                SnackBarHelper.showSuccess(context, 'Paciente cadastrado com sucesso!');
+                context.pop(); // Volta para a listagem
+              } catch (e) {
+                if (!mounted) return;
+                SnackBarHelper.showError(context, e);
+              }
+            },
+            child: const Text('Sim, Cadastrar Novo'),
+          ),
+        ],
       ),
     );
   }

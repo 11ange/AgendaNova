@@ -25,7 +25,8 @@ class RelatorioRepositoryImpl implements RelatorioRepository {
   Future<void> saveRelatorio(Relatorio relatorio) async {
     // Este método é opcional, dependendo se você deseja salvar os relatórios gerados
     // no Firestore para histórico. Se sim, descomente e implemente.
-    final relatorioModel = RelatorioModel.fromEntity(relatorio);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final relatorioModel = RelatorioModel.fromEntity(relatorio.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.setDocument(FirestoreCollections.relatorios, relatorio.id, relatorioModel.toFirestore());
   }
 }

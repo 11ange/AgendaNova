@@ -1,0 +1,23 @@
+title: Relatorio
+type: object
+description: "Representa um resumo de dados consolidado para relatórios individuais ou globais."
+required:
+  - id
+  - tipoRelatorio
+  - dataGeracao
+  - dados
+properties:
+  id:
+    type: string
+    description: "Identificador único do relatório."
+  tipoRelatorio:
+    type: string
+    enum: [Mensal Global, Individual Paciente]
+    description: "Tipo de relatório gerado."
+  dataGeracao:
+    type: string
+    format: date-time
+    description: "Data e hora em que o relatório foi gerado."
+  dados:
+    type: object
+    description: "Mapa flexível contendo os dados específicos do relatório."

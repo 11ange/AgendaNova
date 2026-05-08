@@ -1,7 +1,6 @@
 // lib/presentation/pacientes/viewmodels/historico_paciente_viewmodel.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
 import 'package:agenda_treinamento/domain/entities/treinamento.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
@@ -11,9 +10,9 @@ import 'package:agenda_treinamento/domain/repositories/treinamento_repository.da
 import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 
 class HistoricoPacienteViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
-  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
-  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
+  final PacienteRepository _pacienteRepository;
+  final TreinamentoRepository _treinamentoRepository;
+  final SessaoRepository _sessaoRepository;
 
   // State
   Paciente? _paciente;
@@ -30,6 +29,12 @@ class HistoricoPacienteViewModel extends ChangeNotifier {
   Map<String, List<Pagamento>> get pagamentosPorTreinamento => _pagamentosPorTreinamento;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  HistoricoPacienteViewModel(
+    this._pacienteRepository,
+    this._treinamentoRepository,
+    this._sessaoRepository,
+  );
 
   Future<void> loadHistorico(String pacienteId) async {
     _setLoading(true);

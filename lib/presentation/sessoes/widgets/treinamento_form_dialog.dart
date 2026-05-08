@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:agenda_treinamento/injection_container.dart';
 import 'package:agenda_treinamento/presentation/sessoes/viewmodels/treinamento_dialog_viewmodel.dart';
 import 'package:agenda_treinamento/core/utils/input_validators.dart';
 import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class TreinamentoFormDialog extends StatefulWidget {
   final DateTime selectedDay;
@@ -51,7 +52,7 @@ class _TreinamentoFormDialogState extends State<TreinamentoFormDialog> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => TreinamentoDialogViewModel(),
+      create: (_) => sl<TreinamentoDialogViewModel>(),
       child: Consumer<TreinamentoDialogViewModel>(
         builder: (context, viewModel, child) {
           final availablePatientIds = viewModel.pacientes.map((p) => p.id).toSet();

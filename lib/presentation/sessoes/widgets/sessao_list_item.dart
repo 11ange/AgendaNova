@@ -330,19 +330,39 @@ Future<void> _showTrocarHorarioDialog(BuildContext context, SessoesViewModel vie
       color: isPatientSessionBlocked ? Colors.grey.shade700 : null,
     );
     
-    Widget? statusIndicatorWidget;
+    List<Widget> statusParts = [];
+    
     if (isPatientSessionBlocked) {
-      statusIndicatorWidget = Text('BLOQUEADO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade800));
-    } else if (sessaoNaoNula.status == 'Falta') {
-      statusIndicatorWidget = Text('FALTA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade800));
-    } else if (sessaoNaoNula.status == 'Cancelada') {
-      statusIndicatorWidget = Text('CANCELADA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700));
-    } else if (sessaoNaoNula.parcelamento == 'Por sessão') {
-      if (sessaoNaoNula.statusPagamento == 'Pendente') {
-        statusIndicatorWidget = Text('PENDENTE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade800));
-      } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
-        statusIndicatorWidget = Text('PAGO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green.shade800));
+      statusParts.add(Text('BLOQUEADO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade800)));
+    } else {
+      // Status de Execução
+      if (sessaoNaoNula.status == 'Falta') {
+        statusParts.add(Text('FALTA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade800)));
+      } else if (sessaoNaoNula.status == 'Cancelada') {
+        statusParts.add(Text('CANCELADA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700)));
+      } else if (sessaoNaoNula.status == 'Realizada') {
+        statusParts.add(Text('REALIZADA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue.shade800)));
       }
+
+      // Status de Pagamento (apenas para "Por sessão")
+      if (sessaoNaoNula.parcelamento == 'Por sessão') {
+        if (statusParts.isNotEmpty) {
+          statusParts.add(Text(' | ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)));
+        }
+        if (sessaoNaoNula.statusPagamento == 'Pendente') {
+          statusParts.add(Text('PENDENTE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange.shade800)));
+        } else if (sessaoNaoNula.statusPagamento == 'Realizado') {
+          statusParts.add(Text('PAGO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green.shade800)));
+        }
+      }
+    }
+
+    Widget? statusIndicatorWidget;
+    if (statusParts.isNotEmpty) {
+      statusIndicatorWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: statusParts,
+      );
     }
 
     return Stack(

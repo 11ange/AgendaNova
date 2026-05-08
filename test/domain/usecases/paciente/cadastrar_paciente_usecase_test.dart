@@ -38,39 +38,74 @@ void main() {
 
     // Teste 1: Cenário de sucesso
     test('deve cadastrar o paciente com sucesso se o nome não existir', () async {
-      // ARRANGE (Organizar)
-      // Configura o mock: quando `pacienteExistsByName` for chamado com qualquer nome,
-      // ele deve retornar `Future.value(false)`, indicando que o paciente não existe.
-      when(mockPacienteRepository.pacienteExistsByName(any)).thenAnswer((_) async => false);
-      // Configura o mock: quando `addPaciente` for chamado, ele deve completar com sucesso.
+      // ARRANGE
+      when(mockPacienteRepository.getPacienteByNormalizedName(any)).thenAnswer((_) async => null);
       when(mockPacienteRepository.addPaciente(any)).thenAnswer((_) async => Future.value());
 
-      // ACT (Agir)
-      // Executa o caso de uso com o paciente de exemplo.
+      // ACT
       await usecase.call(pacienteExemplo);
 
-      // ASSERT (Verificar)
-      // Verifica se o método `addPaciente` do repositório foi chamado exatamente uma vez.
+      // ASSERT
       verify(mockPacienteRepository.addPaciente(pacienteExemplo)).called(1);
     });
 
-    // Teste 2: Cenário de falha
-    test('deve lançar uma exceção se um paciente com o mesmo nome já existir', () async {
-      // ARRANGE (Organizar)
-      // Configura o mock: desta vez, `pacienteExistsByName` retorna `true`.
-      when(mockPacienteRepository.pacienteExistsByName(any)).thenAnswer((_) async => true);
+    // Teste 2: Cenário de falha (Duplicado exato)
+    test('deve lançar DuplicatePacienteException se nome e data de nascimento coincidirem', () async {
+      // ARRANGE
+      when(mockPacienteRepository.getPacienteByNormalizedName(any))
+          .thenAnswer((_) async => pacienteExemplo);
 
-      // ACT (Agir)
-      // Chamamos o caso de uso e esperamos que ele lance uma exceção.
+      // ACT
       final call = usecase.call;
 
-      // ASSERT (Verificar)
-      // Verifica se a chamada da função `call` com o paciente de exemplo
-      // realmente lança uma exceção do tipo `Exception`.
-      expect(() => call(pacienteExemplo), throwsA(isA<Exception>()));
-
-      // Verifica também que, em caso de falha, o método `addPaciente` NUNCA seja chamado.
+      // ASSERT
+      expect(() => call(pacienteExemplo), throwsA(isA<DuplicatePacienteException>()));
       verifyNever(mockPacienteRepository.addPaciente(any));
+    });
+
+    // Teste 3: Cenário de aviso de homônimo
+    test('deve lançar HomonymPacienteException se o nome for igual mas a data de nascimento for diferente', () async {
+      // ARRANGE
+      final pacienteOutraData = pacienteExemplo.copyWith(dataNascimento: DateTime(1990, 1, 1));
+      when(mockPacienteRepository.getPacienteByNormalizedName(any))
+          .thenAnswer((_) async => pacienteExemplo);
+      
+      // ACT
+      final call = usecase.call;
+
+      // ASSERT
+      expect(() => call(pacienteOutraData), throwsA(isA<HomonymPacienteException>()));
+    });
+
+    // Teste 4: Cenário de falha (Duplicado com paciente arquivado)
+    test('deve lançar DuplicatePacienteException se houver um paciente ARQUIVADO com mesmo nome e data', () async {
+      // ARRANGE
+      final pacienteArquivado = pacienteExemplo.copyWith(id: 'old_id', status: 'arquivado');
+      
+      when(mockPacienteRepository.getPacienteByNormalizedName(any))
+          .thenAnswer((_) async => pacienteArquivado);
+
+      // ACT
+      final call = usecase.call;
+
+      // ASSERT
+      expect(() => call(pacienteExemplo), throwsA(isA<DuplicatePacienteException>()));
+      verifyNever(mockPacienteRepository.addPaciente(any));
+    });
+
+    // Teste 5: Sucesso ao ignorar homônimo
+    test('deve cadastrar com sucesso ao ignorar aviso de homônimo', () async {
+      // ARRANGE
+      final pacienteOutraData = pacienteExemplo.copyWith(dataNascimento: DateTime(1990, 1, 1));
+      when(mockPacienteRepository.getPacienteByNormalizedName(any))
+          .thenAnswer((_) async => pacienteExemplo);
+      when(mockPacienteRepository.addPaciente(any)).thenAnswer((_) async => Future.value());
+
+      // ACT
+      await usecase.call(pacienteOutraData, ignoreHomonym: true);
+
+      // ASSERT
+      verify(mockPacienteRepository.addPaciente(pacienteOutraData)).called(1);
     });
   });
 }

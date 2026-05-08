@@ -60,6 +60,48 @@ class FirebaseService {
     return _auth.currentUser;
   }
 
+  // Obtém o UID do usuário atualmente logado
+  String? get currentUserId => _auth.currentUser?.uid;
+
+  // --- Método de Migração ---
+  // Atualiza todos os documentos existentes que não possuem ownerId
+  Future<void> migrarRegistrosAntigos() async {
+    final uid = currentUserId;
+    if (uid == null) throw Exception('Usuário precisa estar logado para migrar os dados.');
+
+    final colecoes = [
+      'pacientes',
+      'treinamentos',
+      'sessoes_agendadas',
+      'pagamentos',
+      'lista_espera',
+      'disponibilidade',
+      'relatorios'
+    ];
+
+    for (final colecaoPath in colecoes) {
+      final snapshot = await _firestore.collection(colecaoPath).get();
+      if (snapshot.docs.isEmpty) continue;
+
+      final batch = _firestore.batch();
+      int count = 0;
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        if (!data.containsKey('ownerId') || data['ownerId'] == null) {
+          batch.update(doc.reference, {'ownerId': uid});
+          count++;
+        }
+      }
+
+      if (count > 0) {
+        await batch.commit();
+        // ignore: avoid_print
+        print('MIGRAÇÃO: $count documentos atualizados na coleção [$colecaoPath]');
+      }
+    }
+  }
+
   // Stream para observar mudanças no estado de autenticação
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 

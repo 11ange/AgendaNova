@@ -6,6 +6,7 @@ import 'package:agenda_treinamento/core/utils/date_formatter.dart'; // Importaç
 class PacienteModel extends Paciente {
   PacienteModel({
     super.id,
+    super.ownerId,
     required super.nome,
     required super.dataNascimento,
     required super.nomeResponsavel,
@@ -14,14 +15,17 @@ class PacienteModel extends Paciente {
     super.afinandoCerebro,
     super.observacoes,
     required super.dataCadastro,
+    super.dataArquivamento,
     required super.status,
-  });
+    super.nomeBusca,
+    });
 
-  // Construtor para criar um PacienteModel a partir de um DocumentSnapshot do Firestore
-  factory PacienteModel.fromFirestore(DocumentSnapshot doc) {
+    // Construtor para criar um PacienteModel a partir de um DocumentSnapshot do Firestore
+    factory PacienteModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return PacienteModel(
       id: doc.id,
+      ownerId: data['ownerId'] as String?,
       nome: data['nome'] as String,
       // Converte a string 'dd/MM/yyyy' do Firestore para DateTime usando o DateFormatter
       dataNascimento: DateFormatter.parseDate(data['dataNascimento'] as String),
@@ -31,14 +35,20 @@ class PacienteModel extends Paciente {
       afinandoCerebro: data['afinandoCerebro'] as String?,
       observacoes: data['observacoes'] as String?,
       dataCadastro: (data['dataCadastro'] as Timestamp).toDate(), // dataCadastro continua como Timestamp
+      dataArquivamento: data['dataArquivamento'] != null 
+          ? (data['dataArquivamento'] as Timestamp).toDate() 
+          : null,
       status: data['status'] as String,
+      nomeBusca: data['nomeBusca'] as String?,
     );
-  }
+    }
 
-  // Converte o PacienteModel para um mapa de dados compatível com o Firestore
-  Map<String, dynamic> toFirestore() {
+    // Converte o PacienteModel para um mapa de dados compatível com o Firestore
+    Map<String, dynamic> toFirestore() {
     return {
+      'ownerId': ownerId,
       'nome': nome,
+      'nomeBusca': nomeBusca, // Salva o nome normalizado
       // Converte DateTime para string 'dd/MM/yyyy' para o Firestore usando o DateFormatter
       'dataNascimento': DateFormatter.formatDate(dataNascimento),
       'nomeResponsavel': nomeResponsavel,
@@ -47,6 +57,7 @@ class PacienteModel extends Paciente {
       'afinandoCerebro': afinandoCerebro,
       'observacoes': observacoes,
       'dataCadastro': Timestamp.fromDate(dataCadastro), // dataCadastro continua como Timestamp
+      'dataArquivamento': dataArquivamento != null ? Timestamp.fromDate(dataArquivamento!) : null,
       'status': status,
     };
   }
@@ -55,6 +66,7 @@ class PacienteModel extends Paciente {
   factory PacienteModel.fromEntity(Paciente paciente) {
     return PacienteModel(
       id: paciente.id,
+      ownerId: paciente.ownerId,
       nome: paciente.nome,
       dataNascimento: paciente.dataNascimento,
       nomeResponsavel: paciente.nomeResponsavel,
@@ -63,6 +75,7 @@ class PacienteModel extends Paciente {
       afinandoCerebro: paciente.afinandoCerebro,
       observacoes: paciente.observacoes,
       dataCadastro: paciente.dataCadastro,
+      dataArquivamento: paciente.dataArquivamento,
       status: paciente.status,
     );
   }

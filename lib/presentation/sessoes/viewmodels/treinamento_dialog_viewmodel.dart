@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/paciente.dart';
 import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
@@ -8,10 +7,10 @@ import 'package:agenda_treinamento/domain/usecases/treinamento/criar_treinamento
 import 'dart:async';
 
 class TreinamentoDialogViewModel extends ChangeNotifier {
-  final PacienteRepository _pacienteRepository = GetIt.instance<PacienteRepository>();
-  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
-  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
-  final CriarTreinamentoUseCase _criarTreinamentoUseCase = GetIt.instance<CriarTreinamentoUseCase>();
+  final PacienteRepository _pacienteRepository;
+  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
+  final TreinamentoRepository _treinamentoRepository;
+  final CriarTreinamentoUseCase _criarTreinamentoUseCase;
 
   bool _isLoading = false;
   List<Paciente> _pacientesDisponiveis = [];
@@ -23,7 +22,12 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
   List<Paciente> get pacientes => _pacientesDisponiveis;
   List<String> horariosParaDia(String? dia) => _horariosDisponiveisPorDia[dia] ?? [];
 
-  TreinamentoDialogViewModel() {
+  TreinamentoDialogViewModel(
+    this._pacienteRepository,
+    this._agendaDisponibilidadeRepository,
+    this._treinamentoRepository,
+    this._criarTreinamentoUseCase,
+  ) {
     loadInitialData();
   }
 
@@ -39,7 +43,6 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
       }
 
       _treinamentosSubscription = _treinamentoRepository.getTreinamentos().listen((treinamentos) {
-        // --- LÓGICA DE FILTRO ATUALIZADA AQUI ---
         final pacientesOcupados = treinamentos
             .where((t) => t.status == 'ativo' || t.status == 'Pendente Pagamento' || t.status == 'cancelado')
             .map((t) => t.pacienteId)
@@ -53,7 +56,7 @@ class TreinamentoDialogViewModel extends ChangeNotifier {
       });
 
     } catch (e) {
-      // Handle error, maybe show a message to the user
+      // Handle error
     } finally {
       _setLoading(false);
     }

@@ -17,7 +17,7 @@ properties:
   dataNascimento:
     type: string
     pattern: "^[0-9]{2}/[0-9]{2}/[0-9]{4}$"
-    description: "Data de nascimento no formato DD/MM/AAAA (salva como String)"
+    description: "Data de nascimento no formato DD/MM/AAAA (salva como String no Firestore)"
   nomeResponsavel:
     type: string
     description: "Nome do pai, mãe ou tutor legal"
@@ -30,6 +30,7 @@ properties:
     nullable: true
   afinandoCerebro:
     type: string
+    enum: ["Não enviado", "Enviado", "Cadastrado"]
     nullable: true
     description: "Informações ou status sobre o uso da plataforma Afinando o Cérebro"
   observacoes:
@@ -42,4 +43,4 @@ properties:
   status:
     type: string
     default: "ativo"
-    enum: [ativo, inativo, arquivado]
+    enum: [ativo, inativo]

@@ -166,7 +166,10 @@ class SessaoRepositoryImpl implements SessaoRepository {
     await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
       docId,
-      {'isDayBlocked': isBlocked},
+      {
+        'isDayBlocked': isBlocked,
+        'ownerId': _firebaseDatasource.currentUserId,
+      },
       SetOptions(merge: true),
     );
   }
@@ -174,11 +177,12 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   Future<String> addSessao(Sessao sessao) async {
+    final currentUserId = _firebaseDatasource.currentUserId;
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
     // --- CORREÇÃO AQUI ---
     // Garantindo que a chave seja sempre no formato HH:mm
     final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
-    final sessaoModel = SessaoModel.fromEntity(sessao);
+    final sessaoModel = SessaoModel.fromEntity(sessao.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.setDocument(
       FirestoreCollections.sessoes,
       docId,
@@ -224,12 +228,20 @@ class SessaoRepositoryImpl implements SessaoRepository {
 
   @override
   void addSessaoInBatch(WriteBatch batch, Sessao sessao) {
+    final currentUserId = _firebaseDatasource.currentUserId;
     final docId = DateFormat('yyyy-MM-dd').format(sessao.dataHora);
     // --- CORREÇÃO AQUI ---
     final horarioKey = DateFormat('HH:mm').format(sessao.dataHora);
-    final sessaoModel = SessaoModel.fromEntity(sessao);
+    final sessaoModel = SessaoModel.fromEntity(sessao.copyWith(ownerId: currentUserId));
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
-    batch.set(docRef, {horarioKey: sessaoModel.toFirestore()}, SetOptions(merge: true));
+    batch.set(
+      docRef,
+      {
+        horarioKey: sessaoModel.toFirestore(),
+        'ownerId': currentUserId,
+      },
+      SetOptions(merge: true),
+    );
   }
 
   @override
@@ -244,9 +256,13 @@ class SessaoRepositoryImpl implements SessaoRepository {
     final String horarioKey = sessao.id!.substring(lastHyphenIndex + 1);
     // --- FIM DA CORREÇÃO ---
 
-    final sessaoModel = SessaoModel.fromEntity(sessao);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final sessaoModel = SessaoModel.fromEntity(sessao.copyWith(ownerId: currentUserId));
     final docRef = _firebaseDatasource.getDocumentRef(FirestoreCollections.sessoes, docId);
-    batch.update(docRef, {horarioKey: sessaoModel.toFirestore()});
+    batch.update(docRef, {
+      horarioKey: sessaoModel.toFirestore(),
+      'ownerId': currentUserId,
+    });
   }
 
   @override

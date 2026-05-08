@@ -29,6 +29,13 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
       appBar: CustomAppBar(
         title: 'Pacientes Inativos',
         onBackButtonPressed: () => context.go('/pacientes-ativos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.archive_outlined),
+            onPressed: () => context.push('/pacientes-arquivados'),
+            tooltip: 'Ver Arquivados',
+          ),
+        ],
       ),
       body: PacientesListPageBody(
         pacientesStream: viewModel.pacientesStream,
@@ -39,6 +46,12 @@ class _PacientesInativosPageState extends State<PacientesInativosPage> {
         confirmationContent: 'Tem certeza que deseja reativar o paciente',
         emptyListMessage: 'Nenhum paciente inativo encontrado.',
         successMessage: 'Paciente reativado com sucesso!',
+        onSecondaryAction: viewModel.arquivarPaciente,
+        secondaryActionIcon: Icons.archive,
+        secondaryActionTooltip: 'Arquivar Paciente (Definitivo)',
+        secondaryConfirmationTitle: 'Confirmar Arquivamento',
+        secondaryConfirmationContent: 'Deseja arquivar definitivamente o paciente? Ele não aparecerá mais nesta lista.',
+        secondarySuccessMessage: 'Paciente arquivado com sucesso!',
       ),
     );
   }

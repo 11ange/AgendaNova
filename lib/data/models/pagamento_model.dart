@@ -6,6 +6,7 @@ import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 class PagamentoModel extends Pagamento {
   PagamentoModel({
     super.id,
+    super.ownerId,
     required super.treinamentoId,
     required super.pacienteId,
     required super.formaPagamento,
@@ -30,6 +31,7 @@ class PagamentoModel extends Pagamento {
   factory PagamentoModel.fromMap(Map<String, dynamic> data, {String? id}) {
     return PagamentoModel(
       id: id,
+      ownerId: data['ownerId'] as String?,
       treinamentoId: data['treinamentoId'] as String,
       pacienteId: data['pacienteId'] as String,
       formaPagamento: data['formaPagamento'] as String,
@@ -49,6 +51,7 @@ class PagamentoModel extends Pagamento {
   // Converte o PagamentoModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'ownerId': ownerId,
       'treinamentoId': treinamentoId,
       'pacienteId': pacienteId,
       'formaPagamento': formaPagamento,
@@ -72,6 +75,7 @@ class PagamentoModel extends Pagamento {
   factory PagamentoModel.fromEntity(Pagamento pagamento) {
     return PagamentoModel(
       id: pagamento.id,
+      ownerId: pagamento.ownerId,
       treinamentoId: pagamento.treinamentoId,
       pacienteId: pagamento.pacienteId,
       formaPagamento: pagamento.formaPagamento,

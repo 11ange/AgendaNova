@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:agenda_treinamento/presentation/common_widgets/custom_app_bar.dart';
-import 'package:agenda_treinamento/core/services/firebase_service.dart';
 import 'package:agenda_treinamento/presentation/home/viewmodels/home_viewmodel.dart';
 import 'package:intl/intl.dart';
-import 'package:get_it/get_it.dart'; // Import necessário
-import 'package:agenda_treinamento/injection_container.dart' as di; // Import necessário
+import 'package:get_it/get_it.dart';
+import 'package:agenda_treinamento/injection_container.dart' as di;
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -16,27 +15,31 @@ class HomePage extends StatelessWidget {
     Intl.defaultLocale = 'pt_BR';
 
     return ChangeNotifierProvider(
-      create: (_) => HomeViewModel(),
+      create: (_) => GetIt.instance<HomeViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Tela Inicial',
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () async {
-                // 1. Desautenticar o utilizador no Firebase
-                await FirebaseService.instance.signOut();
+            Consumer<HomeViewModel>(
+              builder: (context, viewModel, child) {
+                return IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () async {
+                    // 1. Desautenticar o utilizador via UseCase no ViewModel
+                    await viewModel.signOut();
 
-                // 2. Reiniciar o contêiner de injeção de dependência
-                await GetIt.instance.reset(); // Limpa todas as instâncias antigas
-                await di.init();  // Reinicializa com instâncias novas para a próxima sessão
+                    // 2. Reiniciar o contêiner de injeção de dependência
+                    await GetIt.instance.reset();
+                    await di.init();
 
-                // 3. Navegar para a tela de login
-                if (context.mounted) {
-                  context.go('/login');
-                }
+                    // 3. Navegar para a tela de login
+                    if (context.mounted) {
+                      context.go('/login');
+                    }
+                  },
+                  tooltip: 'Sair',
+                );
               },
-              tooltip: 'Sair',
             ),
           ],
         ),

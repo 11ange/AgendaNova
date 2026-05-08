@@ -4,6 +4,7 @@ import 'package:agenda_treinamento/domain/entities/pagamento.dart';
 // Entidade pura de domínio para Treinamento
 class Treinamento {
   final String? id; // ID do documento no Firestore
+  final String? ownerId; // UID do profissional no Firebase Auth
   final String pacienteId;
   final String diaSemana; // Ex: "Segunda-feira"
   final String horario; // Ex: "14:30"
@@ -19,6 +20,7 @@ class Treinamento {
 
   Treinamento({
     this.id,
+    this.ownerId,
     required this.pacienteId,
     required this.diaSemana,
     required this.horario,
@@ -36,6 +38,7 @@ class Treinamento {
   // Método para criar uma cópia da entidade com campos atualizados
   Treinamento copyWith({
     String? id,
+    String? ownerId,
     String? pacienteId,
     String? diaSemana,
     String? horario,
@@ -51,6 +54,7 @@ class Treinamento {
   }) {
     return Treinamento(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       pacienteId: pacienteId ?? this.pacienteId,
       diaSemana: diaSemana ?? this.diaSemana,
       horario: horario ?? this.horario,

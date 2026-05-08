@@ -32,10 +32,10 @@ properties:
     description: "Total de sessões previstas no contrato."
   status:
     type: string
-    enum: [Agendada, Bloqueada, Realizada, Faltou, Reagendada]
+    enum: [Agendada, Realizada, Falta, Cancelada, Bloqueada]
   statusPagamento:
     type: string
-    enum: [Pendente, Pago, N/A, Parcial]
+    enum: [Pendente, Realizado]
   dataPagamento:
     type: string
     format: date-time

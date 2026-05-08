@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- FUNÇÕES AUXILIARES DE VALIDAÇÃO ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(data) {
+      return isAuthenticated() && (data.ownerId == request.auth.uid || data == null);
+    }
+
+    function validateString(field, minLen) {
+      return request.resource.data[field] is string && request.resource.data[field].size() >= minLen;
+    }
+
+    function validateEnum(field, allowedValues) {
+      return request.resource.data[field] in allowedValues;
+    }
+
+    // --- REGRAS POR COLECÇÃO ---
+
+    // 1. Pacientes
+    match /pacientes/{pacienteId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      
+      // Validações adicionais de schema
+      allow create, update: if 
+        validateString('nome', 2) &&
+        request.resource.data.dataNascimento is string &&
+        validateEnum('status', ['ativo', 'inativo', 'arquivado']) &&
+        request.resource.data.dataCadastro is timestamp;
+    }
+
+    // 2. Lista de Espera
+    match /lista_espera/{entryId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      
+      allow create, update: if 
+        validateString('nome', 2) &&
+        validateEnum('status', ['aguardando', 'atendido', 'cancelado']);
+    }
+
+    // 3. Disponibilidade (Agenda)
+    match /disponibilidade/{docId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+    }
+
+    // 4. Treinamentos
+    match /treinamentos/{treinamentoId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      
+      allow create, update: if 
+        validateString('pacienteId', 1) &&
+        validateEnum('status', ['ativo', 'concluído', 'suspenso', 'cancelado', 'Pendente Pagamento', 'Finalizado']) &&
+        request.resource.data.dataInicio is timestamp &&
+        request.resource.data.numeroSessoesTotal is int;
+    }
+
+    // 5. Sessões Agendadas
+    match /sessoes_agendadas/{sessaoId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+      
+      allow create, update: if 
+        validateEnum('status', ['Agendada', 'Bloqueada', 'Realizada', 'Falta', 'Reagendada', 'Cancelada']) &&
+        validateEnum('statusPagamento', ['Pendente', 'Pago', 'N/A', 'Parcial', 'Realizado']) &&
+        request.resource.data.dataHora is timestamp;
+    }
+
+    // 6. Pagamentos
+    match /pagamentos/{pagamentoId} {
+      allow read, delete: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isOwner(resource.data) && isOwner(request.resource.data);
+    }
+
+    // 7. Relatórios
+    match /relatorios/{relatorioId} {
+      allow read: if isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update, delete: if false; // Imutáveis
+    }
+  }
+}

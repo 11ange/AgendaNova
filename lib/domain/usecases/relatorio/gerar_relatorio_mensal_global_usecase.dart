@@ -1,17 +1,14 @@
 import 'package:agenda_treinamento/domain/entities/relatorio.dart';
 import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
-import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 
 class GerarRelatorioMensalGlobalUseCase {
   final SessaoRepository _sessaoRepository;
   final TreinamentoRepository _treinamentoRepository;
-  final PacienteRepository _pacienteRepository; // Mantido no construtor para não quebrar dependências existentes
 
   GerarRelatorioMensalGlobalUseCase(
     this._sessaoRepository,
     this._treinamentoRepository,
-    this._pacienteRepository,
   );
 
   Future<Relatorio> call(int year, int month) async {

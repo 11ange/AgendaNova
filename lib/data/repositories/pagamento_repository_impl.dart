@@ -34,7 +34,8 @@ class PagamentoRepositoryImpl implements PagamentoRepository {
 
   @override
   Future<String> addPagamento(Pagamento pagamento) async {
-    final pagamentoModel = PagamentoModel.fromEntity(pagamento);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final pagamentoModel = PagamentoModel.fromEntity(pagamento.copyWith(ownerId: currentUserId));
     final docRef = await _firebaseDatasource.addDocument(FirestoreCollections.pagamentos, pagamentoModel.toFirestore());
     return docRef.id;
   }
@@ -44,7 +45,8 @@ class PagamentoRepositoryImpl implements PagamentoRepository {
     if (pagamento.id == null) {
       throw Exception('ID do pagamento é obrigatório para atualização.');
     }
-    final pagamentoModel = PagamentoModel.fromEntity(pagamento);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final pagamentoModel = PagamentoModel.fromEntity(pagamento.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.updateDocument(FirestoreCollections.pagamentos, pagamento.id!, pagamentoModel.toFirestore());
   }
 

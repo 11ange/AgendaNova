@@ -19,6 +19,9 @@ import 'package:agenda_treinamento/presentation/sessoes/viewmodels/sessoes_viewm
 import 'package:agenda_treinamento/core/services/firebase_service.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_ativos_viewmodel.dart';
 import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_inativos_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/viewmodels/pacientes_arquivados_viewmodel.dart';
+import 'package:agenda_treinamento/presentation/pacientes/pages/pacientes_arquivados_page.dart';
+import 'package:agenda_treinamento/injection_container.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -35,21 +38,21 @@ class AppRouter {
       GoRoute(
         path: '/pacientes-ativos',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => PacientesAtivosViewModel(),
+          create: (_) => sl<PacientesAtivosViewModel>(),
           child: const PacientesAtivosPage(),
         ),
         routes: [
           GoRoute(
             path: 'novo',
             builder: (context, state) => ChangeNotifierProvider(
-              create: (_) => PacienteFormViewModel(),
+              create: (_) => sl<PacienteFormViewModel>(),
               child: const PacienteFormPage(),
             ),
           ),
           GoRoute(
             path: 'editar/:id',
             builder: (context, state) => ChangeNotifierProvider(
-              create: (_) => PacienteFormViewModel(),
+              create: (_) => sl<PacienteFormViewModel>(),
               child: PacienteFormPage(pacienteId: state.pathParameters['id']!),
             ),
           ),
@@ -65,21 +68,28 @@ class AppRouter {
       GoRoute(
         path: '/pacientes-inativos',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => PacientesInativosViewModel(),
+          create: (_) => sl<PacientesInativosViewModel>(),
           child: const PacientesInativosPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/pacientes-arquivados',
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (_) => sl<PacientesArquivadosViewModel>(),
+          child: const PacientesArquivadosPage(),
         ),
       ),
       GoRoute(
         path: '/agenda',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => AgendaViewModel(),
+          create: (_) => sl<AgendaViewModel>(),
           child: const AgendaPage(),
         ),
       ),
       GoRoute(
         path: '/sessoes',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => SessoesViewModel(),
+          create: (_) => sl<SessoesViewModel>(),
           child: const SessoesPage(),
         ),
       ),
@@ -94,7 +104,7 @@ class AppRouter {
       GoRoute(
         path: '/lista-espera',
         builder: (context, state) => ChangeNotifierProvider(
-          create: (_) => ListaEsperaViewModel(),
+          create: (_) => sl<ListaEsperaViewModel>(),
           child: const ListaEsperaPage(),
         ),
       ),

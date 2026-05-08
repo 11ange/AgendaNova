@@ -11,6 +11,9 @@ abstract class PacienteRepository {
   // Obtém um stream de pacientes inativos
   Stream<List<Paciente>> getPacientesInativos();
 
+  // Obtém um stream de pacientes arquivados (Soft Deleted)
+  Stream<List<Paciente>> getPacientesArquivados();
+
   // Obtém um paciente pelo ID
   Future<Paciente?> getPacienteById(String id);
 
@@ -26,6 +29,15 @@ abstract class PacienteRepository {
   // Reativa um paciente (muda o status para 'ativo')
   Future<void> reativarPaciente(String id);
 
+  // Arquiva um paciente (Soft Delete) definindo a data de arquivamento
+  Future<void> arquivarPaciente(String id);
+
   // Verifica se um paciente com o nome fornecido já existe (incluindo inativos)
   Future<bool> pacienteExistsByName(String nome, {String? excludeId});
+
+  // Obtém um paciente pelo nome (exato)
+  Future<Paciente?> getPacienteByName(String nome);
+
+  // Obtém um paciente pelo nome normalizado (busca insensível a maiúsculas/minúsculas)
+  Future<Paciente?> getPacienteByNormalizedName(String nomeNormalizado);
 }

@@ -20,6 +20,15 @@ class EditarPacienteUseCase {
       throw Exception('Não é possível editar um paciente sem ID.');
     }
 
+    // Regra de negócio: verificar se já existe outro paciente com o mesmo nome
+    final exists = await _pacienteRepository.pacienteExistsByName(
+      paciente.nome,
+      excludeId: paciente.id,
+    );
+    if (exists) {
+      throw Exception('Já existe um outro paciente com este nome cadastrado.');
+    }
+
     // 1. Atualiza o cadastro do paciente (operação original)
     await _pacienteRepository.updatePaciente(paciente);
 

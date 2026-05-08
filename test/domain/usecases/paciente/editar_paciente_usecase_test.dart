@@ -14,13 +14,11 @@ import 'editar_paciente_usecase_test.mocks.dart';
 void main() {
   late EditarPacienteUseCase usecase;
   late MockPacienteRepository mockPacienteRepository;
-  // --- DECLARAÇÃO DAS VARIÁVEIS (Verifique se copiou estas linhas) ---
   late MockTreinamentoRepository mockTreinamentoRepository;
   late MockSessaoRepository mockSessaoRepository;
 
   setUp(() {
     mockPacienteRepository = MockPacienteRepository();
-    // --- INICIALIZAÇÃO DOS MOCKS ---
     mockTreinamentoRepository = MockTreinamentoRepository();
     mockSessaoRepository = MockSessaoRepository();
     
@@ -79,7 +77,7 @@ void main() {
       final call = usecase.call(pacienteExistente);
 
       // ASSERT
-      expect(() => call, throwsA(isA<Exception>()));
+      expect(call, throwsA(isA<Exception>()));
       
       verify(mockPacienteRepository.pacienteExistsByName(
         pacienteExistente.nome,

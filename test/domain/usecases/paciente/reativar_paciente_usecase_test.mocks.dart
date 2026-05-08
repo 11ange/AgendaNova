@@ -23,6 +23,7 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 /// A class which mocks [PacienteRepository].
 ///
@@ -53,6 +54,14 @@ class MockPacienteRepository extends _i1.Mock
   _i3.Stream<List<_i4.Paciente>> getPacientesInativos() =>
       (super.noSuchMethod(
             Invocation.method(#getPacientesInativos, []),
+            returnValue: _i3.Stream<List<_i4.Paciente>>.empty(),
+          )
+          as _i3.Stream<List<_i4.Paciente>>);
+
+  @override
+  _i3.Stream<List<_i4.Paciente>> getPacientesArquivados() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPacientesArquivados, []),
             returnValue: _i3.Stream<List<_i4.Paciente>>.empty(),
           )
           as _i3.Stream<List<_i4.Paciente>>);
@@ -102,6 +111,15 @@ class MockPacienteRepository extends _i1.Mock
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> arquivarPaciente(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#arquivarPaciente, [id]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Future<bool> pacienteExistsByName(String? nome, {String? excludeId}) =>
       (super.noSuchMethod(
             Invocation.method(
@@ -112,4 +130,22 @@ class MockPacienteRepository extends _i1.Mock
             returnValue: _i3.Future<bool>.value(false),
           )
           as _i3.Future<bool>);
+
+  @override
+  _i3.Future<_i4.Paciente?> getPacienteByName(String? nome) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPacienteByName, [nome]),
+            returnValue: _i3.Future<_i4.Paciente?>.value(),
+          )
+          as _i3.Future<_i4.Paciente?>);
+
+  @override
+  _i3.Future<_i4.Paciente?> getPacienteByNormalizedName(
+    String? nomeNormalizado,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPacienteByNormalizedName, [nomeNormalizado]),
+            returnValue: _i3.Future<_i4.Paciente?>.value(),
+          )
+          as _i3.Future<_i4.Paciente?>);
 }

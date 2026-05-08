@@ -5,6 +5,7 @@ import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
 class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
   AgendaDisponibilidadeModel({
     super.id,
+    super.ownerId,
     required super.agenda,
   });
 
@@ -22,20 +23,25 @@ class AgendaDisponibilidadeModel extends AgendaDisponibilidade {
 
     return AgendaDisponibilidadeModel(
       id: doc.id,
+      ownerId: data['ownerId'] as String?,
       agenda: agendaMap,
     );
   }
 
   // Converte o AgendaDisponibilidadeModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
-    // Salva o mapa da agenda diretamente na raiz do documento
-    return agenda;
+    // Salva o mapa da agenda diretamente na raiz do documento, incluindo o ownerId
+    return {
+      'ownerId': ownerId,
+      ...agenda,
+    };
   }
 
   // Construtor para criar um AgendaDisponibilidadeModel a partir de uma entidade AgendaDisponibilidade
   factory AgendaDisponibilidadeModel.fromEntity(AgendaDisponibilidade agendaDisponibilidade) {
     return AgendaDisponibilidadeModel(
       id: agendaDisponibilidade.id,
+      ownerId: agendaDisponibilidade.ownerId,
       agenda: agendaDisponibilidade.agenda,
     );
   }

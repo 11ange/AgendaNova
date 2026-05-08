@@ -49,7 +49,7 @@ void main() {
       final call = usecase.call(pacienteId);
 
       // ASSERT
-      expect(() => call, throwsA(isA<Exception>()));
+      expect(call, throwsA(isA<Exception>()));
       verify(mockTreinamentoRepository.hasActiveTreinamento(pacienteId)).called(1);
       verifyNever(mockPacienteRepository.inativarPaciente(any));
     });

@@ -51,7 +51,8 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
 
   @override
   Future<String> addTreinamento(Treinamento treinamento) async {
-    final treinamentoModel = TreinamentoModel.fromEntity(treinamento);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final treinamentoModel = TreinamentoModel.fromEntity(treinamento.copyWith(ownerId: currentUserId));
     final docRef = await _firebaseDatasource.addDocument(
       FirestoreCollections.treinamentos,
       treinamentoModel.toFirestore(),
@@ -64,7 +65,8 @@ class TreinamentoRepositoryImpl implements TreinamentoRepository {
     if (treinamento.id == null) {
       throw Exception('ID do treinamento é obrigatório para atualização.');
     }
-    final treinamentoModel = TreinamentoModel.fromEntity(treinamento);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final treinamentoModel = TreinamentoModel.fromEntity(treinamento.copyWith(ownerId: currentUserId));
     await _firebaseDatasource.updateDocument(
       FirestoreCollections.treinamentos,
       treinamento.id!,

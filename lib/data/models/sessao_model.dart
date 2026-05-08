@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 class SessaoModel extends Sessao {
   SessaoModel({
     super.id,
+    super.ownerId,
     required super.treinamentoId,
     required super.pacienteId,
     required super.pacienteNome,
@@ -33,6 +34,7 @@ class SessaoModel extends Sessao {
     if (map['treinamentoId'] == 'bloqueio_manual' && map['status'] == 'Bloqueada') {
       return SessaoModel(
         id: '$docId-$horarioKey',
+        ownerId: map['ownerId'] as String?,
         treinamentoId: 'bloqueio_manual',
         pacienteId: 'bloqueio_manual',
         pacienteNome: 'Horário Bloqueado',
@@ -53,6 +55,7 @@ class SessaoModel extends Sessao {
 
     return SessaoModel(
       id: '$docId-$horarioKey',
+      ownerId: map['ownerId'] as String?,
       treinamentoId: map['agendamentoId'] as String? ?? '',
       pacienteId: map['pacienteId'] as String? ?? '',
       pacienteNome: map['pacienteNome'] as String? ?? 'Desconhecido',
@@ -76,6 +79,7 @@ class SessaoModel extends Sessao {
     // Se for uma sessão de bloqueio manual, retorna a representação simplificada
     if (treinamentoId == 'bloqueio_manual' && status == 'Bloqueada') {
       return {
+        'ownerId': ownerId,
         'status': 'Bloqueada',
         'treinamentoId': 'bloqueio_manual',
         'observacoes': observacoes, // Manter observações se houver
@@ -84,6 +88,7 @@ class SessaoModel extends Sessao {
 
     // Para sessões normais, retorna o mapa completo
     return {
+      'ownerId': ownerId,
       'agendamentoId': treinamentoId,
       'pacienteId': pacienteId,
       'pacienteNome': pacienteNome,
@@ -105,6 +110,7 @@ class SessaoModel extends Sessao {
   factory SessaoModel.fromEntity(Sessao sessao) {
     return SessaoModel(
       id: sessao.id,
+      ownerId: sessao.ownerId,
       treinamentoId: sessao.treinamentoId,
       pacienteId: sessao.pacienteId,
       pacienteNome: sessao.pacienteNome,

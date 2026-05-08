@@ -1,6 +1,7 @@
 // Entidade pura de domínio para a Lista de Espera
 class ListaEspera {
   final String? id; // ID do documento no Firestore
+  final String? ownerId; // UID do profissional no Firebase Auth
   final String nome;
   final String? telefone;
   final String? observacoes;
@@ -10,6 +11,7 @@ class ListaEspera {
 
   ListaEspera({
     this.id,
+    this.ownerId,
     required this.nome,
     this.telefone,
     this.observacoes,
@@ -21,6 +23,7 @@ class ListaEspera {
   // Método para criar uma cópia da entidade com campos atualizados
   ListaEspera copyWith({
     String? id,
+    String? ownerId,
     String? nome,
     String? telefone,
     String? observacoes,
@@ -30,6 +33,7 @@ class ListaEspera {
   }) {
     return ListaEspera(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       nome: nome ?? this.nome,
       telefone: telefone ?? this.telefone,
       observacoes: observacoes ?? this.observacoes,

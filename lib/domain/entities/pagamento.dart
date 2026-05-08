@@ -2,6 +2,7 @@
 // Entidade pura de domínio para Pagamento
 class Pagamento {
   final String? id; // ID do documento no Firestore
+  final String? ownerId; // UID do profissional no Firebase Auth
   final String treinamentoId;
   final String pacienteId;
   final String formaPagamento; // "Dinheiro", "Pix", "Convenio"
@@ -17,6 +18,7 @@ class Pagamento {
 
   Pagamento({
     this.id,
+    this.ownerId,
     required this.treinamentoId,
     required this.pacienteId,
     required this.formaPagamento,
@@ -34,6 +36,7 @@ class Pagamento {
   // Método para criar uma cópia da entidade com campos atualizados
   Pagamento copyWith({
     String? id,
+    String? ownerId,
     String? treinamentoId,
     String? pacienteId,
     String? formaPagamento,
@@ -49,6 +52,7 @@ class Pagamento {
   }) {
     return Pagamento(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       treinamentoId: treinamentoId ?? this.treinamentoId,
       pacienteId: pacienteId ?? this.pacienteId,
       formaPagamento: formaPagamento ?? this.formaPagamento,

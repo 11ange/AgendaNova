@@ -28,4 +28,4 @@ properties:
   status:
     type: string
     default: "aguardando"
-    enum: [aguardando, atendido, cancelado] # Exemplo de valores possíveis
+    enum: [aguardando, saiu] # Exemplo de valores possíveis

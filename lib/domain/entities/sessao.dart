@@ -1,6 +1,7 @@
 // Entidade pura de domínio para Sessão
 class Sessao {
   final String? id; // ID do documento no Firestore (será o ID da sub-sessão, se aplicável, ou gerado)
+  final String? ownerId; // UID do profissional no Firebase Auth
   final String treinamentoId;
   final String pacienteId;
   final String pacienteNome; // Novo campo
@@ -19,6 +20,7 @@ class Sessao {
 
   Sessao({
     this.id,
+    this.ownerId,
     required this.treinamentoId,
     required this.pacienteId,
     required this.pacienteNome,
@@ -39,6 +41,7 @@ class Sessao {
   // Método para criar uma cópia da entidade com campos atualizados
   Sessao copyWith({
     String? id,
+    String? ownerId,
     String? treinamentoId,
     String? pacienteId,
     String? pacienteNome,
@@ -57,6 +60,7 @@ class Sessao {
   }) {
     return Sessao(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       treinamentoId: treinamentoId ?? this.treinamentoId,
       pacienteId: pacienteId ?? this.pacienteId,
       pacienteNome: pacienteNome ?? this.pacienteNome,

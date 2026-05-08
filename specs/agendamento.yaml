@@ -25,7 +25,7 @@ properties:
   status:
     type: string
     description: "Estado atual do agendamento"
-    enum: [pendente, confirmado, realizado, cancelado, falta]
+    enum: [Agendado, Realizada, Cancelado, Falta, Bloqueado]
   observacoes:
     type: string
     nullable: true

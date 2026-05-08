@@ -5,6 +5,7 @@ import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
 class ListaEsperaModel extends ListaEspera {
   ListaEsperaModel({
     super.id,
+    super.ownerId,
     required super.nome,
     super.telefone,
     super.observacoes,
@@ -19,6 +20,7 @@ class ListaEsperaModel extends ListaEspera {
     final dataCadastro = (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
     return ListaEsperaModel(
       id: doc.id,
+      ownerId: data['ownerId'] as String?,
       nome: data['nome'] as String,
       telefone: data['telefone'] as String?,
       observacoes: data['observacoes'] as String?,
@@ -31,6 +33,7 @@ class ListaEsperaModel extends ListaEspera {
   // Converte o ListaEsperaModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'ownerId': ownerId,
       'nome': nome,
       'telefone': telefone,
       'observacoes': observacoes,
@@ -44,6 +47,7 @@ class ListaEsperaModel extends ListaEspera {
   factory ListaEsperaModel.fromEntity(ListaEspera listaEspera) {
     return ListaEsperaModel(
       id: listaEspera.id,
+      ownerId: listaEspera.ownerId,
       nome: listaEspera.nome,
       telefone: listaEspera.telefone,
       observacoes: listaEspera.observacoes,

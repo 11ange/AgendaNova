@@ -54,4 +54,30 @@ class InputValidators {
     }
     return null;
   }
+
+  // Valida a complexidade da senha
+  static String? passwordComplexity(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Senha é obrigatória.';
+    }
+    
+    // Mínimo 8 caracteres, pelo menos 1 maiúscula, 1 minúscula e 1 número
+    if (value.length < 8) {
+      return 'A senha deve ter pelo menos 8 caracteres.';
+    }
+    
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'A senha deve conter pelo menos uma letra maiúscula.';
+    }
+    
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'A senha deve conter pelo menos uma letra minúscula.';
+    }
+    
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return 'A senha deve conter pelo menos um número.';
+    }
+    
+    return null;
+  }
 }

@@ -8,6 +8,7 @@ import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/agenda/definir_agenda_usecase.dart';
+import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
@@ -44,8 +45,9 @@ void main() {
     hoje = DateTime.now();
     amanha = hoje.add(const Duration(days: 1));
 
-    diaAmanhaNorm = DateFormat('EEEE', 'pt_BR').format(amanha).toLowerCase();
-    outroDiaNorm = DateFormat('EEEE', 'pt_BR').format(hoje.add(const Duration(days: 2))).toLowerCase();
+    // Usa o helper para garantir que as chaves da agenda estejam capitalizadas como o sistema espera
+    diaAmanhaNorm = DateFormatter.getCapitalizedWeekdayName(amanha);
+    outroDiaNorm = DateFormatter.getCapitalizedWeekdayName(hoje.add(const Duration(days: 2)));
 
     agendaAtual = AgendaDisponibilidade(agenda: {
       diaAmanhaNorm: [horaSessao],
@@ -73,23 +75,12 @@ void main() {
         outroDiaNorm: ['11:00'],
       });
 
-      final agendaController = StreamController<AgendaDisponibilidade>();
-      final sessoesController = StreamController<List<Sessao>>();
+      when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => Stream.value(agendaAtual));
+      when(mockSessaoRepository.getSessoes()).thenAnswer((_) => Stream.value([sessaoFutura]));
 
-      when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => agendaController.stream);
-      when(mockSessaoRepository.getSessoes()).thenAnswer((_) => sessoesController.stream);
-
-      agendaController.add(agendaAtual);
-      sessoesController.add([sessaoFutura]);
-
-      // CORREÇÃO: espera exceção porque usecase agora lança
-      await expectLater(
-        () async => await usecase.call(novaAgenda),
-        throwsA(isA<Exception>()),
-      );
-
-      await agendaController.close();
-      await sessoesController.close();
+      // ACT & ASSERT
+      final call = usecase.call(novaAgenda);
+      await expectLater(call, throwsA(isA<Exception>()));
 
       verify(mockAgendaRepository.getAgendaDisponibilidade()).called(1);
       verify(mockSessaoRepository.getSessoes()).called(1);
@@ -101,20 +92,11 @@ void main() {
         outroDiaNorm: ['14:00'],
       });
 
-      final agendaController = StreamController<AgendaDisponibilidade>();
-      final sessoesController = StreamController<List<Sessao>>();
-
-      when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => agendaController.stream);
-      when(mockSessaoRepository.getSessoes()).thenAnswer((_) => sessoesController.stream);
+      when(mockAgendaRepository.getAgendaDisponibilidade()).thenAnswer((_) => Stream.value(agendaAtual));
+      when(mockSessaoRepository.getSessoes()).thenAnswer((_) => Stream.value([]));
       when(mockAgendaRepository.setAgendaDisponibilidade(any)).thenAnswer((_) async {});
 
-      agendaController.add(agendaAtual);
-      sessoesController.add([]);
-
       await usecase.call(novaAgenda);
-
-      await agendaController.close();
-      await sessoesController.close();
 
       verify(mockAgendaRepository.getAgendaDisponibilidade()).called(1);
       verify(mockSessaoRepository.getSessoes()).called(1);

@@ -1,13 +1,11 @@
 // lib/presentation/sessoes/viewmodels/sessoes_viewmodel.dart
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:agenda_treinamento/domain/entities/sessao.dart';
 import 'package:agenda_treinamento/domain/entities/agenda_disponibilidade.dart';
 import 'package:agenda_treinamento/domain/entities/treinamento.dart';
 import 'package:agenda_treinamento/domain/repositories/sessao_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/treinamento_repository.dart';
 import 'package:agenda_treinamento/domain/repositories/agenda_disponibilidade_repository.dart';
-import 'package:agenda_treinamento/domain/repositories/paciente_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/sessao/atualizar_status_sessao_usecase.dart';
 import 'package:agenda_treinamento/core/utils/date_formatter.dart';
 import 'package:intl/intl.dart';
@@ -15,9 +13,9 @@ import 'dart:async';
 import 'package:collection/collection.dart'; 
 
 class SessoesViewModel extends ChangeNotifier {
-  final SessaoRepository _sessaoRepository = GetIt.instance<SessaoRepository>();
-  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository = GetIt.instance<AgendaDisponibilidadeRepository>();
-  final TreinamentoRepository _treinamentoRepository = GetIt.instance<TreinamentoRepository>();
+  final SessaoRepository _sessaoRepository;
+  final AgendaDisponibilidadeRepository _agendaDisponibilidadeRepository;
+  final TreinamentoRepository _treinamentoRepository;
   final AtualizarStatusSessaoUseCase _atualizarStatusSessaoUseCase;
 
   // Stream Controllers
@@ -45,13 +43,12 @@ class SessoesViewModel extends ChangeNotifier {
   List<Treinamento> get treinamentosDoPacienteSelecionado => _treinamentosDoPacienteSelecionado;
   AgendaDisponibilidade? get agendaDisponibilidade => _agendaDisponibilidade;
 
-  SessoesViewModel()
-      : _atualizarStatusSessaoUseCase = AtualizarStatusSessaoUseCase(
-          GetIt.instance<SessaoRepository>(),
-          GetIt.instance<TreinamentoRepository>(),
-          GetIt.instance<AgendaDisponibilidadeRepository>(),
-          GetIt.instance<PacienteRepository>(),
-        );
+  SessoesViewModel(
+    this._sessaoRepository,
+    this._agendaDisponibilidadeRepository,
+    this._treinamentoRepository,
+    this._atualizarStatusSessaoUseCase,
+  );
 
   Future<void> initialize(DateTime focusedDay) async {
     _currentFocusedMonth = focusedDay;
@@ -382,7 +379,6 @@ class SessoesViewModel extends ChangeNotifier {
         await _sessaoRepository.addSessao(novaSessao);
       }
       
-      // --- NOVO CÓDIGO AQUI: ATUALIZAR O CONTRATO (TREINAMENTO) ---
       final treinamento = await _treinamentoRepository.getTreinamentoById(sessaoBase.treinamentoId);
       if (treinamento != null) {
         final novoDiaSemana = DateFormatter.getCapitalizedWeekdayName(novaDataInicio);
@@ -392,7 +388,6 @@ class SessoesViewModel extends ChangeNotifier {
         );
         await _treinamentoRepository.updateTreinamento(treinamentoAtualizado);
       }
-      // -----------------------------------------------------------
 
       if (_currentFocusedMonth != null) await onPageChanged(_currentFocusedMonth!);
 

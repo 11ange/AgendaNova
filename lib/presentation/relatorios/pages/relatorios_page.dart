@@ -7,6 +7,8 @@ import 'package:agenda_treinamento/domain/entities/paciente.dart'; // Para sele�
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // Importação adicionada para DateFormat
 
+import 'package:agenda_treinamento/injection_container.dart'; // Import sl
+
 // Tela de Relatórios
 class RelatoriosPage extends StatefulWidget {
   const RelatoriosPage({super.key});
@@ -20,18 +22,18 @@ class _RelatoriosPageState extends State<RelatoriosPage> {
   int _selectedMonth = DateTime.now().month;
   Paciente? _selectedPaciente;
 
-  /*@override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<RelatoriosViewModel>(context, listen: false).loadPacientes();
     });
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => RelatoriosViewModel(),
+      create: (_) => sl<RelatoriosViewModel>(),
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Relatórios',

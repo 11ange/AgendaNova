@@ -6,6 +6,8 @@ import 'package:agenda_treinamento/presentation/auth/viewmodels/login_viewmodel.
 import 'package:provider/provider.dart';
 import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 
+import 'package:agenda_treinamento/injection_container.dart'; // Import sl
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -29,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => LoginViewModel(),
+      create: (_) => sl<LoginViewModel>(),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Agenda de Treinamento'),

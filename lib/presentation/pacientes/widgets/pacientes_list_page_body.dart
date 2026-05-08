@@ -8,24 +8,36 @@ import 'package:agenda_treinamento/core/utils/snackbar_helper.dart';
 class PacientesListPageBody extends StatefulWidget {
   final Stream<List<Paciente>> pacientesStream;
   final Function(String) onAction;
+  final Function(String)? onSecondaryAction;
   final String actionTooltip;
+  final String? secondaryActionTooltip;
   final IconData actionIcon;
+  final IconData? secondaryActionIcon;
   final String confirmationTitle;
   final String confirmationContent;
+  final String? secondaryConfirmationTitle;
+  final String? secondaryConfirmationContent;
   final String emptyListMessage;
   final String successMessage;
+  final String? secondarySuccessMessage;
   final Key? scrollableKey;
 
   const PacientesListPageBody({
     super.key,
     required this.pacientesStream,
     required this.onAction,
+    this.onSecondaryAction,
     required this.actionTooltip,
+    this.secondaryActionTooltip,
     required this.actionIcon,
+    this.secondaryActionIcon,
     required this.confirmationTitle,
     required this.confirmationContent,
+    this.secondaryConfirmationTitle,
+    this.secondaryConfirmationContent,
     required this.emptyListMessage,
     required this.successMessage,
+    this.secondarySuccessMessage,
     this.scrollableKey,
   });
 
@@ -111,8 +123,6 @@ class _PacientesListPageBodyState extends State<PacientesListPageBody> {
                       context.push('/pacientes-ativos/editar/${paciente.id}');
                     },
                     onAction: () async {
-                      // **A CORREÇÃO DEFINITIVA ESTÁ AQUI**
-                      // Capturamos a referência ao ScaffoldMessenger ANTES de qualquer `await`.
                       final scaffoldMessenger = ScaffoldMessenger.of(context);
                       final confirm = await _showConfirmationDialog(context,
                           widget.confirmationTitle, '${widget.confirmationContent} ${paciente.nome}?');
@@ -141,8 +151,40 @@ class _PacientesListPageBodyState extends State<PacientesListPageBody> {
                         }
                       }
                     },
+                    onSecondaryAction: widget.onSecondaryAction != null ? () async {
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
+                      final confirm = await _showConfirmationDialog(context,
+                          widget.secondaryConfirmationTitle ?? 'Confirmar', 
+                          '${widget.secondaryConfirmationContent ?? 'Deseja realizar esta ação para'} ${paciente.nome}?');
+                      
+                      if (confirm == true) {
+                        try {
+                          await widget.onSecondaryAction!(paciente.id!);
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(widget.secondarySuccessMessage ?? 'Ação realizada com sucesso!'),
+                              backgroundColor: Colors.green[700],
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        } catch (e) {
+                          final errorMessage = SnackBarHelper.parseErrorMessage(e);
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(errorMessage),
+                              backgroundColor: Colors.red[700],
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 4),
+                            ),
+                          );
+                        }
+                      }
+                    } : null,
                     actionIcon: widget.actionIcon,
                     actionTooltip: widget.actionTooltip,
+                    secondaryActionIcon: widget.secondaryActionIcon,
+                    secondaryActionTooltip: widget.secondaryActionTooltip,
                     onTap: () {
                       context.go('/pacientes-ativos/historico/${paciente.id}');
                     },

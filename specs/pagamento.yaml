@@ -19,14 +19,14 @@ properties:
     description: "Referência ao ID do paciente"
   formaPagamento:
     type: string
-    enum: [pix, cartao_credito, cartao_debito, dinheiro, convenio, transferencia]
+    enum: [Dinheiro, Pix, Convenio]
   tipoParcelamento:
     type: string
     nullable: true
-    description: "Ex: 'Mensal', 'Recorrente', ou 'Único'"
+    description: "Ex: 'Por sessão', '3x'"
   status:
     type: string
-    enum: [pago, pendente, cancelado, reembolsado, enviado_convenio]
+    enum: [Pendente, Realizado]
   dataPagamento:
     type: string
     format: date-time

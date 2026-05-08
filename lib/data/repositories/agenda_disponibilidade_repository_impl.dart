@@ -25,7 +25,8 @@ class AgendaDisponibilidadeRepositoryImpl implements AgendaDisponibilidadeReposi
 
   @override
   Future<void> setAgendaDisponibilidade(AgendaDisponibilidade agenda) async {
-    final agendaModel = AgendaDisponibilidadeModel.fromEntity(agenda);
+    final currentUserId = _firebaseDatasource.currentUserId;
+    final agendaModel = AgendaDisponibilidadeModel.fromEntity(agenda.copyWith(ownerId: currentUserId));
     // Salva o mapa da agenda diretamente no documento 'minha_agenda'
     await _firebaseDatasource.setDocument(
         FirestoreCollections.disponibilidade, _disponibilidadeDocId, agendaModel.toFirestore());

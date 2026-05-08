@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:agenda_treinamento/core/services/firebase_service.dart';
-import 'package:agenda_treinamento/data/datasources/firebase_datasource.dart';
-import 'package:agenda_treinamento/data/repositories/lista_espera_repository_impl.dart';
 import 'package:agenda_treinamento/domain/entities/lista_espera.dart';
 import 'package:agenda_treinamento/domain/repositories/lista_espera_repository.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/adicionar_lista_espera_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/editar_lista_espera_usecase.dart';
 import 'package:agenda_treinamento/domain/usecases/lista_espera/remover_lista_espera_usecase.dart';
 import 'dart:async';
-import 'package:agenda_treinamento/core/utils/logger.dart'; // Importa o logger
+import 'package:agenda_treinamento/core/utils/logger.dart';
 
 // ViewModel para a tela de Lista de Espera
 class ListaEsperaViewModel extends ChangeNotifier {
@@ -28,37 +25,18 @@ class ListaEsperaViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  ListaEsperaViewModel({ListaEsperaRepository? listaEsperaRepository})
-    : _listaEsperaRepository =
-          listaEsperaRepository ??
-          ListaEsperaRepositoryImpl(
-            FirebaseDatasource(FirebaseService.instance),
-          ),
-      _adicionarListaEsperaUseCase = AdicionarListaEsperaUseCase(
-        listaEsperaRepository ??
-            ListaEsperaRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ),
-      _removerListaEsperaUseCase = RemoverListaEsperaUseCase(
-        listaEsperaRepository ??
-            ListaEsperaRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ),
-      _editarListaEsperaUseCase = EditarListaEsperaUseCase(
-        listaEsperaRepository ??
-            ListaEsperaRepositoryImpl(
-              FirebaseDatasource(FirebaseService.instance),
-            ),
-      ) {
+  ListaEsperaViewModel(
+    this._listaEsperaRepository,
+    this._adicionarListaEsperaUseCase,
+    this._removerListaEsperaUseCase,
+    this._editarListaEsperaUseCase,
+  ) {
     _listenToListaEspera();
   }
 
   void _listenToListaEspera() {
     _listaEsperaRepository.getListaEspera().listen(
       (items) {
-        // Filtra para mostrar apenas quem está aguardando
         final aguardando = items.where((item) => item.status == 'aguardando').toList();
         aguardando.sort((a, b) => a.dataCadastro.compareTo(b.dataCadastro));
         _listaEspera = aguardando;
@@ -105,7 +83,6 @@ class ListaEsperaViewModel extends ChangeNotifier {
     }
   }
   
-  // NOVO MÉTODO: Marca um item como "saiu"
   Future<void> sairDaLista(ListaEspera item) async {
     _setLoading(true);
     try {

@@ -5,6 +5,7 @@ import 'package:agenda_treinamento/domain/entities/relatorio.dart';
 class RelatorioModel extends Relatorio {
   RelatorioModel({
     required super.id,
+    super.ownerId,
     required super.tipoRelatorio,
     required super.dataGeracao,
     required super.dados,
@@ -15,6 +16,7 @@ class RelatorioModel extends Relatorio {
     final data = doc.data() as Map<String, dynamic>;
     return RelatorioModel(
       id: doc.id,
+      ownerId: data['ownerId'] as String?,
       tipoRelatorio: data['tipoRelatorio'] as String,
       dataGeracao: (data['dataGeracao'] as Timestamp).toDate(),
       dados: data['dados'] as Map<String, dynamic>,
@@ -24,6 +26,7 @@ class RelatorioModel extends Relatorio {
   // Converte o RelatorioModel para um mapa de dados compatível com o Firestore
   Map<String, dynamic> toFirestore() {
     return {
+      'ownerId': ownerId,
       'tipoRelatorio': tipoRelatorio,
       'dataGeracao': Timestamp.fromDate(dataGeracao),
       'dados': dados,
@@ -34,6 +37,7 @@ class RelatorioModel extends Relatorio {
   factory RelatorioModel.fromEntity(Relatorio relatorio) {
     return RelatorioModel(
       id: relatorio.id,
+      ownerId: relatorio.ownerId,
       tipoRelatorio: relatorio.tipoRelatorio,
       dataGeracao: relatorio.dataGeracao,
       dados: relatorio.dados,
